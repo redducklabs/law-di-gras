@@ -1,0 +1,180 @@
+"""Assemble the cached Dashboard: index → extract → map → brief.
+
+Cache key = hash of every source content_hash for the matter + pipeline
+version. Unchanged case → the stored Dashboard is returned without any call.
+"""
+
+import hashlib
+from datetime import date, datetime, timezone
+
+from rapidfuzz import fuzz
+
+from app.db import connect
+from app.digest import structured as st
+from app.digest.brief import write_brief
+from app.digest.extract import PROMPT_VERSION, Extracted, extract_all, save_facts
+from app.retrieval.embed import embed_matter
+from app.retrieval.hyde import hyde_matter
+from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, TimelineEvent, TreatmentLine)
+
+PIPELINE_VERSION = f"d1-{PROMPT_VERSION}"
+
+
+def input_hash(matter_id: str) -> str:
+    with connect() as conn:
+        rows = conn.execute("SELECT id, content_hash FROM sources WHERE matter_id = ? ORDER BY id",
+                            (matter_id,)).fetchall()
+    h = hashlib.sha256(PIPELINE_VERSION.encode())
+    for r in rows:
+        h.update(f"{r[0]}={r[1]};".encode())
+    return h.hexdigest()
+
+
+def matter_summary(matter_id: str) -> MatterSummary | None:
+    with connect() as conn:
+        m = conn.execute("SELECT * FROM matters WHERE id = ?", (matter_id,)).fetchone()
+    if not m:
+        return None
+    return MatterSummary(id=m["id"], display_number=m["display_number"] or "",
+                         title=m["description"] or m["display_number"] or "", client_name=m["client_name"] or "",
+                         client_photo_url=m["client_photo_url"], status=m["status"] or "",
+                         opened_date=st.iso(m["opened_date"]))
+
+
+def cached(matter_id: str) -> Dashboard | None:
+    with connect() as conn:
+        row = conn.execute("SELECT payload_json FROM digests WHERE matter_id = ? AND kind = 'dashboard'",
+                           (matter_id,)).fetchone()
+    return Dashboard.model_validate_json(row["payload_json"]) if row else None
+
+
+def _fact(x: Extracted, fid: str) -> Fact:
+    return Fact(id=fid, label=x.label, value=x.value, amount=x.amount, date=st.iso(x.date),
+                citations=x.citations, verified=x.verified)
+
+
+def _future(d: str, today: date) -> bool:
+    return date.fromisoformat(d) > today
+
+
+def build(matter_id: str, force: bool = False) -> Dashboard:
+    ih = input_hash(matter_id)
+    if not force:
+        with connect() as conn:
+            row = conn.execute("SELECT input_hash, payload_json FROM digests WHERE matter_id = ? AND kind = 'dashboard'",
+                               (matter_id,)).fetchone()
+        if row and row["input_hash"] == ih:
+            return Dashboard.model_validate_json(row["payload_json"])
+
+    matter = matter_summary(matter_id)
+    if matter is None:
+        raise LookupError(f"matter {matter_id} not synced")
+    started = datetime.now(timezone.utc).isoformat()
+    today = date.today()
+
+    embed_matter(matter_id)
+    hyde_matter(matter_id)
+    ex = extract_all(matter_id)
+    save_facts(matter_id, ex, ih)
+
+    facts: dict[str, list[Fact]] = {cat: [_fact(x, f"{cat}-{i}") for i, x in enumerate(items)]
+                                    for cat, items in ex.items()}
+
+    # Treatment lines + specials (sum of stated per-provider bills)
+    contacts = st.provider_contact_ids(matter_id)
+    treatment: list[TreatmentLine] = []
+    billed: list[Fact] = []
+    for i, x in enumerate(ex.get("treatment", [])):
+        name = x.party or x.label
+        cid = max(contacts, key=lambda c: fuzz.token_set_ratio(name, c[1]), default=None)
+        if cid and fuzz.token_set_ratio(name, cid[1]) < 85:
+            cid = None
+        bill = None
+        if x.amount:
+            bill = Fact(id=f"billed-{i}", label=f"Billed: {name}", value=f"${x.amount:,.2f}", amount=x.amount,
+                        citations=x.citations, verified=x.verified)
+            billed.append(bill)
+        treatment.append(TreatmentLine(provider=name, contact_id=cid[0] if cid else None,
+                                       first_visit=st.iso(x.date), last_visit=st.iso(x.end_date),
+                                       visit_count=x.count, billed=bill, citations=x.citations))
+    specials = None
+    if billed:
+        total = sum(b.amount or 0 for b in billed)
+        specials = Fact(id="specials", label="Medical specials (billed)",
+                        value=f"${total:,.2f} billed across {len(billed)} provider{'s' if len(billed) > 1 else ''}",
+                        amount=round(total, 2), citations=[c for b in billed for c in b.citations[:1]],
+                        verified=all(b.verified for b in billed))
+
+    # Timeline
+    timeline: list[TimelineEvent] = []
+    dated_incident = [f for f in facts.get("incident", []) if f.date]
+    inc = next((f for f in dated_incident if "date" in f.label.lower()), dated_incident[0] if dated_incident else None)
+    if inc:
+        timeline.append(TimelineEvent(date=inc.date, label=inc.value[:80], kind="incident",
+                                      is_future=_future(inc.date, today), citations=inc.citations))
+    for f in facts.get("key_dates", []):
+        if f.date:
+            fut = _future(f.date, today)
+            timeline.append(TimelineEvent(date=f.date, label=f.label, kind="deadline" if fut else "legal",
+                                          is_future=fut, citations=f.citations))
+    for t in treatment:
+        if t.first_visit:
+            timeline.append(TimelineEvent(date=t.first_visit, label=f"Treatment starts: {t.provider}",
+                                          kind="treatment", is_future=False, citations=t.citations))
+    cal_events, cal_actions = st.calendar(matter_id, today)
+    timeline.extend(cal_events)
+    uniq: list[TimelineEvent] = []
+    rank = {"incident": 0, "deadline": 1, "legal": 2, "treatment": 3, "communication": 4}
+    for e in sorted(timeline, key=lambda e: (e.date, rank[e.kind])):
+        same_day = [u for u in uniq if u.date == e.date]
+        if any(u.kind == "incident" for u in same_day) and e.kind == "legal":
+            continue  # "Date of incident" etc. duplicates the incident marker
+        if any(fuzz.token_set_ratio(u.label, e.label) >= 80 for u in same_day):
+            continue
+        uniq.append(e)
+
+    # Actions
+    actions: list[ActionItem] = st.actions_from_tasks(matter_id, today) + cal_actions
+    for x, f in zip(ex.get("requests", []), facts.get("requests", [])):
+        if any(fuzz.token_set_ratio(a.title, f.label) >= 70 for a in actions):
+            continue  # already tracked as a Clio task
+        actions.append(ActionItem(title=f.label, due_date=f.date, status="waiting", waiting_on=x.party,
+                                  citations=f.citations))
+    order = {"overdue": 0, "upcoming": 1, "waiting": 2}
+    actions.sort(key=lambda a: (order[a.status], a.due_date or "9999"))
+
+    spent = st.firm_spent(matter_id)
+    contact = st.last_client_contact(matter_id)
+
+    pool: list[Fact] = [f for cat in ("incident", "injuries", "coverage", "liens", "key_dates", "stage")
+                        for f in facts.get(cat, [])]
+    pool += billed + [f for f in (specials, spent, contact) if f]
+    pool = [f for f in pool if f.verified]
+    headline, case_value = write_brief(matter_id, pool, actions, matter.status, today)
+
+    with connect() as conn:
+        run_cost = conn.execute("SELECT COALESCE(SUM(cost_usd), 0) FROM llm_usage WHERE matter_id = ?"
+                                " AND created_at >= ?", (matter_id, started)).fetchone()[0]
+        models = [r[0] for r in conn.execute("SELECT DISTINCT model FROM llm_usage WHERE matter_id = ?",
+                                             (matter_id,))]
+
+    dash = Dashboard(
+        matter=matter,
+        generated_at=datetime.now(timezone.utc).isoformat(timespec="seconds"),
+        cost_usd=round(float(run_cost), 4),
+        models=models,
+        headline=headline,
+        timeline=uniq,
+        kpis=Kpis(specials=specials, coverage=facts.get("coverage", []), case_value=case_value,
+                  firm_spent=spent),
+        actions=actions,
+        last_client_contact=contact,
+        injuries=facts.get("injuries", []),
+        treatment=treatment,
+        recent=st.recent_activity(matter_id),
+    )
+    with connect() as conn:
+        conn.execute("INSERT OR REPLACE INTO digests (matter_id, kind, input_hash, payload_json, model, created_at)"
+                     " VALUES (?, 'dashboard', ?, ?, ?, datetime('now'))",
+                     (matter_id, ih, dash.model_dump_json(), ",".join(models)))
+    return dash
