@@ -35,8 +35,11 @@ export interface AuditIndex {
   section: (section: string, ids?: string[]) => AuditFlag[]
 }
 
+/** Only critical and major flags are marked on screen; minor ones are hover-only notes on the badge. */
+const serious = (f: AuditFlag) => f.severity === 'critical' || f.severity === 'major'
+
 export function indexAudit(report: AuditReport | null): AuditIndex {
-  const flags = report?.run?.status === 'done' ? report.flags : []
+  const flags = report?.run?.status === 'done' ? report.flags.filter(serious) : []
   return {
     item: id => flags.filter(f => f.item_id === id),
     section: (section, ids = []) => flags.filter(f => f.section === section || ids.includes(f.item_id)),
@@ -81,14 +84,19 @@ export function AuditBadge({ report }: { report: AuditReport | null }) {
     )
   }
   if (r.status === 'failed') return null
-  const n = report.flags.length
-  const crit = isCritical(report.flags)
+  const top = report.flags.filter(serious)
+  const n = top.length
+  const minor = report.flags.length - n
+  const crit = isCritical(top)
+  const hover = `Built-in audit checked ${report.items_checked} items against the record`
+    + (n ? `\n${noteOf(top)}` : '')
+    + (minor ? `\n${minor} minor note${minor === 1 ? '' : 's'} (wording, no action needed)` : '')
   return (
-    <span title={`Built-in audit checked ${report.items_checked} items${n ? `\n${noteOf(report.flags)}` : ''}`}
+    <span title={hover}
       className={`inline-flex shrink-0 cursor-help items-center gap-1.5 rounded-lg border px-2.5 py-1.5 text-[12px] font-semibold ${
         !n ? 'border-line bg-surface text-ok-700' : crit ? 'border-danger-200 bg-danger-50 text-danger-700' : 'border-warn-200 bg-warn-50 text-warn-700'}`}>
       <svg width="12" height="12" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden><path d="M8 1.5l5.5 2v4.2c0 3.2-2.3 5.6-5.5 6.8-3.2-1.2-5.5-3.6-5.5-6.8V3.5z" /><path d="M5.5 8l1.8 1.8L10.5 6.5" /></svg>
-      Audited · {n} flag{n === 1 ? '' : 's'}
+      {n ? `Audited · ${n} to review` : 'Audited · no issues'}
     </span>
   )
 }

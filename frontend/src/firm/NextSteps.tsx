@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Citation, Dashboard } from '../api/types'
+import type { AuditFlag } from '../api/types'
 import { Card, SourceChips, fmtDate, useReveal, type Tone } from '../components'
+import { FlagDot } from './audit'
 import { DraftDrawer } from './DraftDrawer'
 import { draftFor } from './drafts'
 import { buildNextSteps, type Step } from './stepRules'
@@ -17,10 +19,10 @@ const numTone: Record<Tone, string> = {
 /** To-dos shown before "Show all" (including the hero). */
 const VISIBLE = 3
 
-type Act = { onOpenSource?: (c: Citation) => void; onDraft: (s: Step) => void; data: Dashboard }
+type Act = { onOpenSource?: (c: Citation) => void; onDraft: (s: Step) => void; data: Dashboard; flagsFor?: (title: string) => AuditFlag[] }
 
 /** The "what do I do now" card. Step 1 is a hero; the rest is a numbered checklist. Every step drafts in one click. */
-export function NextSteps({ data, onOpenSource }: { data: Dashboard; onOpenSource?: (c: Citation) => void }) {
+export function NextSteps({ data, onOpenSource, flagsFor }: { data: Dashboard; onOpenSource?: (c: Citation) => void; flagsFor?: (title: string) => AuditFlag[] }) {
   const [drafting, setDrafting] = useState<Step | null>(null)
   const [expanded, setExpanded] = useState(false)
   useReveal('next-steps', () => setExpanded(true))
@@ -29,7 +31,7 @@ export function NextSteps({ data, onOpenSource }: { data: Dashboard; onOpenSourc
   const waiting = steps.filter(s => s.group === 'waiting')
   const overdue = todo.filter(s => s.tone === 'danger').length
   const [first, ...rest] = todo
-  const act: Act = { onOpenSource, onDraft: setDrafting, data }
+  const act: Act = { onOpenSource, onDraft: setDrafting, data, flagsFor }
 
   return (
     <Card title="Next steps" className="flex h-full flex-col" extra={
@@ -70,7 +72,7 @@ export function NextSteps({ data, onOpenSource }: { data: Dashboard; onOpenSourc
   )
 }
 
-function Hero({ step: s, onOpenSource, onDraft, data }: { step: Step } & Act) {
+function Hero({ step: s, onOpenSource, onDraft, data, flagsFor }: { step: Step } & Act) {
   const danger = s.tone === 'danger'
   return (
     <div className={`rounded-xl border border-l-4 p-4 ${danger ? 'border-danger-200 !border-l-danger-600 bg-danger-50/60' : 'border-line !border-l-brand-600 bg-page'}`}>
@@ -78,7 +80,7 @@ function Hero({ step: s, onOpenSource, onDraft, data }: { step: Step } & Act) {
         <span className={`grid h-5 w-5 place-items-center rounded-full text-[11px] ${numTone[s.tone]}`}>1</span>
         Do this next
       </div>
-      <div className="mt-2 text-[17px] font-semibold leading-snug text-slate-900">{s.title}</div>
+      <div className="mt-2 text-[17px] font-semibold leading-snug text-slate-900">{s.title} <FlagDot flags={flagsFor?.(s.title) ?? []} /></div>
       <div className={`mt-1 text-[13px] font-medium ${whyTone[s.tone]}`}>
         {s.why}{s.owner && <span className="font-normal text-slate-500"> · {s.owner}</span>}
       </div>
@@ -93,14 +95,14 @@ function Hero({ step: s, onOpenSource, onDraft, data }: { step: Step } & Act) {
   )
 }
 
-function Row({ n, step: s, onOpenSource, onDraft }: { n?: number; step: Step } & Act) {
+function Row({ n, step: s, onOpenSource, onDraft, flagsFor }: { n?: number; step: Step } & Act) {
   return (
     <li className="group flex items-start gap-3 rounded-lg px-1 py-2 hover:bg-page">
       {n != null
         ? <span className={`mt-px grid h-5 w-5 shrink-0 place-items-center rounded-full text-[11px] font-semibold ${numTone[s.tone]}`}>{n}</span>
         : <span className="mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full bg-slate-300" />}
       <div className="min-w-0 flex-1">
-        <div className="text-[13.5px] font-medium text-slate-900">{s.title}</div>
+        <div className="text-[13.5px] font-medium text-slate-900">{s.title} <FlagDot flags={flagsFor?.(s.title) ?? []} /></div>
         <div className={`flex flex-wrap items-center gap-x-1.5 gap-y-1 text-[12px] ${whyTone[s.tone]}`}>
           <span>{s.why}{s.owner && <span className="text-slate-500"> · {s.owner}</span>}</span>
           <SourceChips citations={s.citations} onOpen={onOpenSource} max={1} compact />

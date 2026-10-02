@@ -55,6 +55,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
                   <span className={`inline-flex items-center gap-1.5 ${contactAge != null && contactAge <= -30 ? 'font-medium text-warn-700' : ''}`}>
                     · Last client contact {contactAge != null ? relDays(contactAge) : d.last_client_contact.value}
                     <SourceChips citations={d.last_client_contact.citations} onOpen={onOpenSource} max={1} compact />
+                    <FlagDot flags={ax.item(d.last_client_contact.id)} />
                   </span>
                 )}
               </div>
@@ -73,7 +74,8 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
         {/* The one headline sentence. */}
         <p className="mb-4 max-w-[64rem] text-[18px] font-medium leading-snug text-slate-900">
           {d.headline.status_line}{' '}
-          {!!d.headline.status_citations?.length && <SourceChips citations={d.headline.status_citations} onOpen={onOpenSource} max={2} compact />}
+          {!!d.headline.status_citations?.length && <SourceChips citations={d.headline.status_citations} onOpen={onOpenSource} max={2} compact />}{' '}
+          <FlagDot flags={ax.item('status_line')} />
         </p>
 
         {/* Section ids match PageSection (chat deeplinks). */}
@@ -91,7 +93,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
 
         <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
           <section id="next-steps" className="scroll-mt-4 lg:col-span-7">
-            <NextSteps data={d} onOpenSource={onOpenSource} />
+            <NextSteps data={d} onOpenSource={onOpenSource} flagsFor={title => ax.item(`action:${title}`)} />
           </section>
           <section id="status" className="scroll-mt-4 lg:col-span-5">
             <KeyFacts bullets={d.headline.bullets} onOpenSource={onOpenSource} ax={ax} />
@@ -119,7 +121,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
             ) : <Empty>No injuries found in the record yet.</Empty>}
           </Disclosure>
 
-          <Disclosure id="treatment" title="Treatment" extra={<Markers facts={d.treatment.flatMap(t => (t.billed ? [t.billed] : []))} section="treatment" ax={ax} />}
+          <Disclosure id="treatment" title="Treatment" extra={<Markers facts={d.treatment.flatMap(t => (t.billed ? [t.billed] : []))} section="treatment" ax={ax} ids={d.treatment.map(t => `treatment:${t.provider}`)} />}
             summary={d.treatment.length
               ? <>{d.treatment.length} provider{d.treatment.length === 1 ? '' : 's'}{billedTotal > 0 && <> · {money(billedTotal)} billed</>}{nextVisit && <> · next visit {fmtDate(nextVisit, true)}</>}</>
               : 'None found in the record yet'}>
@@ -131,7 +133,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
                     <li key={i} className="border-t border-line-soft py-2.5 first:border-0 first:pt-0">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="flex items-center gap-2 text-[13.5px] font-medium">{t.provider}{t.billed && <FlagDot flags={ax.item(t.billed.id)} />}</div>
+                          <div className="flex items-center gap-2 text-[13.5px] font-medium">{t.provider}<FlagDot flags={[...ax.item(`treatment:${t.provider}`), ...(t.billed ? ax.item(t.billed.id) : [])]} /></div>
                           <div className="text-[12px] text-slate-500">
                             {t.visit_count != null && <>{t.visit_count} visit{t.visit_count === 1 ? '' : 's'} billed · </>}
                             {t.first_visit && <>first {fmtDate(t.first_visit, true)}</>}
@@ -230,11 +232,11 @@ function KeyFacts({ bullets, onOpenSource, ax }: { bullets: Fact[]; onOpenSource
 }
 
 /** Collapsed rows still say what inside is unverified or flagged by the audit. */
-function Markers({ facts, section, ax }: { facts: Fact[]; section: string; ax: AuditIndex }) {
+function Markers({ facts, section, ax, ids = [] }: { facts: Fact[]; section: string; ax: AuditIndex; ids?: string[] }) {
   return (
     <span className="inline-flex items-center gap-1.5">
       <Unverified facts={facts} />
-      <FlagCount flags={ax.section(section, facts.map(f => f.id))} />
+      <FlagCount flags={ax.section(section, [...facts.map(f => f.id), ...ids])} />
     </span>
   )
 }
