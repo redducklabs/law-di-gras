@@ -137,4 +137,36 @@ communications, tasks, calendar, and documents **including scanned PDFs**
 
 ## Decisions
 
-_None yet. Record each brainstorming decision here with a one-line reason._
+Brainstorm, 2026-10-02. Plan: `docs/plans/2026-10-02-case-brief-dashboard.md`.
+
+- **Concept: Case Brief + source pane.** One screen: subtle timeline strip at the
+  top, headline status, KPI tiles, needs-action list, injuries/treatment. Every
+  fact is a source chip that opens a right-side pane at the highlighted span.
+  Reason: answers "where does it stand" in 90 seconds and proves every fact.
+- **Firm priorities:** (1) status + source links, (2) KPIs: value drivers,
+  coverage, firm spend, (3) actions: overdue / upcoming / waiting on others,
+  last client contact, (4) injuries from scans (lower priority; page-level
+  highlight acceptable).
+- **Provider priorities:** status + coverage ("is it alive, is there money"),
+  attorney-controlled share (toggle sections, preview, share link), what the
+  firm needs from this provider. Opened-tracking is nice to have.
+- **Provider view = same cards, filtered server-side** by the attorney's share
+  settings. Strategy, notes and unshared sources never reach the provider API.
+- **Video:** open Sapini → grasp status + KPIs → click a date/injury → source
+  opens highlighted → toggle provider sharing → provider view.
+- **Stack:** FastAPI (Python 3.13, uv) + SQLite; React + Vite + TypeScript +
+  Tailwind; react-pdf with a highlight overlay. Reason: copy Python grounding
+  code from aurolegal, PyMuPDF for text positions.
+- **Models:** Haiku 4.5 for bulk ingestion (HyDE questions, OCR cleanup); Sonnet 5.5 for fact extraction; Opus 5.5 for the headline brief and
+  cited Q&A. Every call logs tokens and cost for the "cost per case" answer.
+- **Retrieval must be strong:** chunks + Haiku HyDE questions, embedded with
+  OpenAI `text-embedding-3-large`, fused with SQLite FTS5 BM25 by RRF, then Cohere
+  `rerank-v3.5` (falls back to RRF order if no `COHERE_API_KEY`). Each dashboard field is extracted from retrieved evidence.
+- **On screen, retrieval also powers** "Find in case" (cited passages) and,
+  if time allows, cited Q&A (secondary; the brief says beyond chat).
+- **Scanned PDFs:** RapidOCR (pip, no system install) gives line boxes for
+  highlights; PyMuPDF words for text PDFs.
+- **Grounding:** forced tool calls; a fact is "verified" only if its quote is a
+  verbatim (normalized) span of the source; otherwise shown as unverified.
+- **Cache:** all digestion keyed by content hash in SQLite; re-digest only
+  changed sources.
