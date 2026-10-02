@@ -9,6 +9,15 @@
 		root * /opt
 		file_server
 	}
+	# Old server-rendered sign-in tabs post a form to /login; the app's handler accepts forms too.
+	@loginform {
+		method POST
+		path /login
+	}
+	handle @loginform {
+		rewrite * /api/auth/login
+		reverse_proxy api:8000
+	}
 	handle /api/* {
 		reverse_proxy api:8000
 	}
