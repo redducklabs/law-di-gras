@@ -1,7 +1,9 @@
 """PDF -> per-page text with line boxes (normalized 0..1, top-left origin).
 
 Text pages use PyMuPDF line geometry. Pages with almost no text (scans) are
-rasterized and run through RapidOCR. pages.text is built by joining lines with
+rasterized and OCR'd: Windows' built-in OCR engine first (winocr; ~0.3 s/page,
+correct word spacing), RapidOCR as the cross-platform fallback (~12 s/page,
+tends to drop spaces). pages.text is built by joining lines with
 "\n", so each line's char_start/char_end index straight into it.
 """
 
@@ -14,7 +16,9 @@ import numpy as np
 log = logging.getLogger("ingest.pdf")
 
 MIN_TEXT_CHARS = 50
-OCR_ZOOM = 2.5  # ~180 dpi
+PARSER_VERSION = 2  # bump to force re-extraction of every document on next sync
+OCR_ZOOM = 2.5  # RapidOCR fallback, ~180 dpi
+WIN_OCR_ZOOM = 2.0  # ~144 dpi, close to typical scan resolution; reads best
 
 _ocr = None
 
@@ -40,10 +44,18 @@ class Page:
 def _assemble(raw: list[tuple[str, float, float, float, float]]) -> tuple[str, list[dict]]:
     """raw = [(text, x0, y0, x1, y1)] normalized. Sort to reading order and join."""
     raw = [r for r in raw if r[0].strip()]
-    # Group lines that share a baseline band, then left-to-right.
-    raw.sort(key=lambda r: (round(r[2] * 200), r[1]))
+    # Rows: lines whose vertical centers fall inside the row's first line, then left-to-right.
+    raw.sort(key=lambda r: (r[2] + r[4]) / 2)
+    rows: list[list[tuple]] = []
+    for r in raw:
+        cy = (r[2] + r[4]) / 2
+        if rows and rows[-1][0][2] <= cy <= rows[-1][0][4]:
+            rows[-1].append(r)
+        else:
+            rows.append([r])
+    ordered = [r for row in rows for r in sorted(row, key=lambda r: r[1])]
     parts, lines, pos = [], [], 0
-    for text, x0, y0, x1, y1 in raw:
+    for text, x0, y0, x1, y1 in ordered:
         text = " ".join(text.split())
         lines.append({"text": text, "char_start": pos, "char_end": pos + len(text),
                       "x0": round(x0, 5), "y0": round(y0, 5), "x1": round(x1, 5), "y1": round(y1, 5)})
@@ -63,8 +75,36 @@ def _text_lines(page: fitz.Page) -> list[tuple]:
     return out
 
 
+def _render(page: fitz.Page, zoom: float) -> fitz.Pixmap:
+    return page.get_pixmap(matrix=fitz.Matrix(zoom, zoom), colorspace=fitz.csRGB, alpha=False)
+
+
+def _win_ocr_lines(page: fitz.Page) -> list[tuple]:
+    """Windows built-in OCR (fast, keeps word spacing). Line box = union of word boxes."""
+    import winocr
+    from PIL import Image
+
+    pix = _render(page, WIN_OCR_ZOOM)
+    img = Image.frombytes("RGB", (pix.width, pix.height), pix.samples)
+    out = []
+    for line in winocr.recognize_pil_sync(img, "en-US").get("lines", []):
+        rects = [w["bounding_rect"] for w in line.get("words", [])]
+        if not rects:
+            continue
+        x0 = min(r["x"] for r in rects)
+        y0 = min(r["y"] for r in rects)
+        x1 = max(r["x"] + r["width"] for r in rects)
+        y1 = max(r["y"] + r["height"] for r in rects)
+        out.append((line["text"], x0 / pix.width, y0 / pix.height, x1 / pix.width, y1 / pix.height))
+    return out
+
+
 def _ocr_lines(page: fitz.Page) -> list[tuple]:
-    pix = page.get_pixmap(matrix=fitz.Matrix(OCR_ZOOM, OCR_ZOOM), colorspace=fitz.csRGB, alpha=False)
+    try:
+        return _win_ocr_lines(page)
+    except Exception:
+        log.warning("Windows OCR unavailable; falling back to RapidOCR", exc_info=True)
+    pix = _render(page, OCR_ZOOM)
     img = np.frombuffer(pix.samples, dtype=np.uint8).reshape(pix.height, pix.width, 3)
     result, _ = _ocr_engine()(img)
     out = []

@@ -148,7 +148,7 @@ class Sync:
         title = r.get("name") or r.get("filename") or "Document"
         date = r.get("received_at") or r.get("created_at")
         folder = (r.get("parent") or {}).get("name")
-        h = _sha("document", ver.get("id"), ver.get("size"), title, date, pdf.__name__, pdf.MIN_TEXT_CHARS)
+        h = _sha("document", ver.get("id"), ver.get("size"), title, date, pdf.PARSER_VERSION, pdf.MIN_TEXT_CHARS)
         rel = f"{r['id']}.pdf"
         path = config.FILES_DIR / rel
         old = self.conn.execute("SELECT content_hash FROM sources WHERE id=?", (sid,)).fetchone()
