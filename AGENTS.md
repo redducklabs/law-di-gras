@@ -33,6 +33,8 @@ Not announced yet; slides point at personal-injury case visibility for the firm
 and lien-holding medical providers (see `docs/challenge.md`). Do not write
 application code or pick a
 stack until the user says so. Once known, it lives in `docs/challenge.md`.
+Next step is an iterative brainstorm of the organizers' slide deck with the user;
+follow *Brainstorming workflow* in `CLAUDE.md`.
 
 ## Reuse before you build
 

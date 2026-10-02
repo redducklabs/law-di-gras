@@ -61,6 +61,35 @@ the user asks for. When the challenge is known, record it in
 `docs/challenge.md` and update this section with a one-sentence product goal for
 trial attorneys.
 
+Slides received so far are saved in `docs/slides/`. Save every new slide or deck
+there too.
+
+## Brainstorming workflow (next step)
+
+The organizers will hand out a slide deck. Brainstorm it **with the user,
+iteratively**, before building. Use the `superpowers:brainstorming` skill, with
+these overrides:
+
+1. **Ingest the deck.** Save it to `docs/slides/`. Extract the problems, users,
+   constraints, judging criteria, provided data and deadlines into
+   `docs/challenge.md`, replacing the inferences section with facts.
+2. **Ask about priorities, a few questions at a time.** Each question has short
+   options with your recommendation marked first. Ask about what to prioritize
+   (which user, which problem, what the demo must show) before how to build it.
+   Keep rounds short; the user answers between hackathon activities.
+3. **Propose 2–3 solution concepts**, each with the demo moment that wins the
+   room and which catalog patterns it reuses. Narrow to one with the user.
+4. **Write the decision and a short build plan.** Record decisions in
+   `docs/challenge.md` under "Decisions". Put the plan, a checklist of the demo
+   path, in `docs/plans/YYYY-MM-DD-<topic>.md`. No Codex review and no separate
+   spec unless the user asks; skip the skill's default
+   `docs/superpowers/` paths.
+5. **Start building as soon as the user approves the plan.**
+
+Working direction so far: **turn a PI case into a dashboard** of where the case
+stands, for the firm and the medical providers, with every fact linked to its
+source page.
+
 ## Reuse before you build
 
 `docs/reuse-catalog.md` lists proven patterns from two sibling Red Duck Labs
