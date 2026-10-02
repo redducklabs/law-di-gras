@@ -122,8 +122,10 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
                         <div className="min-w-0">
                           <div className="text-[13.5px] font-medium">{t.provider}</div>
                           <div className="text-[12px] text-slate-500">
-                            {t.visit_count != null && <>{t.visit_count} visit{t.visit_count === 1 ? '' : 's'} · </>}
-                            {fmtDate(t.first_visit)}{t.last_visit && t.last_visit !== t.first_visit && <> – {fmtDate(t.last_visit)}</>}
+                            {t.visit_count != null && <>{t.visit_count} visit{t.visit_count === 1 ? '' : 's'} billed · </>}
+                            {t.first_visit && <>first {fmtDate(t.first_visit, true)}</>}
+                            {/* last_visit is a billing service-through date, not the last appointment. */}
+                            {t.last_visit && <> · billed through {fmtDate(t.last_visit, true)}</>}
                           </div>
                         </div>
                         <div className="min-w-0 max-w-[55%] shrink-0 text-right">

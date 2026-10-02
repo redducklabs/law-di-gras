@@ -100,9 +100,10 @@ function Attendance({ line }: { line: TreatmentLine }) {
   return (
     <div className={`mb-3 flex flex-wrap items-center gap-x-2 rounded-lg px-3 py-2 text-[13px] ${cls}`}>
       <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
-      {tone === 'ok' && <span>Patient seen {relDays(n)} · {fmtDate(line.last_visit)}</span>}
-      {tone === 'warn' && <><span className="font-semibold">No visit in {gap} days</span><span>· last visit {fmtDate(line.last_visit)}</span></>}
-      {tone === 'neutral' && <span>Last visit {fmtDate(line.last_visit)} ({relDays(n)})</span>}
+      {/* last_visit comes from billing service-through dates, not the appointment calendar. */}
+      {tone === 'ok' && <span>Billed through {fmtDate(line.last_visit)} ({relDays(n)})</span>}
+      {tone === 'warn' && <><span className="font-semibold">Billed through {fmtDate(line.last_visit)}</span><span>· no newer bills on file ({gap} days)</span></>}
+      {tone === 'neutral' && <span>Billed through {fmtDate(line.last_visit)} ({relDays(n)})</span>}
     </div>
   )
 }
@@ -118,9 +119,9 @@ function Treatment({ lines, onOpenDoc }: { lines: TreatmentLine[]; onOpenDoc?: O
             {lines.length > 1 && <div className="mb-2 text-[13px] font-semibold">{t.provider}</div>}
             <Attendance line={t} />
             <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
-              <Stat label="Visits on file" value={t.visit_count != null ? String(t.visit_count) : '—'} />
+              <Stat label="Visits billed" value={t.visit_count != null ? String(t.visit_count) : '—'} />
               <Stat label="First visit" value={fmtDate(t.first_visit) ?? '—'} />
-              <Stat label="Most recent visit" value={fmtDate(t.last_visit) ?? '—'} sub={ago != null ? relDays(ago) : null} />
+              <Stat label="Billed through" value={fmtDate(t.last_visit) ?? '—'} sub={ago != null ? relDays(ago) : null} />
               <Stat label="Billed" value={t.billed?.value ?? '—'} />
             </dl>
             {(t.billed?.citations.length || t.citations.length) ? (
