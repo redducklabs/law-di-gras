@@ -114,9 +114,10 @@ export function PdfView({ source, citation }: { source: SourceDetail; citation: 
       <div className="bg-page p-4 sm:p-5">
       <div ref={box} className="overflow-hidden rounded-md border border-line bg-white shadow-card">
         {failed ? (
-          <div className="p-4"><Notice tone="danger">Could not load this PDF. <a className="font-medium underline" href={fileUrl} target="_blank" rel="noreferrer">Open the file</a> instead.</Notice></div>
+          <PageFallback source={source} citation={citation} fileUrl={fileUrl} page={page} />
         ) : (
-          <Document file={fileUrl} options={PDF_OPTIONS} onLoadSuccess={d => setNumPages(d.numPages)} onLoadError={() => setFailed(true)}
+          <Document file={fileUrl} options={PDF_OPTIONS} onLoadSuccess={d => setNumPages(d.numPages)} onLoadError={e => { console.error('PDF load failed', e); setFailed(true) }}
+            onSourceError={e => { console.error('PDF source failed', e); setFailed(true) }}
             loading={<div className="px-4"><Spinner label="Loading document…" /></div>}>
             {width > 0 && renderFailed === page ? (
               <PageFallback source={source} citation={citation} fileUrl={fileUrl} page={page} />
@@ -149,7 +150,7 @@ export function PdfView({ source, citation }: { source: SourceDetail; citation: 
 }
 
 /** Shown when pdf.js cannot draw a page: link to the file plus the extracted text around the quote. */
-function PageFallback({ source, citation, fileUrl, page }: { source: SourceDetail; citation: Citation; fileUrl: string; page: number }) {
+export function PageFallback({ source, citation, fileUrl, page }: { source: SourceDetail; citation: Citation; fileUrl: string; page: number }) {
   // Document text is the page texts joined by form feeds; citation offsets are page-relative.
   const text = (source.text ?? '').split('\f')[page - 1] ?? ''
   const cited = citation.page === page

@@ -1,12 +1,12 @@
 // Source pane body, rendered inside the firm page's right Drawer. Owned by S5.
 // Contract (App.tsx mounts it): either `citation` (open that source at the
 // highlighted span) or `query` (Find in case results) is set.
-import { useEffect, useState } from 'react'
+import { Component, useEffect, useState, type ReactNode } from 'react'
 import type { Citation, SourceDetail } from '../api/types'
 import { api } from '../api/client'
 import { FindAsk } from './FindAsk'
 import { Notice, QuoteBlock, Spinner } from './parts'
-import { PdfView } from './PdfView'
+import { PageFallback, PdfView } from './PdfView'
 import { TextView } from './TextView'
 
 export interface SourcePaneProps {
@@ -57,6 +57,22 @@ function CitationView({ citation }: { citation: Citation }) {
   }
   if (!source) return <div className="px-5"><Spinner label="Opening the record…" /></div>
   return source.has_file && source.kind === 'document'
-    ? <PdfView source={source} citation={citation} />
+    ? (
+      <PdfBoundary key={`${source.id}:${citation.page}`} fallback={
+        <div className="p-5">
+          <PageFallback source={source} citation={citation} fileUrl={api.sourceFileUrl(source.id)} page={citation.page ?? citation.rects[0]?.page ?? 1} />
+        </div>
+      }>
+        <PdfView source={source} citation={citation} />
+      </PdfBoundary>
+    )
     : <TextView source={source} citation={citation} />
+}
+
+/** A PDF that pdf.js cannot handle must never take the whole app down: show the extracted text instead. */
+class PdfBoundary extends Component<{ fallback: ReactNode; children: ReactNode }, { failed: boolean }> {
+  state = { failed: false }
+  static getDerivedStateFromError() { return { failed: true } }
+  componentDidCatch(error: unknown) { console.error('PDF viewer crashed; showing extracted text', error) }
+  render() { return this.state.failed ? this.props.fallback : this.props.children }
 }
