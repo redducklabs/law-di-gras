@@ -8,7 +8,8 @@ working, demoable prototype, fast.** Everything in this file bends toward that.
 - **Move fast.** Get to something that runs end to end as early as possible, then
   improve it. A working ugly path beats a beautiful half-built one.
 - **No tests.** Do not write unit, integration, or E2E tests. Do not add test
-  frameworks, CI pipelines, coverage gates, or pre-commit hooks.
+  frameworks, CI pipelines, coverage gates, or other pre-commit hooks (the
+  secret guard in `.githooks/` is the one exception and stays on).
 - **Minimal QA.** Verify by running the app and clicking through the demo path
   yourself. That is the whole QA process. Say what you exercised.
 - **Functional over polished** for internals: inline freely, and skip
@@ -153,14 +154,33 @@ in a legal demo.
   request. Anything the app needs to persist (notes, flags, AI output) goes in
   our own local storage, never back into that system. If a feature seems to need
   a write, stop and ask the user.
-- **Credentials live in `.env` at the repo root (gitignored).** `.env.example`
-  lists every variable (Clio OAuth app ID/secret, redirect URI, tokens, Anthropic
-  key). Read config from `.env`; never print, log, or commit its values, and
-  never ask the user to paste them into chat output or code. Clio uses OAuth 2.0
-  (`https://app.clio.com/oauth/authorize` and `/oauth/token`, US region): a
-  one-time local login script captures the tokens into `.env`, and the app
-  refreshes the access token as needed. The user's Clio login password is never
-  needed by the app and must not be stored.
+- **🚨 Secrets live ONLY in the main checkout's `.env` (`c:\repos\law-di-gras\.env`),
+  and are NEVER committed. 🚨** `.env.example` lists every variable (Clio OAuth
+  app ID/secret, redirect URI, tokens, AI keys). Never print, log, echo, or paste
+  their values into code, docs, commit messages, or chat.
+  - **Worktrees do not have the `.env`.** We work in git worktrees, and `.env` is
+    gitignored, so a worktree starts without it. Anything that calls Clio or an AI
+    API must load the main checkout's `.env`. Find the main root with
+    `git rev-parse --path-format=absolute --git-common-dir` and take its parent
+    directory; use `<main root>/.env` (fall back to a local `.env` only if the
+    main one is missing). App config code must do this resolution itself, so the
+    app runs correctly from any worktree. For a quick one-off you may copy the
+    file into the worktree (it stays gitignored), but never commit it.
+  - **Token writes go to the main `.env` only.** The Clio OAuth login and
+    refresh code updates `CLIO_ACCESS_TOKEN`/`CLIO_REFRESH_TOKEN` in the main
+    checkout's `.env`, never in a worktree copy, so every worktree shares one
+    valid token. Clio API access is already authorized and verified (see
+    `docs/challenge.md`); do not re-run the login unless a call returns 401
+    after refresh.
+  - **A pre-commit secret guard is on** (`.githooks/`, enabled with
+    `git config core.hooksPath .githooks`, which all worktrees share). It blocks
+    any `.env*` file except `.env.example`, known key formats, and any value
+    from the main `.env`. Never bypass it (`--no-verify` is forbidden). If it
+    blocks you, remove the secret; do not weaken the guard. Stage files by path
+    and check `git status` before committing; avoid blind `git add -A`.
+  - Clio uses OAuth 2.0 (`https://app.clio.com/oauth/authorize` and
+    `/oauth/token`, US). Notes need `type=Matter`. The user's Clio password is
+    never needed and must never be stored.
 - **No hallucinated law.** If the prototype emits legal citations (statutes,
   rules, cases), they must come from material the app actually retrieved or the
   user supplied, never from model memory. Prefer the simplest grounding pattern

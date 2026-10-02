@@ -1,0 +1,3 @@
+#!/bin/sh
+# Secret guard: blocks commits that stage .env files or any secret value.
+exec python "$(git rev-parse --show-toplevel)/.githooks/secret_guard.py"

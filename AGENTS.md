@@ -57,8 +57,12 @@ never modify them.
 - No consumer "information, not advice" framing; write direct professional
   analysis marked as a draft for attorney review.
 - Structured LLM output uses forced tool calling, not text parsing.
-- Credentials (Clio OAuth app, tokens, Anthropic key) live in the gitignored
-  `.env`; see `.env.example`. Never print, log, or commit them.
+- **Secrets live only in the main checkout's `.env`** (`c:\repos\law-di-gras\.env`)
+  and are never committed. Worktrees do not have it: load `<main root>/.env`,
+  where main root is the parent of `git rev-parse --path-format=absolute
+  --git-common-dir`. Token refreshes write to the main `.env` only. A
+  pre-commit secret guard (`.githooks/`) blocks `.env` files and secret values;
+  never bypass it with `--no-verify`. Never print, log, or commit secret values.
 
 ## Environment and reporting
 
