@@ -1,61 +1,119 @@
 # Challenge brief
 
-Event: Swans · Applied AI Hackathon (https://eventship.com/event/applied-ai-hackathon-1).
-The exact challenge has not been announced yet. This file collects what the
-organizers have shown so far. Update it as more slides or the brief arrive.
+Source: organizers' deck, `docs/slides/LDG-8_30-LDG-Hackathon.pdf` (20 slides), plus
+live notes. Event: Swans · Applied AI Hackathon, Law-Di-Gras, San Diego,
+2026-10-02. Swans builds AI for US personal-injury (PI) firms; this is a real
+problem their clients would pay for.
 
-## Domain context: personal-injury law (slide 05, "All the law you need")
+## 🚨 Hard facts
 
-1. **Someone gets hurt.** The classic case is a car crash. The injured person
-   hires an attorney on contingency: the attorney is paid only if the client wins.
-2. **Doctors treat on a promise.** Medical providers treat the client now and
-   are paid from the settlement later. That claim on the settlement is a
-   **lien**, so the providers are also betting on the case.
-3. **The case takes years.** Records pile up, insurers negotiate, and courts move
-   slowly. The file grows with notes, emails, tasks and documents, often
-   thousands of pages.
-4. **Two sides, one case.** Both the **firm** and the **medical providers** need
-   to know where the case stands. Right now, neither can see it.
+- **Deadline: 4:00 PM PT today, hard close.** Form submitted and all work
+  committed. Submit early: submission order = presentation order.
+- **Input: one Clio Manage matter, "Sapini"**, built from a real litigated PI
+  case. Every team uses it. Our build must **read it live from our own Clio
+  Manage trial account** (team creates the trial, then runs the organizers'
+  setup app to load Sapini; ~10–15 min, start it first).
+- **Clio is read-only.** API reads are fine; anything that writes or updates
+  case data is not. Need a database? Bring our own, outside Clio.
+- **They read the repo.** Features are verified from code. **Hardcoded features
+  are quickly identified and count against us.** The digestion must be
+  genuinely generated from Sapini's data.
+- Judges: **trial attorneys and AI builders** (the real buyers). Swans screens
+  every build 4–5 PM (does it run, does it work on Sapini, generated vs
+  hardcoded, engineering) → **Top 7** pitch (4 min, around the video) → Top 3 on
+  main stage ~7 PM. "Top 7 is won in the code. Winning is won on the stage."
+- Prizes: $2,500 / $1,500 / $1,000. We own what we build.
 
-Tip from the slide: liens are usually negotiated down at the end, so the client
-takes home more money.
+## The challenge (slide 08)
 
-## What this suggests (inference, not the announced challenge)
+Build a solution that acts as a **dashboard** to:
 
-- The likely problem is **case-status visibility** across a long, document-heavy
-  personal-injury case, for both the PI firm and the lien-holding medical
-  providers.
-- Promising angles: an AI-generated case status summary from the case file,
-  with every point linked to its source page; a provider-facing view of the case
-  stage and expected settlement timing; and a lien tracker that supports
-  end-of-case reduction negotiations.
-- Users are now likely **PI attorneys and their staff** (paralegals, case
-  managers) plus **medical-provider billing/lien staff**, not only trial
-  attorneys. Confirm once the challenge is announced.
+1. **Get internal firm team members up to speed on a case.**
+2. **Improve communication and visibility on the case for the medical providers**
+   treating the client.
 
-## Working direction (2026-10-02, from Aron)
+**Both halves.** Approach is ours. It must go **beyond an AI chat**: a *visual
+digestion* of everything already in the case, so attorney and providers get up
+to speed **without having to know what to ask**.
 
-**Turn a case into a dashboard.** Ingest a PI case file (notes, emails, tasks,
-documents) and show where the case stands: stage, key dates and next steps,
-medical treatment and bills/liens, insurer negotiation status, and open
-risks. Every dashboard fact links to its source page (catalog: A1, A7, R2, R7
-plus PDF highlighting). Likely two views: the firm, and the medical providers.
+## The problem (slides 05–07)
 
-## Organizer pain point (live, 2026-10-02)
+- PI basics: client hurt (classic: car crash) → attorney on contingency →
+  doctors treat now, paid from settlement later via a **lien** → case takes years,
+  file grows to thousands of pages → liens usually negotiated down at the end.
+- **Capturing is solved** (Clio already holds notes, emails, dates, contacts,
+  documents). **Digesting is not:** turn a live case file into something a human
+  absorbs in **ninety seconds**.
+- The firm reconstructs every case by hand. Providers can't see where the case
+  is or whether there's coverage. Both fall back to email "with no intelligence
+  in it".
+- Existing tools (slides 11–13: Clio Manage, CasePeer, Lawmatics): good
+  dashboards, but counts and lists, detail one jump away, story assembled by
+  hand. Organizer live comment: you can't see what's required or the state of
+  things **at a glance**.
 
-Existing case dashboards are awful: you **cannot see what is required, or the
-state of things, at a glance**. Design implication: the first screen answers
-"where does this case stand and what needs doing now?" in seconds. One headline
-status, the few items that need action, then detail on demand (with source
-links). Fewer widgets, not more.
+## Sapini data available in Clio (slide 15)
 
-## Data access (live, 2026-10-02)
+One matter with: contacts, native + custom fields, notes, case expenses,
+communications, tasks, calendar, and documents **including scanned PDFs**
+(OCR needed).
 
-We expect API access to the firm's case-management system, probably **Clio**
-(to be confirmed). **Read-only, always. We never write to it.** See the rule in
-`CLAUDE.md` → *Limits that still apply*.
+## What users asked for (slide 09: "a menu, not a spec")
 
-## Submission (live, 2026-10-02)
+**Attorneys**
+- Get me up to speed and show what happened recently, without asking anyone.
+- What changed since I last opened this matter?
+- Out of 300 entries, show me the 10 that matter.
+- Sometimes 2-minute catch-up, sometimes dig into everything (progressive depth).
+- **If a date is on screen, show where it came from.**
+- **Click anything to open the note, document or email it came from.**
+- Show the client's picture as soon as I open the matter.
+- Somewhere in a 200-page scan are my client's primary injuries.
+- When did anyone last actually talk to the client?
+- **Don't re-digest the whole case with AI every time someone opens it** (cache /
+  incremental processing in our own DB).
+- What's overdue, what's coming, what's waiting on someone else?
+- **Top two KPIs: what is the case worth, and what coverage sits behind it.**
+- How much has the firm already spent on this case?
+- What did we share with this provider, and has anyone in their office opened it?
+- Let treating doctors see where the case is without handing over my whole file.
+- Let me adjust what the provider sees before I send it.
+- A secure way to share part of my case with providers.
 
-We must record a **video of the application** at the end. Plan the build around
-one tight demo path and keep `docs/demo-script.md` up to date.
+**Medical providers**
+- I'm treating on a lien: is there coverage behind the case?
+- Is this case even still alive?
+- Tell me when the case moves; I shouldn't have to email.
+- I only see the records I sent; I'm treating with one eye closed.
+- What does the firm need from my office right now?
+- Is my patient still showing up to treatment?
+
+## Sharing rules (slide 10)
+
+- **Share with providers:** status changes, bills and records.
+- **Don't share:** case strategy; anything confidential not relevant to the
+  provider.
+- Attorneys differ on what they share, so the attorney should control it. Ask
+  attorneys in the room when unsure.
+
+## Submission (slide 17)
+
+1. GitHub repository (the repo *is* the submission).
+2. **90-second clip** on Sapini showing the solution and its visuals; Google
+   Drive link, public access.
+3. Tech stack: built with, running on, where data lives outside Clio.
+4. **AI models used for digestion and approximate cost per case** (attorneys
+   think per case).
+5. Notes for judges: differentiator, where to look first, anything half-done or
+   hardcoded.
+6. Optional live link or install path (localhost can win).
+
+## Working notes (from Aron, before the deck)
+
+- Direction: **turn a case into a dashboard**, every fact linked to its source.
+- First screen answers "where does this case stand and what needs doing now?" in
+  seconds; detail on demand.
+
+## Decisions
+
+_None yet. Record each brainstorming decision here with a one-line reason._

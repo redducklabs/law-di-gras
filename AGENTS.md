@@ -10,8 +10,10 @@ The short version:
 - **No tests.** No test frameworks, CI, coverage, or pre-commit hooks.
 - **Minimal QA:** run the app and click through the demo path; say what you
   exercised.
-- **Functional over polished** behind the scenes: hardcode, stub, and mock
-  freely.
+- **Functional over polished** behind the scenes, but **never hardcode features
+  or case content**: judges read the repo, and everything shown must be
+  generated from Sapini data read live from Clio.
+- **Hard deadline 4:00 PM PT, 2026-10-02**, plus a 90-second demo video.
 - **UX and design still matter** on every screen the demo touches: clear
   hierarchy, consistent spacing and type, sensible empty/loading states, no
   broken layouts.
@@ -19,9 +21,10 @@ The short version:
   Commit to `main` only when the user asks.
 - When a choice forks, pick what gets the demo working sooner and say so.
 
-## Audience: trial attorneys
+## Audience: PI firm team and medical providers
 
-Users are trial attorneys, not consumers. Use litigation vocabulary, make every
+Users are PI firm staff and treating medical providers; judges are trial
+attorneys and AI builders. Use litigation vocabulary, make every
 claim trace to its source (document, page, line or highlighted span), keep
 quotes verbatim and visibly mark anything unverified, favor dense scannable
 screens and paste-ready citation formats, present AI output as a draft for
@@ -29,12 +32,9 @@ attorney review, and use only sample or public case materials in the demo.
 
 ## Challenge
 
-Not announced yet; slides point at personal-injury case visibility for the firm
-and lien-holding medical providers (see `docs/challenge.md`). Do not write
-application code or pick a
-stack until the user says so. Once known, it lives in `docs/challenge.md`.
-Next step is an iterative brainstorm of the organizers' slide deck with the user;
-follow *Brainstorming workflow* in `CLAUDE.md`.
+A dashboard that digests one live Clio Manage PI matter ("Sapini") for (1) the
+firm's team and (2) the treating medical providers. Full brief:
+`docs/challenge.md`. Follow *Brainstorming workflow* in `CLAUDE.md`.
 
 ## Reuse before you build
 

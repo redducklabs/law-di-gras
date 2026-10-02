@@ -11,17 +11,25 @@ working, demoable prototype, fast.** Everything in this file bends toward that.
   frameworks, CI pipelines, coverage gates, or pre-commit hooks.
 - **Minimal QA.** Verify by running the app and clicking through the demo path
   yourself. That is the whole QA process. Say what you exercised.
-- **Functional over polished** for internals: hardcode, stub, mock, and inline
-  freely. Skip abstractions, config layers, migrations, auth, and error handling
-  that the demo does not need.
+- **Functional over polished** for internals: inline freely, and skip
+  abstractions, config layers, migrations, auth, and error handling the demo
+  does not need.
+- **🚨 But NEVER hardcode features or case content.** Judges read the repo and
+  penalize hardcoded features. Everything shown about the case (dates, injuries,
+  KPIs, summaries, status) must be generated from Sapini data read live from
+  Clio. Stubbing plumbing is fine; faking the digestion is not.
 - **UX and design still matter.** The demo is judged by what people see. The
   screens the demo touches must look intentional and feel good to use: clear
   hierarchy, consistent spacing and type, sensible empty/loading states, and no
   broken layouts. Spend polish on what is on screen, not on what is behind it.
-- **The deliverable ends in a demo video.** Build toward one scripted demo path
-  that runs reliably from a clean start with seeded or cached data (no live
-  dependency that can stall on camera). Keep `docs/demo-script.md` current as
-  features land. Playwright (already available) can drive and record the walkthrough.
+- **Hard deadline: 4:00 PM PT, 2026-10-02.** Everything committed and the
+  submission form in. Submit early (submission order = presentation order).
+  Stop adding features well before 4:00 to record the 90-second video.
+- **The deliverable includes a 90-second demo video** on Sapini. Build toward one
+  scripted demo path. The app reads Clio live, but cache AI digestion in our own
+  database so the demo is fast and does not re-digest on every open (an explicit
+  attorney ask). Keep `docs/demo-script.md` current as features land. Playwright
+  (already available) can drive and record the walkthrough.
 - **No process overhead.** No issue tracker, no project board, no UAT, no Codex
   review loop, no PR gate. Commit straight to `main` unless the user asks
   otherwise.
@@ -29,10 +37,13 @@ working, demoable prototype, fast.** Everything in this file bends toward that.
   which one you picked. Ask only when the answer changes what the user will see
   or cannot be undone.
 
-## Who we are building for: trial attorneys
+## Who we are building for: PI attorneys and medical providers
 
-The users are **trial attorneys** (litigators preparing for and running trials),
-not consumers. Every design, prompt, and copy decision targets them:
+The judges are **trial attorneys and AI builders**. The users are (1) the
+**personal-injury firm's team** (attorneys, paralegals, case managers) and
+(2) the **medical providers** treating the client on a lien. Both are
+professionals, not consumers. Every design, prompt, and copy decision targets
+them:
 
 - **Speak their language.** Use litigation terms as-is (exhibits, depositions,
   pin cites, motions in limine, impeachment, witness outlines, separate
@@ -55,31 +66,28 @@ not consumers. Every design, prompt, and copy decision targets them:
 
 ## The challenge
 
-**Not announced yet**, but the organizers' slides point at **personal-injury
-law**: a years-long, document-heavy case where both the PI firm and the
-lien-holding medical providers need to see where the case stands. Read
-`docs/challenge.md` for the context gathered so far. The final challenge may
-widen the users beyond trial attorneys to firm staff and provider billing
-teams. Until then, do not write application code or pick a stack beyond what
-the user asks for. When the challenge is known, record it in
-`docs/challenge.md` and update this section with a one-sentence product goal for
-trial attorneys.
+**Build a dashboard that digests one live Clio Manage PI matter ("Sapini") so
+(1) firm team members get up to speed fast and (2) the treating medical
+providers get visibility into the case.** Both halves are required, and it must
+be a visual digestion, not just an AI chat. Full brief, user asks, sharing
+rules, and submission requirements: `docs/challenge.md`. Read it first.
 
 Slides received so far are saved in `docs/slides/`. Save every new slide or deck
 there too.
 
 ## Brainstorming workflow (next step)
 
-The organizers will hand out a slide deck. Brainstorm it **with the user,
-iteratively**, before building. Use the `superpowers:brainstorming` skill, with
+The organizers' deck is saved in `docs/slides/` and digested into
+`docs/challenge.md`. Brainstorm it **with the user, iteratively**, before
+building, and keep it fast: the deadline is 4:00 PM. Use the `superpowers:brainstorming` skill, with
 these overrides:
 
-1. **Ingest the deck.** Save it to `docs/slides/`. Extract the problems, users,
-   constraints, judging criteria, provided data and deadlines into
-   `docs/challenge.md`, replacing the inferences section with facts.
+1. **Start from `docs/challenge.md`.** Skim the deck PDF for visuals if useful.
+   Add any new slides or live notes the user shares.
 2. **Ask about priorities, a few questions at a time.** Each question has short
    options with your recommendation marked first. Ask about what to prioritize
-   (which user, which problem, what the demo must show) before how to build it.
+   (which of the slide-09 asks to build, the firm/provider split, what the
+   90-second video must show, and what the Clio setup status is) before how to build it.
    Keep rounds short; the user answers between hackathon activities.
 3. **Propose 2–3 solution concepts**, each with the demo moment that wins the
    room and which catalog patterns it reuses. Narrow to one with the user.
