@@ -276,3 +276,32 @@ class ChatResponse(BaseModel):
     answer_markdown: str          # [n] markers index citations (1-based)
     citations: list[Citation] = Field(default_factory=list)
     links: list[DeepLink] = Field(default_factory=list)
+
+
+# --- Blind spots: agentic whole-case review --------------------------------
+
+class ReviewFinding(BaseModel):
+    """One thing an attorney may miss looking at the file item by item."""
+    id: str
+    category: Literal[
+        "conflict",        # the record disagrees with itself
+        "gap",             # something expected is missing (record, witness contact, document)
+        "stale",           # an open thread nobody has touched in a long time
+        "risk",            # coverage, deadline, lien or liability exposure
+        "inconsistency",   # client/witness accounts or dates that don't line up
+        "opportunity",     # leverage or value the file supports but nobody is using
+    ]
+    severity: Literal["high", "medium", "low"]
+    title: str                     # one line, plain language
+    why_it_matters: str            # one or two sentences; no legal citations unless quoted from the record
+    suggested_next_step: str       # concrete action for the team
+    citations: list[Citation] = Field(default_factory=list)  # every factual claim cited; span-verified
+    verified: bool = False         # passed the claim verifier against its citations
+
+
+class CaseReview(BaseModel):
+    matter_id: str
+    generated_at: str
+    cost_usd: float
+    model: str
+    findings: list[ReviewFinding] = Field(default_factory=list)  # sorted by severity

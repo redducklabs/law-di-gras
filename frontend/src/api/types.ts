@@ -210,3 +210,25 @@ export interface DeepLink {
 
 /** [n] markers in answer_markdown index citations, 1-based. */
 export interface ChatResponse { answer_markdown: string; citations: Citation[]; links: DeepLink[] }
+
+// --- Blind spots: agentic whole-case review ---
+export type ReviewCategory = 'conflict' | 'gap' | 'stale' | 'risk' | 'inconsistency' | 'opportunity'
+
+export interface ReviewFinding {
+  id: string
+  category: ReviewCategory
+  severity: 'high' | 'medium' | 'low'
+  title: string
+  why_it_matters: string
+  suggested_next_step: string
+  citations: Citation[]
+  verified: boolean
+}
+
+export interface CaseReview {
+  matter_id: string
+  generated_at: string
+  cost_usd: number
+  model: string
+  findings: ReviewFinding[]
+}
