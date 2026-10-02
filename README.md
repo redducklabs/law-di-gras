@@ -19,6 +19,11 @@ cd backend; uv sync; uv run uvicorn app.main:app --reload --port 8000
 cd frontend; npm install; $env:PORT=5175; $env:API_PORT=8000; npm run dev
 ```
 
+**Sign in (local demo):** the firm pages (`/cases`, `/matters/:id`) need a sign-in.
+The demo username and password are `APP_LOGIN_USER` and `APP_LOGIN_PASSWORD` in the
+main checkout's `.env` (leave `APP_LOGIN_USER` empty to turn sign-in off locally).
+Provider share links (`/p/:token`) never need a sign-in.
+
 Parallel build sessions run in git worktrees with their own ports; see
 `docs/plans/2026-10-02-case-brief-dashboard.md` ("Worktrees, ports, syncing").
 

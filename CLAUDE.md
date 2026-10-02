@@ -158,6 +158,10 @@ in a legal demo.
   and are NEVER committed. 🚨** `.env.example` lists every variable (Clio OAuth
   app ID/secret, redirect URI, tokens, AI keys). Never print, log, echo, or paste
   their values into code, docs, commit messages, or chat.
+  - **Local demo sign-in:** the firm pages require a sign-in. The demo
+    credentials are `APP_LOGIN_USER` and `APP_LOGIN_PASSWORD` in the main
+    `.env`. Use them only to sign in to the local app (localhost) when verifying
+    the demo path; never echo them in chat, logs or commits.
   - **Worktrees do not have the `.env`.** We work in git worktrees, and `.env` is
     gitignored, so a worktree starts without it. Anything that calls Clio or an AI
     API must load the main checkout's `.env`. Find the main root with
