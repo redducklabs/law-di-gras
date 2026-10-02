@@ -189,9 +189,9 @@ in a legal demo.
 - **No consumer UPL framing.** The users are professionals, so skip
   "information, not advice" disclaimers and hedged consumer copy. Write direct, professional
   analysis, and mark AI output as a draft for attorney review.
-- **Structured LLM output uses forced tool calling** (`tool_choice` +
-  `input_schema`), not regex or `json.loads` on free text. It is also the
-  fastest path to reliable output.
+- **Structured LLM output is schema-enforced**, never regex or `json.loads` on
+  free text. Opus 5.5 and Sonnet 5.5 reject forced `tool_choice` (400), so use
+  `app.llm.structured()` (`messages.parse` with a Pydantic `output_format`).
 - **No secrets in git.** Keys go in `.env` (ignored); commit a `.env.example`.
 - **Use the latest Claude models** for any AI feature unless the user says
   otherwise.
@@ -225,6 +225,20 @@ POSIX-looking arguments (log-group names, container paths) to CLIs.
 Put setup steps, gotchas, and run commands in `README.md` or this file and
 commit them, not in agent-local memory. Fix stale instructions the moment you
 notice them.
+
+## Parallel sessions and worktrees
+
+Build streams run as parallel Claude Code sessions, each in its own git
+worktree; the integration session stays in the main checkout. The plan
+(`docs/plans/2026-10-02-case-brief-dashboard.md`, "Worktrees, ports, syncing")
+holds the details. Essentials:
+
+- Land work with `git pull --rebase origin main` then `git push origin HEAD:main`
+  from the worktree branch. Stage only your owned paths, never `git add -A`.
+- `.env` and the SQLite DB (`backend/data/`) are shared from the main checkout
+  via `backend/app/config.py`. Never copy `.env` into a worktree.
+- Each session uses its assigned backend/frontend ports from the plan.
+- `frontend/.npmrc` pins `os=win32` because the global npm config says linux.
 
 ## Source Control
 

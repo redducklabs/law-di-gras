@@ -14,6 +14,32 @@ Decisions: `docs/challenge.md` → Decisions. Deadline 4:00 PM PT; feature freez
 - [ ] Open the provider link: status, coverage, what the firm needs, their bills/visits
 - [ ] (Nice) Firm sees "opened by provider at …"
 
+## Worktrees, ports, syncing (every stream session)
+
+- Streams S1–S4 each run in **their own git worktree** (start the session in a
+  new worktree from the desktop app). Integration stays in the main checkout.
+- Land work on `main` from your worktree branch:
+  `git pull --rebase origin main` then `git push origin HEAD:main`. Do this
+  after every small commit so other streams see it. Never `git add -A`; add your
+  owned paths only.
+- `.env` and the SQLite DB are **shared from the main checkout** automatically
+  (`backend/app/config.py` resolves it via `git rev-parse --git-common-dir`).
+  Do not copy `.env` into a worktree. All streams see S1's synced data at once.
+- First run in a worktree: `cd backend; uv sync` and/or `cd frontend; npm install`
+  (`frontend/.npmrc` pins `os=win32`; the global npm config says linux).
+- Ports, so dev servers never collide:
+
+  | Session | Backend (`uvicorn --port`) | Frontend (`$env:PORT`, `$env:API_PORT`) |
+  |---|---|---|
+  | Integration (main checkout) | 8000 | 5175 → 8000 |
+  | S1 | 8001 | n/a |
+  | S2 | 8002 | n/a |
+  | S3 | n/a (fixture), later 8000 | 5173 → 8000 |
+  | S4 | 8004 | 5174 → 8004 |
+
+  Backend: `cd backend; uv run uvicorn app.main:app --reload --port 8001`.
+  Frontend: `cd frontend; $env:PORT=5173; $env:API_PORT=8000; npm run dev`.
+
 ## Shared contracts (committed to `main` before streams start)
 
 Integration session commits these files; streams build against them and change
@@ -28,7 +54,7 @@ backend/                      uv project, Python 3.13, FastAPI on 127.0.0.1:8000
   app/config.py               [contracts] .env loading (python-dotenv)
   app/db.py                   [contracts] SQLite schema + connect(); data/app.db
   app/schemas.py              [contracts] Pydantic API shapes below
-  app/llm.py                  [contracts] Anthropic client, model ids, forced-tool helper, cost logging
+  app/llm.py                  [contracts] Anthropic client, model ids, structured() helper, cost logging
   app/clio/                   [S1] client.py (GET-only), login.py (OAuth), sync.py
   app/ingest/                 [S1] pdf.py (PyMuPDF words / RapidOCR lines), chunk.py
   app/api/sources.py          [S1] /api/matters, /sync, /api/sources/*
@@ -40,7 +66,7 @@ frontend/                     Vite + React + TS + Tailwind on :5173, proxy /api 
   src/api/types.ts            [contracts] TS mirror of schemas.py
   src/api/client.ts           [contracts] fetch wrappers
   src/App.tsx, routes         [integration] / → firm, /p/:token → provider
-  src/styles/, tailwind.config.ts  [S3] design tokens (color, type, spacing), light theme
+  src/styles/theme.css        [S3] design tokens via Tailwind v4 @theme (no tailwind.config)
   src/firm/                   [S3] dashboard page, cards, timeline strip, KPI tiles
   src/components/             [S3] SourceChip, Card, Badge, Tile, Drawer (S4 imports, never edits)
   src/dev/fixture.ts          [S3] fictional "Doe v. Example" data for design; deleted by 3 PM
@@ -110,9 +136,13 @@ ProviderView {matter_title, client_name, provider_name, stage, status_line,
              timeline?: TimelineEvent[], documents?: {source_id, title}[]}
 ```
 
-`llm.py` exposes `MODEL_HAIKU="claude-haiku-4-5-20251001"`, `MODEL_SONNET="claude-sonnet-5-5"`,
-`MODEL_OPUS="claude-opus-5-5"`, `call_tool(model, system, messages, tool, matter_id, purpose)`
-(forced `tool_choice`, Pydantic validation retry ×2, logs `llm_usage`).
+`llm.py` exposes `MODEL_HAIKU="claude-haiku-4-5"`, `MODEL_SONNET="claude-sonnet-5-5"`,
+`MODEL_OPUS="claude-opus-5-5"`, `structured(model, PydanticSchema, system, content, purpose=, matter_id=, effort=)`
+(`messages.parse` with a Pydantic `output_format`; Opus/Sonnet 5.5 reject forced
+`tool_choice`, so this is the schema-enforced path; retries, logs `llm_usage`),
+`log_usage(...)` for OpenAI/Cohere calls, and `matter_cost(matter_id)`.
+Every router module exposes `router = APIRouter()`; `main.py` mounts
+`app.api.sources`, `app.api.digest`, `app.api.share` when present.
 
 ## Streams
 
@@ -166,13 +196,13 @@ Each prompt is self-contained; paste it into a fresh Claude Code session in `C:\
 
 ### Common rules (included in each prompt)
 
-> Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through `backend/app/clio/client.py`. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit `.env` values. Build against the shared contracts (`backend/app/schemas.py`, `db.py`, `llm.py`, `frontend/src/api/types.ts`); change a contract only with a small `contract:` commit. Touch only your owned paths. Commit small and often to `main` with conventional commits; `git pull --rebase` before every push. Report what you ran/clicked.
+> Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through `backend/app/clio/client.py`. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit `.env` values. Build against the shared contracts (`backend/app/schemas.py`, `db.py`, `llm.py`, `frontend/src/api/types.ts`); change a contract only with a small `contract:` commit. Touch only your owned paths. Work in your own git worktree per "Worktrees, ports, syncing"; land with `git pull --rebase origin main` then `git push origin HEAD:main`. Report what you ran/clicked.
 
 ### S1 prompt
 
 ```
 You own stream S1 (Clio read client + ingestion) of the Sapini dashboard.
-Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. Commit small and often to main with conventional commits; git pull --rebase before every push. Report what you ran/clicked.
+Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. You run in your own git worktree: follow the plan's "Worktrees, ports, syncing" section (use your assigned ports; .env and the SQLite DB are shared from the main checkout, never copy .env). Commit small and often with conventional commits, git add only your owned paths, then git pull --rebase origin main and git push origin HEAD:main. Report what you ran/clicked.
 Owned: backend/app/clio/, backend/app/ingest/, backend/app/api/sources.py. Do not touch digest/, retrieval/, share/, frontend/.
 Goal: pull everything in the Sapini matter from Clio into our SQLite (backend/data/app.db) in the shapes in db.py, so S2 can digest it and S3 can show sources.
 1. clio/login.py: one-time OAuth 2.0 (US: https://app.clio.com/oauth/authorize, /oauth/token), local callback on CLIO_REDIRECT_URI, writes CLIO_ACCESS_TOKEN/REFRESH_TOKEN into .env without echoing them.
@@ -188,14 +218,14 @@ Done when: `POST /sync` on Sapini fills every table above, scanned PDFs have OCR
 
 ```
 You own stream S2 (retrieval + AI digestion + cache) of the Sapini dashboard.
-Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. Commit small and often to main with conventional commits; git pull --rebase before every push. Report what you ran/clicked.
+Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. You run in your own git worktree: follow the plan's "Worktrees, ports, syncing" section (use your assigned ports; .env and the SQLite DB are shared from the main checkout, never copy .env). Commit small and often with conventional commits, git add only your owned paths, then git pull --rebase origin main and git push origin HEAD:main. Report what you ran/clicked.
 Owned: backend/app/retrieval/, backend/app/digest/, backend/app/api/digest.py. Do not touch clio/, ingest/, share/, frontend/.
-Read docs/reuse-catalog.md and copy/adapt from C:\Repos\aurolegal.ai (read-only): A6 forced tool + validation retry (already wrapped as llm.call_tool), A7 verbatim span find, A8 fencing of case text as data, HyDE prompt shape from backend/src/services/hyde_service.py.
+Read docs/reuse-catalog.md and copy/adapt from C:\Repos\aurolegal.ai (read-only): A6 schema-enforced output + validation retry (already wrapped as llm.structured, which uses messages.parse because Opus/Sonnet 5.5 reject forced tool_choice), A7 verbatim span find, A8 fencing of case text as data, HyDE prompt shape from backend/src/services/hyde_service.py.
 Goal: turn the S1 tables into a cached `Dashboard` (schemas.py) where every fact carries citations with verbatim quotes and highlight rects.
 1. retrieval/embed.py: OpenAI text-embedding-3-large (OPENAI_API_KEY), batch, store in vectors; skip unchanged content_hash.
 2. retrieval/hyde.py: Haiku 4.5 generates ~5 questions an attorney/paralegal/provider might ask that each chunk answers; embed as kind=hyde.
 3. retrieval/search.py: FTS5 BM25 + cosine over body+hyde vectors → RRF → Cohere rerank-v3.5 if COHERE_API_KEY else RRF order. Returns Passage with Citation.
-4. digest/extract.py: per category (incident, injuries, treatment+bills per provider, coverage/policy limits, liens, firm expenses, key dates, client contact, case stage signals) run several retrieval queries, then Sonnet 5.5 forced tool call returning items with source chunk ids + verbatim quotes. Structured Clio data (tasks, calendar, expenses, custom fields) map deterministically into actions/timeline/firm_spent with citations to their source rows.
+4. digest/extract.py: per category (incident, injuries, treatment+bills per provider, coverage/policy limits, liens, firm expenses, key dates, client contact, case stage signals) run several retrieval queries, then a Sonnet 5.5 llm.structured call returning items with source chunk ids + verbatim quotes. Structured Clio data (tasks, calendar, expenses, custom fields) map deterministically into actions/timeline/firm_spent with citations to their source rows.
 5. digest/spans.py: normalize whitespace/quotes, find quote in pages.text (exact then rapidfuzz partial_ratio_alignment ≥ 90), map char range → rects from lines_json. Not found → verified=false (shown, marked).
 6. digest/brief.py: Opus 5.5 writes headline {status_line, stage, bullets} using ONLY verified facts, bullets reference fact ids. Case value: draft range only if grounded in specials/limits; else omit.
 7. dashboard.py + api/digest.py: assemble Dashboard; cache in digests by hash of all source content_hashes; POST /digest (force flag), GET /dashboard, GET /search, then POST /ask (Opus, answer cites only retrieved passages as [n]).
@@ -206,8 +236,8 @@ Done when: POST /digest on Sapini returns a full Dashboard, a second call return
 
 ```
 You own stream S3 (UI design) of the Sapini dashboard. This is an interactive session: Aron iterates on the visuals with you.
-Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. Commit small and often to main with conventional commits; git pull --rebase before every push. Report what you ran/clicked.
-Owned: frontend/src/styles/, frontend/tailwind.config.ts, frontend/src/components/, frontend/src/firm/, frontend/src/dev/. After S4 lands its functional provider screens, you also restyle frontend/src/provider/ and the frame of frontend/src/source/SourcePane (coordinate via small commits; do not change their data logic). Do not touch backend/.
+Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. You run in your own git worktree: follow the plan's "Worktrees, ports, syncing" section (use your assigned ports; .env and the SQLite DB are shared from the main checkout, never copy .env). Commit small and often with conventional commits, git add only your owned paths, then git pull --rebase origin main and git push origin HEAD:main. Report what you ran/clicked.
+Owned: frontend/src/styles/ (Tailwind v4 tokens in theme.css), frontend/src/components/, frontend/src/firm/, frontend/src/dev/. After S4 lands its functional provider screens, you also restyle frontend/src/provider/ and the frame of frontend/src/source/SourcePane (coordinate via small commits; do not change their data logic). Do not touch backend/.
 Audience: PI attorneys, paralegals, case managers (firm view) and treating medical providers (provider view). Professional, calm, dense-but-scannable; "where does this case stand" in 90 seconds. Use the frontend-design skill.
 How to work:
 1. Run the frontend (npm run dev in frontend/) and show it in the built-in browser pane. Work against a clearly fictional fixture in frontend/src/dev/fixture.ts ("Doe v. Example", invented content, typed as Dashboard from src/api/types.ts). No Sapini content anywhere in code.
@@ -223,7 +253,7 @@ Done when: Aron signs off on the Case Brief on real Sapini data at 1440×900 and
 
 ```
 You own stream S4 (provider view + attorney-controlled sharing) of the Sapini dashboard.
-Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. Commit small and often to main with conventional commits; git pull --rebase before every push. Report what you ran/clicked.
+Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. You run in your own git worktree: follow the plan's "Worktrees, ports, syncing" section (use your assigned ports; .env and the SQLite DB are shared from the main checkout, never copy .env). Commit small and often with conventional commits, git add only your owned paths, then git pull --rebase origin main and git push origin HEAD:main. Report what you ran/clicked.
 Owned: backend/app/share/, backend/app/api/share.py, frontend/src/provider/. Import (never edit) frontend/src/components/ and the design tokens from S3 so your screens match; keep layout simple, since the S3 design session restyles provider/ after you land it. Put data logic in provider/api.ts and hooks so restyling does not touch it.
 Goal: the attorney chooses what a treating provider sees and shares a link; the provider sees where the case stands without the file.
 Sharing rules (slide 10): share status changes, bills and records; never strategy, attorney notes or unrelated confidential material. Filtering happens server-side: the provider endpoint must never return anything the settings exclude.

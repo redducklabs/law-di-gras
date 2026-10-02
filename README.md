@@ -12,4 +12,12 @@ Deadline 4:00 PM PT, 2026-10-02.
 
 ## Running it
 
-Not yet. Add start commands here as soon as there is something to run.
+Windows / PowerShell. `.env` at the repo root (see `.env.example`).
+
+```powershell
+cd backend; uv sync; uv run uvicorn app.main:app --reload --port 8000
+cd frontend; npm install; $env:PORT=5175; $env:API_PORT=8000; npm run dev
+```
+
+Parallel build sessions run in git worktrees with their own ports; see
+`docs/plans/2026-10-02-case-brief-dashboard.md` ("Worktrees, ports, syncing").

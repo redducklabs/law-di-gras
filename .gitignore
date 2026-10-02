@@ -20,3 +20,9 @@ temp/
 *.log
 .DS_Store
 Thumbs.db
+
+# Local app data (SQLite, downloaded Clio files)
+backend/data/
+*.db
+*.db-wal
+*.db-shm

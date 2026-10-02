@@ -1,0 +1,11 @@
+/* Design tokens. Owned by S3 (UI design). Tailwind v4 reads @theme. */
+@theme {
+  --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif;
+}
+
+body {
+  margin: 0;
+  background: var(--color-white);
+  color: var(--color-slate-900);
+  font-family: var(--font-sans);
+}

@@ -166,8 +166,11 @@ Brainstorm, 2026-10-02. Plan: `docs/plans/2026-10-02-case-brief-dashboard.md`.
   if time allows, cited Q&A (secondary; the brief says beyond chat).
 - **Scanned PDFs:** RapidOCR (pip, no system install) gives line boxes for
   highlights; PyMuPDF words for text PDFs.
-- **Grounding:** forced tool calls; a fact is "verified" only if its quote is a
+- **Grounding:** schema-enforced output via `messages.parse` (Opus/Sonnet 5.5
+  reject forced tool calls); a fact is "verified" only if its quote is a
   verbatim (normalized) span of the source; otherwise shown as unverified.
+- **Parallel build:** S1–S4 in git worktrees; `.env` + SQLite shared from the
+  main checkout; per-session ports (plan has the table).
 - **Cache:** all digestion keyed by content hash in SQLite; re-digest only
   changed sources.
 
