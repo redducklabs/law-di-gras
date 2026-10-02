@@ -50,6 +50,19 @@ def _rows(conn, matter_id: str, kind: str):
                         (matter_id, kind)).fetchall()
 
 
+_BY_PARTY = re.compile(r"^\s*By\s+([^:]{2,60}):\s*(.+)$", re.I)
+
+
+def waiting_party(title: str) -> str | None:
+    """Clio task title convention "By <role>: <party> - <what>" → <party> (or <role> if no party)."""
+    m = _BY_PARTY.match(title or "")
+    if not m:
+        return None
+    rest = m.group(2)
+    party = re.split(r"\s+[-–—]\s+", rest, maxsplit=1)
+    return party[0].strip() if len(party) == 2 and party[0].strip() else m.group(1).strip()
+
+
 def actions_from_tasks(matter_id: str, today: date) -> list[ActionItem]:
     out: list[ActionItem] = []
     with connect() as conn:
@@ -61,12 +74,16 @@ def actions_from_tasks(matter_id: str, today: date) -> list[ActionItem]:
             due = iso(raw.get("due_at") or raw.get("due_date") or row["date"])
             assignee = raw.get("assignee") or {}
             owner = assignee.get("name") if isinstance(assignee, dict) else None
-            if isinstance(assignee, dict) and (assignee.get("type") or "").lower() == "contact":
-                st, waiting_on = "waiting", owner
-            elif due and date.fromisoformat(due) < today:
-                st, waiting_on = "overdue", None
+            waiting_on = waiting_party(raw.get("name") or row["title"] or "")
+            if waiting_on is None and isinstance(assignee, dict) and (assignee.get("type") or "").lower() == "contact":
+                waiting_on = owner
+            # status is a pure function of due date + who holds the ball: stable across digests
+            if due and date.fromisoformat(due) < today:
+                st = "overdue"
+            elif waiting_on:
+                st = "waiting"
             else:
-                st, waiting_on = "upcoming", None
+                st = "upcoming"
             out.append(ActionItem(title=raw.get("name") or row["title"] or "Task", due_date=due, owner=owner,
                                   status=st, waiting_on=waiting_on, citations=[row_citation(conn, row)]))
     return out

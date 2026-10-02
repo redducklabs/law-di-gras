@@ -5,6 +5,7 @@ version. Unchanged case → the stored Dashboard is returned without any call.
 """
 
 import hashlib
+import re
 from datetime import date, datetime, timezone
 
 from rapidfuzz import fuzz
@@ -19,7 +20,7 @@ from app.retrieval.hyde import hyde_matter
 from app.retrieval.search import warm
 from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, TimelineEvent, TreatmentLine)
 
-PIPELINE_VERSION = f"d4-{PROMPT_VERSION}"
+PIPELINE_VERSION = f"d5-{PROMPT_VERSION}"
 
 
 def input_hash(matter_id: str) -> str:
@@ -58,6 +59,41 @@ def _fact(x: Extracted, fid: str) -> Fact:
 def _name_sim(a: str, b: str) -> float:
     a, b = a.replace("/", " "), b.replace("/", " ")
     return max(fuzz.token_set_ratio(a, b), fuzz.partial_ratio(a.lower(), b.lower()))
+
+
+VALUE_LOW_X, VALUE_HIGH_X = 1.5, 3.0
+_LIABILITY = re.compile(r"liabil|bodily|(?<![a-z])bi(?![a-z])", re.I)
+_UNCAPPED = re.compile(r"self[- ]insured|no stated limit|unlimited", re.I)
+
+
+def _round5k(x: float) -> float:
+    return round(x / 5000) * 5000
+
+
+def value_range(specials: Fact | None, coverage: list[Fact], liens: list[Fact]) -> Fact | None:
+    """Draft range by a fixed, stated rule (no model): 1.5x-3x billed specials, capped by the sum of
+    stated per-person liability limits only when every liability coverage has a stated limit."""
+    if not specials or not specials.amount or not specials.verified:
+        return None
+    s_amt = specials.amount
+    low, high = _round5k(VALUE_LOW_X * s_amt), _round5k(VALUE_HIGH_X * s_amt)
+    liab = [c for c in coverage if c.verified and _LIABILITY.search(c.label)]
+    uncapped = [c for c in liab if _UNCAPPED.search(c.value) or c.amount is None]
+    notes = [f"Rule: {VALUE_LOW_X:g}x-{VALUE_HIGH_X:g}x billed specials (${s_amt:,.0f})"]
+    if liab and not uncapped:
+        cap = sum(c.amount for c in liab)
+        if high > cap:
+            high, low = cap, min(low, cap)
+            notes.append(f"capped at stated liability limits (${cap:,.0f})")
+    elif uncapped:
+        notes.append(f"not capped: {uncapped[0].label.split(' · ')[0]} {uncapped[0].value.lower()}")
+    lien_total = sum(l.amount or 0 for l in liens if l.verified)
+    if lien_total:
+        notes.append(f"before liens (${lien_total:,.0f})")
+    used = [specials] + liab + [l for l in liens if l.verified and l.amount]
+    return Fact(id="case_value", label="Case value (draft): " + "; ".join(notes) + ".",
+                value=f"${low:,.0f} – ${high:,.0f}", amount=high,
+                citations=[c for f in used for c in f.citations[:1]], verified=True)
 
 
 def _future(d: str, today: date) -> bool:
@@ -172,6 +208,8 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     for x, f in zip(ex.get("requests", []), facts.get("requests", [])):
         if any(fuzz.token_set_ratio(a.title, f.label) >= 70 for a in actions):
             continue  # already tracked as a Clio task
+        if x.party and any(a.waiting_on and _name_sim(a.waiting_on, x.party) >= 85 for a in actions):
+            continue  # a Clio task already waits on this party; the task is the record of truth
         actions.append(ActionItem(title=f.label, due_date=f.date, status="waiting", waiting_on=x.party,
                                   citations=f.citations))
     order = {"overdue": 0, "upcoming": 1, "waiting": 2}
@@ -186,7 +224,8 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     pool = [f for f in pool if f.verified]
     stage = st.clio_stage(matter_id)
     status = matter.status + (f"; Clio matter stage: {stage}" if stage else "")
-    headline, case_value = write_brief(matter_id, pool, actions, status, today)
+    headline = write_brief(matter_id, pool, actions, status, today)
+    case_value = value_range(specials, facts.get("coverage", []), facts.get("liens", []))
 
     with connect() as conn:
         run_cost = conn.execute("SELECT COALESCE(SUM(cost_usd), 0) FROM llm_usage WHERE matter_id = ?"
