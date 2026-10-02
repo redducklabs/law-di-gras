@@ -142,9 +142,11 @@ def _item_block(it: Item, max_cits: int = 12) -> str:
     return "\n".join(parts)
 
 
-def fact_support_judge(items: list[Item], matter_id: str, batch: int = 8) -> list[Finding]:
+def fact_support_judge(items: list[Item], matter_id: str, batch: int = 8, progress=None) -> list[Finding]:
     out: list[Finding] = []
     for i in range(0, len(items), batch):
+        if progress:
+            progress(i / max(1, len(items)))
         group = items[i:i + batch]
         content = "Audit these items.\n\n" + "\n\n".join(_item_block(it) for it in group)
         res = llm.structured(llm.MODEL_SONNET, Verdicts, JUDGE_SYSTEM, content,
