@@ -21,7 +21,7 @@ from app.llm import MODEL_OPUS, structured
 from app.retrieval.fence import FENCE_RULE
 from app.schemas import ActionItem, Citation, Fact, Headline
 
-VERSION = "b7"
+VERSION = "b8"
 
 
 class Bullet(BaseModel):
@@ -111,7 +111,9 @@ def _strip(matter_id: str, items: list[tuple[str, list[str]]], names: Corpus) ->
             out.append(text)
             continue
         safe = j.supported_text.strip()
-        out.append(safe if safe and not check_tokens(safe, Corpus("\n".join(quotes)), names) else "")
+        lost_attribution = "defense" in text.lower() and "defense" not in safe.lower()  # never orphan an opinion
+        out.append(safe if safe and not lost_attribution and not check_tokens(safe, Corpus("\n".join(quotes)), names)
+                   else "")
     return out
 
 
