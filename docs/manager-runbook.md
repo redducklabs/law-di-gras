@@ -19,7 +19,7 @@ after `/clear` it is unchanged. Live state: `docs/status.md`. Plans: `docs/plans
 |---|---|---|---|---|
 | S1 Clio + ingestion | archived | (now S4) | n/a | done |
 | S2 retrieval + digest + chat | `local_4ffd991b-ee95-4e9d-859a-6858575ea7b2` | `backend/app/{retrieval,digest}/`, `api/digest.py` | 8002 | working the queue below |
-| S3 UI design | `local_86d8e431-053d-40e3-b28b-9e76d8dfab5a` | `frontend/src/{styles,components,firm,cases}/`, provider restyle | 5173 | holding for freeze |
+| S3 UI design (now "Case brief UI redesign", less-busy pass) | `local_cd17e553-a9b8-49ed-b5a9-d9eff505500d` (old `local_86d8e431-…` stood down 12:47) | `frontend/src/{styles,components,firm,cases}/`, provider restyle | 5173 | holding for freeze |
 | S4 provider/sharing + auth + cases API + Clio/ingest | `local_ae7ee234-f027-4239-8a52-8ca04fc78b46` | `backend/app/{share,auth,cases,clio,ingest}/`, `api/{share,auth,cases,sources}.py`, `frontend/src/{provider,auth}/` | 8004 / 5174 | standby |
 | S5 source pane + chat panel | `local_bf74fa6b-165c-4c81-8bd1-ee65e21f0b70` | `frontend/src/{source,chat}/` | 8005 / 5176 | standby (PDF blank-page fix landed 7dabb24) |
 | S6 data audit | `local_8b6cd5c2-f9ab-4afd-9f80-b1bf8226840e` | `backend/app/audit/`, `docs/audit/` | 8006 | waits for pings to re-run (~$0.70/run; Aron OK'd spend) |
