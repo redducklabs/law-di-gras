@@ -21,7 +21,7 @@ from app.retrieval.fence import FENCE_RULE
 from app.retrieval.search import search_hits
 from app.schemas import Citation
 
-VERSION = "k3"
+VERSION = "k4"
 
 
 class Verdict(BaseModel):
@@ -49,7 +49,8 @@ SYSTEM = (
     "the deciding passage and a short VERBATIM quote copied exactly from it. Tense matters (scheduled or "
     "recommended is not done). note: max 12 words, ONLY what that passage itself states, keeping its "
     "amounts and figures exactly, then its party and date in parentheses, e.g. '$100,000 per person / "
-    "$300,000 per occurrence (Claims Service Bureau, 2026-09-08)'. No commentary, no 'conflicting with'. "
+    "$300,000 per occurrence (Claims Service Bureau, 2026-09-08)'. No commentary, no 'conflicting with'. If the passage is an internal firm note, write "
+    "'per firm note of <date>: <what it says>'. "
     + FENCE_RULE
 )
 

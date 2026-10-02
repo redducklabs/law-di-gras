@@ -24,7 +24,7 @@ from app.retrieval.fence import FENCE_RULE, fence
 from app.retrieval.search import search
 from app.schemas import ChatRequest, ChatResponse, Citation, Dashboard, DeepLink
 
-VERSION = "ch3"
+VERSION = "ch5"
 SECTIONS = {"timeline", "next-steps", "status", "kpis", "injuries", "treatment", "recent"}
 ROUTES = {"/cases"}
 MAX_LINKS = 3
@@ -135,32 +135,50 @@ def _sentences(md: str) -> list[tuple[int, str]]:
     """(line index, sentence) for every sentence in the markdown."""
     out = []
     for li, line in enumerate(md.split("\n")):
+        parts: list[str] = []
         for s in _SENT.split(line):
-            if s.strip():
-                out.append((li, s))
+            # don't break after an initial or title ("Anthony F. Ferrara", "Dr. Lee")
+            if parts and re.search(r"(?:\b[A-Z]|\bDr|\bMr|\bMs|\bMrs|\bNo|\bv)\.$", parts[-1].rstrip()):
+                parts[-1] = f"{parts[-1]} {s}"
+            else:
+                parts.append(s)
+        out += [(li, s) for s in parts if s.strip()]
     return out
 
 
-def _verify(matter_id: str, md: str, ev_text: list[str]) -> tuple[list[tuple[int, str]], list[list[str]], list[str]]:
-    """Sentences, their failures, and the judge's supported rewrite for each."""
+def _verify(matter_id: str, md: str, ev_text: list[str], dash_ids: set[int] | None = None
+            ) -> tuple[list[tuple[int, str]], list[list[str]], list[str]]:
+    """Sentences, their failures, and the judge's supported rewrite for each.
+
+    Sentences citing only dashboard facts (already verified when the dashboard was built) get the
+    deterministic token check against those facts; everything else also goes through the claim judge.
+    """
+    dash_ids = dash_ids or set()
     sents = _sentences(md)
     items, idx = [], []
+    fails: list[list[str]] = [[] for _ in sents]
+    safe: list[str] = [s for _, s in sents]
     for i, (_, s) in enumerate(sents):
         ns = [int(n) for n in _MARK.findall(s) if 1 <= int(n) <= len(ev_text)]
         plain = _MARK.sub("", s).strip(" -*#>")
         if not plain:
             continue
-        if ns:
+        if ns and all(n in dash_ids for n in ns):
+            toks = check_tokens(plain.replace("**", ""), Corpus("\n".join(ev_text[n - 1] for n in ns)))
+            if toks:
+                fails[i], safe[i] = toks, ""
+            idx.append(i)
+        elif ns:
             items.append((plain, [ev_text[n - 1] for n in ns]))
             idx.append(i)
-    fails: list[list[str]] = [[] for _ in sents]
-    safe: list[str] = [s for _, s in sents]
     judged = judge_claims(matter_id, items, purpose="verify_chat") if items else []
-    for (plain, quotes), i, j in zip(items, idx, judged):
+    judged_idx = [i for i in idx if any(int(n) not in dash_ids for n in _MARK.findall(sents[i][1])
+                                        if 1 <= int(n) <= len(ev_text))]
+    for (plain, quotes), i, j in zip(items, judged_idx, judged):
         f = check_tokens(plain, Corpus("\n".join(quotes))) + list(j.unsupported)
         fails[i] = f
         if f:
-            marks = "".join(dict.fromkeys(_MARK.findall(sents[i][1])))
+            marks = list(dict.fromkeys(_MARK.findall(sents[i][1])))
             safe[i] = (j.supported_text.strip() + " " + "".join(f"[{m}]" for m in marks)).strip() \
                 if j.supported_text.strip() and not check_tokens(j.supported_text, Corpus("\n".join(quotes))) else ""
     for i, (_, s) in enumerate(sents):  # uncited sentences may not carry specifics
@@ -213,6 +231,7 @@ def chat(matter_id: str, req: ChatRequest) -> ChatResponse:
     evidence: list[tuple[str, Citation]] = [(p.citation.quote[:3000], p.citation) for p in passages
                                            if p.citation.verified]
     if d:
+        dash_start = len(evidence)
         evidence += _dash_evidence(d)
     if not evidence:
         return ChatResponse(answer_markdown="Nothing in the synced case file answers this.", citations=[], links=[])
@@ -231,16 +250,17 @@ def chat(matter_id: str, req: ChatRequest) -> ChatResponse:
         return ChatResponse.model_validate_json(row["payload_json"])
 
     ev_text = [f"{c.source_title}\n{t}" for t, c in evidence]
+    dash_ids = set(range(dash_start + 1, len(evidence) + 1)) if d else set()
     out = structured(MODEL_OPUS, ChatOut, SYSTEM, PROMPT.format(**base, retry=""), purpose="chat",
                      matter_id=matter_id, effort="low", max_tokens=3000)
-    sents, fails, safe = _verify(matter_id, out.answer_markdown, ev_text)
+    sents, fails, safe = _verify(matter_id, out.answer_markdown, ev_text, dash_ids)
     if any(fails):
         listed = "\n".join(f"- \"{_MARK.sub('', s)[:120]}\": {', '.join(f)}" for (_, s), f in zip(sents, fails) if f)
         retry = ("\n\nYour previous answer had statements the cited evidence does not support. Answer again, "
                  f"stating only what the cited evidence says:\n{listed}")
         out = structured(MODEL_OPUS, ChatOut, SYSTEM, PROMPT.format(**base, retry=retry), purpose="chat_retry",
                          matter_id=matter_id, effort="low", max_tokens=3000)
-        sents, fails, safe = _verify(matter_id, out.answer_markdown, ev_text)
+        sents, fails, safe = _verify(matter_id, out.answer_markdown, ev_text, dash_ids)
     answer = _rebuild(out.answer_markdown, sents, safe) or "The case file does not clearly answer this."
 
     # Renumber to the cited subset; markers pointing nowhere are removed.
@@ -258,7 +278,8 @@ def chat(matter_id: str, req: ChatRequest) -> ChatResponse:
     remap = {old: new for new, old in enumerate(used, 1)}
     remap.update({n: remap[a] for n, a in alias.items()})
     answer = _MARK.sub(lambda m: f"[{remap[int(m.group(1))]}]" if int(m.group(1)) in remap else "", answer)
-    answer = re.sub(r"(\[\d+\])(?:\1)+", r"\1", answer)  # [1][1] -> [1]
+    answer = re.sub(r"(?:\[\d+\])+",  # [5][6][5] -> [5][6]
+                    lambda m: "".join(dict.fromkeys(re.findall(r"\[\d+\]", m.group(0)))), answer)
     citations = [evidence[n - 1][1] for n in used]
 
     # Validate every proposed link against what actually exists.

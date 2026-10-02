@@ -75,7 +75,9 @@ CATEGORIES = [
        "injuries as documented by treating providers, imaging or hospital records. Do NOT list findings or "
        "opinions from a defense / independent medical examination (IME) or defense expert as the client's "
        "injuries; if such an opinion disputes an injury, put it in that injury's value as 'Defense IME "
-       "(<doctor>): <what they said, in their words>', scoped to the exact side and body part that opinion "
+       "(<doctor>): <what they said, in their words>' for an examination, or 'Defense radiology review (<doctor>): ...' "
+       "/ 'Defense records review (<doctor>): ...' for a review of films or records (name the document type "
+       "correctly; a review is not an IME), scoped to the exact side and body part that opinion "
        "addresses (e.g. 'left knee'); never attach a one-sided opinion to a bilateral finding without saying "
        "which side. Never call something 'no injury' unless a quote says "
        "exactly that. The value must not add procedures, dates or findings that its quotes do not state.",
@@ -324,7 +326,8 @@ def verify_values(matter_id: str, extracted: dict[str, list[Extracted]]) -> dict
         if not bad:
             continue
         safe = j.supported_text.strip()
-        if safe and not check_tokens(safe, quotes, names):
+        lost_attribution = "Defense" in x.value and "Defense" not in safe
+        if safe and not lost_attribution and not check_tokens(safe, quotes, names):
             x.value = safe
             stripped += 1
         else:

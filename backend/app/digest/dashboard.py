@@ -25,7 +25,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 17
+PIPELINE_REV = 20
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -91,12 +91,12 @@ _LIMITATIONS = re.compile(r"limitation", re.I)
 _FILED = re.compile(r"complaint|summons|action commenced|commenced|suit filed|lawsuit|filed|index no", re.I)
 
 
-def _suit_filed_before(ex: dict[str, list[Extracted]], deadline: str) -> str | None:
-    """Date of a verified filing/commencement event on or before the deadline, if the record shows one."""
-    dates = [x.date for cat in ("key_dates", "stage") for x in ex.get(cat, [])
-             if x.date and x.verified and x.date <= deadline and (x.status in (None, "occurred"))
-             and _FILED.search(f"{x.label} {x.value}") and not _LIMITATIONS.search(x.label)]
-    return min(dates) if dates else None
+def _suit_filed_before(ex: dict[str, list[Extracted]], deadline: str) -> Extracted | None:
+    """The earliest verified filing/commencement event on or before the deadline, if the record shows one."""
+    hits = [x for cat in ("key_dates", "stage") for x in ex.get(cat, [])
+            if x.date and x.verified and x.date <= deadline and (x.status in (None, "occurred"))
+            and _FILED.search(f"{x.label} {x.value}") and not _LIMITATIONS.search(x.label)]
+    return min(hits, key=lambda x: x.date) if hits else None
 
 
 def _apply_finding(f: Fact, v, cit, injury: bool = False, bullet: bool = False) -> None:
@@ -115,8 +115,8 @@ def _apply_finding(f: Fact, v, cit, injury: bool = False, bullet: bool = False) 
             f.value = f"{f.value} Disputed: {note}."
         else:
             f.value = f"Conflict: {f.value} vs {note}"
-    elif not bullet:  # a caveat on a headline bullet only repeats it; facts carry caveats in the label
-        f.label = f"{f.label} — {note}"
+    elif not bullet:  # caveats go after the value, never in the (short) label
+        f.value = f"{f.value} · Note: {note}"
 
 
 def _usd(x: float) -> str:
@@ -253,6 +253,26 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     for f, (v, cit) in zip(checked, check_statements(matter_id, [(f"{f.label}: {f.value}", f.citations)
                                                                  for f in checked], purpose="record_check_facts")):
         _apply_finding(f, v, cit, injury=f in facts.get("injuries", []))
+    # A coverage line restating limits already shown inside another line's Conflict, from the same
+    # source, is a duplicate (readers would add it as a second policy): drop it.
+    cov = facts.get("coverage", [])
+    for f2 in list(cov):  # the same coverage extracted twice (same value, near-identical label)
+        twin = next((f1 for f1 in cov if f1 is not f2 and f1.value == f2.value
+                     and fuzz.token_set_ratio(f1.label, f2.label) >= 85), None)
+        if twin and len(f2.citations) <= len(twin.citations) and f2 in cov:
+            cov.remove(f2)
+    for f2 in list(cov):
+        if f2.value.startswith("Conflict:"):
+            continue
+        src2 = {c.source_id for c in f2.citations}
+        amts2 = {v for tok in _MONEY.findall(f2.value) if (v := _money_val(tok))}
+        for f1 in cov:
+            if f1 is f2 or not f1.value.startswith("Conflict:"):
+                continue
+            amts1 = {v for tok in _MONEY.findall(f1.value) if (v := _money_val(tok))}
+            if amts2 and amts2 <= amts1 and src2 & {c.source_id for c in f1.citations}:
+                cov.remove(f2)
+                break
 
     # Timeline
     timeline: list[TimelineEvent] = []
@@ -273,7 +293,8 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             if not fut and _LIMITATIONS.search(f.label):
                 filed = _suit_filed_before(ex, f.date)
                 if filed:
-                    label = f"{f.label}: {f.date} (suit filed {filed[:4]}, satisfied)"
+                    label = f"{f.label}: {f.date} (suit filed {filed.date[:4]}, satisfied)"
+                    f.citations = list(f.citations) + [c for c in filed.citations if c.verified][:1]  # cite the filing
         elif status == "adjourned":
             label = f"Adjourned: {f.label}"
         elif status in ("scheduled", "unknown") and fut:
@@ -288,7 +309,9 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
         timeline.append(ev)
     for t in treatment:
         if t.first_visit:
-            timeline.append(TimelineEvent(date=t.first_visit, label=f"Treatment starts: {t.provider}",
+            one_day = t.last_visit == t.first_visit
+            timeline.append(TimelineEvent(date=t.first_visit,
+                                          label=f"{'Treatment (one day)' if one_day else 'Treatment starts'}: {t.provider}",
                                           kind="treatment", is_future=False, citations=t.citations))
     cal_events, cal_actions = st.calendar(matter_id, today)
     # Past calendar entries are only the firm's plan: surface records that put the event on another date.
