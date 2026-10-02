@@ -92,6 +92,7 @@ class Kpis(BaseModel):
     coverage: list[Fact] = Field(default_factory=list)
     case_value: Fact | None = None  # draft range, only when grounded
     firm_spent: Fact | None = None
+    liens: list[Fact] = Field(default_factory=list)
 
 
 class Dashboard(BaseModel):

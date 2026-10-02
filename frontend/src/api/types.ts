@@ -74,7 +74,7 @@ export interface Dashboard {
   models: string[]
   headline: { status_line: string; stage: string; bullets: Fact[] }
   timeline: TimelineEvent[]
-  kpis: { specials?: Fact | null; coverage: Fact[]; case_value?: Fact | null; firm_spent?: Fact | null }
+  kpis: { specials?: Fact | null; coverage: Fact[]; case_value?: Fact | null; firm_spent?: Fact | null; liens?: Fact[] }
   actions: ActionItem[]
   last_client_contact?: Fact | null
   injuries: Fact[]
