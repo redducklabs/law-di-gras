@@ -166,6 +166,38 @@ sum correctly while still flagging them. Raw output is in
 | minor | Recent "notice dated March 24 / February 4" | These are NYSCEF filing dates; the notices carry no date of their own. Say "filed". | S2 |
 | minor | Recent: "CSB sent Katzman review" (9/22) and "Defense counsel served Katzman report" (2/4) | The same report appears twice, from two transmittals. | S2 |
 
+## Re-run after S2 r16 (dashboard 19:12 UTC)
+
+Checks 1, 2, 3, 5 and 6 cost $0.70. Raw output is in [auto-report.md](auto-report.md).
+
+The judge again flagged firm costs and the Montefiore bill as "critical" while
+confirming both sums are correct, so those are false positives. The record check
+flagged the surfaced coverage conflict as "contradicted", which is the intended
+behavior, not an error. KPIs reconcile and provider views are clean.
+
+| # | Finding | Status |
+|---|---|---|
+| B | CSB $100k/$300k vs Metro-North self-insured | **Surfaced** as "Conflict:" on the Metro-North coverage line, the case value and bullet 3, and the case value says "capped at $100,000 per person if those limits apply". **New problem:** see N1. |
+| C | UM | **Resolved.** |
+| D | Specials shown as final | **Resolved.** Now "running figure… ledgers unreconciled". |
+| E | Carpal tunnel | **Resolved.** |
+| 2 | Bullet 0 cites only pleadings | **Still open.** The new text adds "three versions of the collision on file", but its 4 citations are still the complaint and bill of particulars. None is note 2996972633 or note 2996970518, which say it. |
+| 5 | Status line has no own citations | **Still open.** The text is now "Action is in discovery; both sides are trying to schedule the client deposition"; the Ferrara omission is resolved. Cite note 2996972258. |
+| 12 | IME dates (Sep calendar vs Mar reports) | **Still open.** |
+| 14 | Hudson Valley "Treatment starts 2023-05-08" | **Still open.** It still cites only the bill of particulars provider list. |
+| knee | Katzman's left-knee quote on the bilateral card | **Still open.** |
+
+**New in r16:**
+
+| Sev | On screen | What's wrong | Owner |
+|---|---|---|---|
+| **major N1** | Coverage tile now has three lines with limits: "Metro-North… Conflict: self-insured vs $100k/$300k"; "**BI liability · Claims Service Bureau (Metro-North claim administrator) · defendant** · $100,000 / $300,000"; "Ferrara personal policy · $100,000 / $300,000" | **Wrong party.** CSB is Metro-North's claims administrator, not a defendant or an insurer. The same $100k/$300k now reads as a second policy, so a reader sees $200k/$600k of liability coverage. Drop the CSB line and keep the conflict on the Metro-North line only. | S2 |
+| major N2 | Labels now carry note text and attribution. Injury: "Left shoulder posterior labral tear **— MRI also shows… glenoid hypoplasia, developmental not traumatic; defence expected to use it (Aron Weiler, 2023-07-12)**". Specials KPI label: "…running figure stands… least certain (Aron Weiler, 2026-09-25)" | The label sits next to the MRI finding, so a reader takes 2023-07-12 as the MRI date. The record check made exactly that mistake; the MRI was 05/24/2023. The text also makes long tile labels, and "developmental not traumatic" comes from the firm's note, not the MRI. Move caveats into the value or a note line, and keep labels short. | S2 (S3 for layout) |
+| major N3 | Injury cards: "Defense IME (Dr. Katzman…)" | Katzman did a **radiology review**, not an IME (the Hostin and Tsao exams were the IMEs). Say "Defense radiology review (Dr. Katzman)". | S2 |
+| minor N4 | Bullet 4 ends "…$50,000 no-fault exhausted. McCulloch records and surgical date." | A sentence fragment is left over from a merged bullet. | S2 |
+| minor | "Treatment starts: New Horizon Surgical Center" | This was a one-day surgery, not the start of a course of treatment. | S2 |
+| minor | SOL "(suit filed 2024, satisfied)" | Cites only the calendar entry; cite the complaint for "suit filed". | S2 |
+
 ## Check 7: ask-the-case chat (S2 /chat, 7 questions incl. 1 follow-up and 1 trick)
 
 Run: `uv run python -m app.audit --checks 7 --suffix=-chat` ($0.23). Full Q&A
