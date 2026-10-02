@@ -54,3 +54,8 @@ links). Fewer widgets, not more.
 We expect API access to the firm's case-management system, probably **Clio**
 (to be confirmed). **Read-only, always. We never write to it.** See the rule in
 `CLAUDE.md` → *Limits that still apply*.
+
+## Submission (live, 2026-10-02)
+
+We must record a **video of the application** at the end. Plan the build around
+one tight demo path and keep `docs/demo-script.md` up to date.

@@ -18,6 +18,10 @@ working, demoable prototype, fast.** Everything in this file bends toward that.
   screens the demo touches must look intentional and feel good to use: clear
   hierarchy, consistent spacing and type, sensible empty/loading states, and no
   broken layouts. Spend polish on what is on screen, not on what is behind it.
+- **The deliverable ends in a demo video.** Build toward one scripted demo path
+  that runs reliably from a clean start with seeded or cached data (no live
+  dependency that can stall on camera). Keep `docs/demo-script.md` current as
+  features land. Playwright (already available) can drive and record the walkthrough.
 - **No process overhead.** No issue tracker, no project board, no UAT, no Codex
   review loop, no PR gate. Commit straight to `main` unless the user asks
   otherwise.
