@@ -141,6 +141,7 @@ _D_MONY = re.compile(r"\b(" + "|".join(sorted(MONTHS, key=len, reverse=True)) + 
 def dates_in(text: str) -> set[tuple[int, int, int | None]]:
     """(year, month, day|None) for every date-like token."""
     t = re.sub(r"\s+", " ", text or "")
+    t = re.sub(r"\b(\d{1,2}) (\d{1,2}) ((?:19|20)\d{2})\b", r"\1/\2/\3", t)  # OCR'd stamps: "10 11 2024"
     out: set = set()
     for y, m, d in _D_ISO.findall(t):
         out.add((int(y), int(m), int(d)))

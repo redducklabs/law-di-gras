@@ -16,7 +16,7 @@ from app.db import connect
 from app.schemas import AuditFlag, AuditReport, Citation, Dashboard, RunProgress
 
 KINDS = {"dashboard": "audit:dashboard", "review": "audit:review"}
-VERSION = "a1"  # bump to re-audit everything when the checks change
+VERSION = "a2"  # bump to re-audit everything when the checks change
 _lock = threading.Lock()
 _jobs: dict[tuple[str, str, str], AuditReport] = {}  # (matter, target, hash) -> in-flight/failed report
 
@@ -176,6 +176,9 @@ def audit_dashboard(matter_id: str, step) -> tuple[list[AuditFlag], int]:
             continue
         f.severity = "minor" if f.severity in ("critical", "major") else f.severity  # judge-only: advisory
         found.append(f)
+    for f in found:
+        if f.check == "1-code" and "no citations of its own" in f.problem:
+            f.severity = "minor"  # a design gap, not a wrong fact
     step("Checking claims against the whole record", 62)
     rec, _ = record_check.record_support(items, matter_id,
                                          progress=lambda x: step(f"Checking claims against the whole record ({int(x * 100)}%)", 62 + 35 * x))
@@ -251,7 +254,9 @@ def audit_review(matter_id: str, step) -> tuple[list[AuditFlag], int]:
             if not ok:
                 add("critical", "fact-support", f"Quote not found in the cited source ({how}): \"{c.quote[:100]}\"", [c])
         for p in overreach(texts, quotes, f.citations):
-            add("major", "overreach", f"Overstates the record: {p}")
+            # "never"/"planned" are mostly hypotheticals or paraphrase here; exclusivity and certainty words are real overreach
+            soft = re.match(r'"(never|planned|plans to|intends?|intended|decided)"', p, re.I)
+            add("minor" if soft else "major", "overreach", f"Overstates the record: {p}")
         for cite in unsourced_legal_cites(texts, f.citations):
             add("major", "legal-cite", f"Legal citation \"{cite}\" is not inside any cited quote, so the highlight does not show it.")
         if f.category in ("conflict", "inconsistency"):
@@ -262,6 +267,7 @@ def audit_review(matter_id: str, step) -> tuple[list[AuditFlag], int]:
         step(f"Checking finding {i + 1} against the whole record", base + 6)
         extra, problems = record_cites(matter_id, [f.title, f.why_it_matters], f.citations)
         for p in problems:
-            add("major", "whole-record", p, extra[:1])
+            # a conflict finding is expected to have contradicting evidence; only flag it as advisory there
+            add("minor" if f.category in ("conflict", "inconsistency") else "major", "whole-record", p, extra[:1])
     flags.sort(key=lambda a: (SEV_RANK[a.severity], a.item_id))
     return flags, len(fs)
