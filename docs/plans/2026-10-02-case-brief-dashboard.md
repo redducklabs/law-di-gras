@@ -40,10 +40,12 @@ frontend/                     Vite + React + TS + Tailwind on :5173, proxy /api 
   src/api/types.ts            [contracts] TS mirror of schemas.py
   src/api/client.ts           [contracts] fetch wrappers
   src/App.tsx, routes         [integration] / → firm, /p/:token → provider
+  src/styles/, tailwind.config.ts  [S3] design tokens (color, type, spacing), light theme
   src/firm/                   [S3] dashboard page, cards, timeline strip, KPI tiles
-  src/source/                 [S3] SourcePane: react-pdf + highlight overlay, note/email viewer
-  src/components/             [S3] SourceChip, Card, Badge (S4 may import, not edit)
-  src/provider/               [S4] provider page + attorney share panel
+  src/components/             [S3] SourceChip, Card, Badge, Tile, Drawer (S4 imports, never edits)
+  src/dev/fixture.ts          [S3] fictional "Doe v. Example" data for design; deleted by 3 PM
+  src/source/                 [integration] SourcePane: react-pdf + highlight overlay, note/email viewer
+  src/provider/               [S4] provider page + share panel (functional); S3 does the visual pass after
 ```
 
 **SQLite tables** (`backend/app/db.py`, one file, `CREATE TABLE IF NOT EXISTS`)
@@ -114,7 +116,7 @@ ProviderView {matter_title, client_name, provider_name, stage, status_line,
 
 ## Streams
 
-Critical path: **S1 → S2 → S3**. S4 runs alongside. Drop first if late:
+Critical path: **S1 → S2 → S3** (S3 starts at once on a fictional fixture). S4 runs alongside. Drop first if late:
 cited Q&A → opened-tracking → scan injuries (fall back to page-level chips) →
 provider document list.
 
@@ -135,13 +137,15 @@ provider document list.
 - [ ] Opus headline brief from verified facts only; cache `Dashboard` by input hash
 - [ ] `/search`, then `/ask` (Opus, [n] citations only from retrieved passages)
 
-### S3: Firm dashboard UI
-- [ ] Vite/React/TS/Tailwind scaffold (if integration hasn't), Case Brief layout per concept A
-- [ ] Subtle timeline strip at top; headline; KPI tiles; Needs action; injuries; treatment
-- [ ] `SourceChip` everywhere; unverified chips visibly marked
-- [ ] `SourcePane` (right side): react-pdf page + rect overlay + scroll to highlight; text sources with highlighted span
-- [ ] Find-in-case box in the pane; Ask box if S2 ships `/ask`
+### S3: UI design (interactive with Aron)
+A design session that iterates visually with Aron in the browser pane: show,
+get feedback, revise. It owns the look of every screen; mechanics live elsewhere.
+- [ ] 2–3 visual directions for the Case Brief on the fictional fixture → Aron picks one
+- [ ] Design tokens + shared components (SourceChip incl. unverified state, Tile, Card, Badge, Drawer)
+- [ ] Firm Case Brief: subtle timeline strip at top; headline; KPI tiles; Needs action; injuries; treatment
 - [ ] Loading/empty states; "Draft for attorney review · generated <time> · $<cost>"
+- [ ] Swap fixture for live `GET /dashboard` once S2 is up; delete `src/dev/` by 3 PM
+- [ ] Visual pass on S4's SharePanel + ProviderPage, and on the SourcePane frame
 
 ### S4: Provider view + sharing
 - [ ] Providers list from Clio contacts (via S1 tables)
@@ -152,6 +156,7 @@ provider document list.
 
 ### Integration (this session)
 - [ ] Commit contracts + scaffold (backend runs, frontend renders a blank shell)
+- [ ] `src/source/SourcePane`: react-pdf page + rect overlay + scroll to highlight; text sources with highlighted span; Find-in-case + Ask boxes (S3 styles it)
 - [ ] Wire routes in `main.py`, keep demo path green, README run commands
 - [ ] `docs/demo-script.md`, record the video with Playwright, submission notes (models + cost per case)
 
@@ -197,20 +202,21 @@ Goal: turn the S1 tables into a cached `Dashboard` (schemas.py) where every fact
 Done when: POST /digest on Sapini returns a full Dashboard, a second call returns from cache in <1s, ≥80% of facts verified with rects, and llm_usage gives cost per case. Report the cost and model split.
 ```
 
-### S3 prompt
+### S3 prompt (interactive design session)
 
 ```
-You own stream S3 (firm dashboard UI) of the Sapini dashboard.
-Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. Commit small and often to main with conventional commits; git pull --rebase before every push. Report what you ran/clicked. Also use the frontend-design skill for polish.
-Owned: frontend/src/firm/, frontend/src/source/, frontend/src/components/. Do not touch backend/ or frontend/src/provider/.
-Goal: the Case Brief screen (concept A in docs/challenge.md) that a PI attorney absorbs in 90 seconds, every fact clickable to its source.
-Layout: header (client name + photo or initials, matter number, stage badge, Share button slot for S4) → subtle timeline strip (past events dotted, today marker, upcoming deadlines) → headline status line + bullets → KPI tiles (specials, coverage/policy limits, firm spent, case value draft if present) → Needs action (overdue / upcoming / waiting on others) + last client contact → injuries → treatment by provider. Right: SourcePane slides in on chip click.
-1. components/SourceChip: compact "Title · p.N" chip; dashed/amber with "unverified" when verified=false.
-2. source/SourcePane: for PDFs, react-pdf (pdfjs worker) renders the page from /api/sources/{id}/file, overlays Rect[] highlights, scrolls to the first rect; for text sources, shows text with char_start..char_end highlighted. Shows date, author, kind.
-3. "Find in case" box in the pane → GET /search → passage list with chips. Ask box → POST /ask with [n] linked to citations, only if the route exists.
-4. Data: GET /dashboard; if 404 show "Digest case" button → POST /digest with a progress state. Show "Draft for attorney review · generated <time> · $<cost>".
-Until S2's endpoint is live, develop against a clearly fake fixture in frontend/src/dev/ (fictional "Doe v. Example", no Sapini content) and delete it before 3 PM.
-Done when: on real Sapini data the page looks intentional at 1440×900 and at narrow width, and clicking a date and an injury opens the source with the span highlighted. Screenshot both.
+You own stream S3 (UI design) of the Sapini dashboard. This is an interactive session: Aron iterates on the visuals with you.
+Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. Commit small and often to main with conventional commits; git pull --rebase before every push. Report what you ran/clicked.
+Owned: frontend/src/styles/, frontend/tailwind.config.ts, frontend/src/components/, frontend/src/firm/, frontend/src/dev/. After S4 lands its functional provider screens, you also restyle frontend/src/provider/ and the frame of frontend/src/source/SourcePane (coordinate via small commits; do not change their data logic). Do not touch backend/.
+Audience: PI attorneys, paralegals, case managers (firm view) and treating medical providers (provider view). Professional, calm, dense-but-scannable; "where does this case stand" in 90 seconds. Use the frontend-design skill.
+How to work:
+1. Run the frontend (npm run dev in frontend/) and show it in the built-in browser pane. Work against a clearly fictional fixture in frontend/src/dev/fixture.ts ("Doe v. Example", invented content, typed as Dashboard from src/api/types.ts). No Sapini content anywhere in code.
+2. First, show Aron 2–3 distinct visual directions for the Case Brief (screenshots at 1440×900): type scale, color, density, how the timeline strip and KPI tiles read. Ask him to pick or mix. Keep each round short; he answers between hackathon activities.
+3. Then build the chosen direction as tokens + components: SourceChip ("Title · p.N"; dashed amber + "unverified" when verified=false), Tile, Card, Badge, Drawer, and the firm Case Brief page: header (client name + photo or initials, matter number, stage badge, Share button that calls an onShare prop) → subtle timeline strip at top (past events, today marker, upcoming deadlines) → headline status line + bullets → KPI tiles (specials, coverage/policy limits, firm spent, case value draft if present) → Needs action (overdue / upcoming / waiting on others) + last client contact → injuries → treatment by provider. Chip clicks call an onOpenSource(citation) prop; the integration session mounts SourcePane on it.
+4. Loading/empty/error states, "Draft for attorney review · generated <time> · $<cost>" footer, sensible narrow-width layout (16px gutters, no horizontal scroll).
+5. After every meaningful change, screenshot and ask Aron for feedback before moving on.
+6. Once GET /api/matters/{id}/dashboard returns real data, switch to it (fixture only as a dev fallback) and delete frontend/src/dev/ before 3 PM.
+Done when: Aron signs off on the Case Brief on real Sapini data at 1440×900 and narrow width, and the provider screens and SourcePane share the same visual language.
 ```
 
 ### S4 prompt
@@ -218,7 +224,7 @@ Done when: on real Sapini data the page looks intentional at 1440×900 and at na
 ```
 You own stream S4 (provider view + attorney-controlled sharing) of the Sapini dashboard.
 Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. Commit small and often to main with conventional commits; git pull --rebase before every push. Report what you ran/clicked.
-Owned: backend/app/share/, backend/app/api/share.py, frontend/src/provider/. You may import (not edit) frontend/src/components/ and src/source/.
+Owned: backend/app/share/, backend/app/api/share.py, frontend/src/provider/. Import (never edit) frontend/src/components/ and the design tokens from S3 so your screens match; keep layout simple, since the S3 design session restyles provider/ after you land it. Put data logic in provider/api.ts and hooks so restyling does not touch it.
 Goal: the attorney chooses what a treating provider sees and shares a link; the provider sees where the case stands without the file.
 Sharing rules (slide 10): share status changes, bills and records; never strategy, attorney notes or unrelated confidential material. Filtering happens server-side: the provider endpoint must never return anything the settings exclude.
 1. GET /api/matters/{id}/providers: medical-provider contacts from S1's contacts sources (by Clio contact type/custom field/relationship; fall back to companies named in treatment facts).
