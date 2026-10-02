@@ -65,6 +65,9 @@ h1, h2 { font-family: var(--font-display); }
   --font-mono: "IBM Plex Mono", ui-monospace, monospace;
   --brass: #b8955a;
   --brass-ink: #7a5c2e;
+  --band: #1c2433;
+  --band-ink: #f6f3ec;
+  --band-muted: #c9c2b2;
 
   --color-page: #f6f3ec;
   --color-surface: #fffdf8;
@@ -111,36 +114,98 @@ h1, h2 { font-family: var(--font-display); }
   --shadow-card: 0 1px 0 rgba(28, 34, 48, 0.04);
   --shadow-pop: 0 14px 34px -10px rgba(28, 34, 48, 0.28);
 }
-[data-skin="pinstripe"] body { font-feature-settings: normal; }
-[data-skin="pinstripe"] h1 { font-weight: 600; letter-spacing: -0.005em; }
-[data-skin="pinstripe"] h2 { font-weight: 600; }
-/* Card titles: brass rule underneath, like a ruled legal pad. */
-[data-skin="pinstripe"] section > div > h2 {
+[data-skin] body { font-feature-settings: normal; }
+[data-skin] h1 { font-weight: 600; letter-spacing: -0.005em; }
+[data-skin] h2 { font-weight: 600; }
+/* Shared skin details (any non-Classic skin). Card titles: accent rule underneath, like a ruled legal pad. */
+[data-skin] section > div > h2 {
   font-size: 15.5px; padding-bottom: 4px; border-bottom: 1.5px solid var(--brass);
 }
 /* Small-caps section labels go brass. */
-[data-skin="pinstripe"] .uppercase.tracking-wider:not([class*="text-warn"]):not([class*="text-danger"]):not([class*="text-ok"]) {
+[data-skin] .uppercase.tracking-wider:not([class*="text-warn"]):not([class*="text-danger"]):not([class*="text-ok"]) {
   color: var(--brass-ink);
 }
 /* The one headline sentence reads like a brief, not a UI label. */
-[data-skin="pinstripe"] p.text-\[18px\].font-medium { font-family: var(--font-display); font-size: 20px; font-weight: 500; line-height: 1.4; }
+[data-skin] p.text-\[18px\].font-medium { font-family: var(--font-display); font-size: 20px; font-weight: 500; line-height: 1.4; }
 /* Dates and numbers read like a docket. */
-[data-skin="pinstripe"] .tabular-nums { font-variant-numeric: tabular-nums lining-nums; }
+[data-skin] .tabular-nums { font-variant-numeric: tabular-nums lining-nums; }
 /* Pinstripe band on top-level headers. */
-[data-skin="pinstripe"] header.border-b.bg-surface {
-  background: #1c2433 repeating-linear-gradient(90deg, transparent 0 11px, rgba(255,255,255,.045) 11px 12px);
+[data-skin] header.border-b.bg-surface {
+  background: var(--band) repeating-linear-gradient(90deg, transparent 0 11px, rgba(255,255,255,.045) 11px 12px);
   border-color: var(--brass);
 }
-[data-skin="pinstripe"] header.border-b.bg-surface :is(.text-slate-900, .text-slate-500, .text-slate-600, h2) { color: #f6f3ec; }
-[data-skin="pinstripe"] header.border-b.bg-surface .text-slate-500 { color: #c9c2b2; }
-[data-skin="pinstripe"] header.border-b.bg-surface .tracking-tight { font-family: var(--font-display); font-size: 17px; }
-[data-skin="pinstripe"] header.border-b.bg-surface button {
-  background: transparent; border-color: var(--brass); color: #f6f3ec;
+[data-skin] header.border-b.bg-surface :is(.text-slate-900, .text-slate-500, .text-slate-600, h2) { color: var(--band-ink); }
+[data-skin] header.border-b.bg-surface .text-slate-500 { color: var(--band-muted); }
+[data-skin] header.border-b.bg-surface .tracking-tight { font-family: var(--font-display); font-size: 17px; }
+[data-skin] header.border-b.bg-surface button {
+  background: transparent; border-color: var(--brass); color: var(--band-ink);
 }
-[data-skin="pinstripe"] header.border-b.bg-surface button:hover { background: rgba(184,149,90,.18); color: #fff; }
-[data-skin="pinstripe"] body::before {
+[data-skin] header.border-b.bg-surface button:hover { background: color-mix(in srgb, var(--brass) 18%, transparent); color: #fff; }
+[data-skin] body::before {
   content: ""; position: fixed; inset: 0 0 auto 0; height: 4px; z-index: 60; pointer-events: none;
-  background: #1c2433 repeating-linear-gradient(90deg, transparent 0 11px, rgba(184,149,90,.55) 11px 12px);
+  background: var(--band) repeating-linear-gradient(90deg, transparent 0 11px, color-mix(in srgb, var(--brass) 55%, transparent) 11px 12px);
+}
+
+
+/* B · Ledger: banker's-lamp green, gilt rules, cream ledger paper. Green is the brand here,
+   so "verified" moves to teal to stay distinct. */
+[data-skin="ledger"] {
+  --font-sans: "Libre Franklin", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Newsreader", Georgia, serif;
+  --brass: #b8913f;
+  --brass-ink: #765518;
+  --band: #15331f;
+  --band-ink: #f4f1e6;
+  --band-muted: #c4cbb8;
+
+  --color-page: #f3f1e7;
+  --color-surface: #fffef8;
+  --color-line: #dcd8c3;
+  --color-line-soft: #ebe8d8;
+
+  --color-brand-50: #ebf3ed;
+  --color-brand-100: #d4e5d9;
+  --color-brand-200: #adcab6;
+  --color-brand-500: #2e6a47;
+  --color-brand-600: #1f5536;
+  --color-brand-700: #18462c;
+  --color-brand-800: #113521;
+
+  --color-slate-50: #f9f8f1;
+  --color-slate-100: #efede2;
+  --color-slate-200: #dfdcca;
+  --color-slate-300: #c6c2ac;
+  --color-slate-400: #8a8873;
+  --color-slate-500: #636552;
+  --color-slate-600: #4c5043;
+  --color-slate-700: #363c33;
+  --color-slate-800: #262c25;
+  --color-slate-900: #1a201b;
+
+  --color-danger-50: #f8e9e6;
+  --color-danger-200: #ecc4bd;
+  --color-danger-600: #a3261b;
+  --color-danger-700: #861e15;
+
+  --color-warn-50: #fbf1d9;
+  --color-warn-200: #ecd396;
+  --color-warn-600: #ad7410;
+  --color-warn-700: #875600;
+
+  --color-ok-50: #e6f2f3;
+  --color-ok-600: #1b7380;
+  --color-ok-700: #135f6a;
+
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 5px;
+  --radius-2xl: 6px;
+  --shadow-card: 0 1px 0 rgba(26, 32, 27, 0.05);
+  --shadow-pop: 0 14px 34px -10px rgba(26, 32, 27, 0.28);
+}
+/* Ledger paper: faint ruled lines on the page background. */
+[data-skin="ledger"] body {
+  background-image: repeating-linear-gradient(180deg, transparent 0 31px, rgba(46,106,71,.06) 31px 32px);
 }
 
 /* Skin selector (rendered by index.html). */
