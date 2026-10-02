@@ -121,7 +121,8 @@ function Treatment({ lines, onOpenDoc }: { lines: TreatmentLine[]; onOpenDoc?: O
             <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Stat label="Visits billed" value={t.visit_count != null ? String(t.visit_count) : '—'} />
               <Stat label="First visit" value={fmtDate(t.first_visit) ?? '—'} />
-              <Stat label="Billed through" value={fmtDate(t.last_visit) ?? '—'} sub={ago != null ? relDays(ago) : null} />
+              <Stat label={t.last_visit_basis === 'records' ? 'Most recent visit' : 'Billed through'} value={fmtDate(t.last_visit) ?? '—'}
+                sub={t.next_visit ? `Next visit ${fmtDate(t.next_visit)}` : ago != null ? relDays(ago) : null} />
               <Stat label="Billed" value={t.billed?.value ?? '—'} />
             </dl>
             {(t.billed?.citations.length || t.citations.length) ? (

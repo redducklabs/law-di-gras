@@ -12,11 +12,13 @@ type State =
   | { kind: 'error'; message: string }
   | { kind: 'ready'; data: Dashboard }
 
-export function FirmPage({ matterId, onOpenSource, onShare, onSearch }: {
+export function FirmPage({ matterId, onOpenSource, onShare, onSearch, focusDate }: {
   matterId?: string
   onOpenSource?: (c: Citation) => void
   onShare?: (data: Dashboard) => void
   onSearch?: (q: string, data: Dashboard) => void
+  /** Zoom the timeline to this date (chat deeplinks). */
+  focusDate?: string | null
 }) {
   const [state, setState] = useState<State>({ kind: 'loading' })
 
@@ -48,7 +50,7 @@ export function FirmPage({ matterId, onOpenSource, onShare, onSearch }: {
   if (state.kind === 'ready') {
     const d = state.data
     return (
-      <CaseBrief data={d} onOpenSource={onOpenSource}
+      <CaseBrief data={d} onOpenSource={onOpenSource} focusDate={focusDate}
         onShare={onShare && (() => onShare(d))}
         onSearch={onSearch && (q => onSearch(q, d))}
         onRefresh={() => digest(d.matter, true)} />

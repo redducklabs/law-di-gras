@@ -70,8 +70,13 @@ function buildScale(events: TimelineEvent[]) {
 type Scale = ReturnType<typeof buildScale>
 
 /** Short caption from an event label: the part before ":" or ",", capped. */
+/** Generic record-type prefixes ("Calendar: …") say nothing; caption the part after them instead. */
+const GENERIC_HEAD = /^(calendar|calendar entry|task|note|email|call|event|appointment|communication)$/i
+
 function caption(label: string, max = 24) {
-  const head = label.split(/[:,(—–]/)[0].trim() || label
+  const [pre, ...restParts] = label.split(':')
+  const body = GENERIC_HEAD.test(pre.trim()) && restParts.length ? restParts.join(':') : label
+  const head = body.split(/[:,(—–]/)[0].trim() || label
   return head.length > max ? `${head.slice(0, max - 1).trimEnd()}…` : head
 }
 
@@ -126,17 +131,44 @@ function packLabels(cands: Cand[], widthPx: number, rowsN: number, max: number):
   return out
 }
 
+/** Lanes for the expanded timeline: one row per kind of event. */
+const LANES: { key: string; name: string; kinds: Kind[] }[] = [
+  { key: 'medical', name: 'Medical', kinds: ['incident', 'treatment'] },
+  { key: 'legal', name: 'Legal', kinds: ['legal'] },
+  { key: 'contact', name: 'Contact', kinds: ['communication'] },
+  { key: 'deadline', name: 'Deadlines', kinds: ['deadline'] },
+]
+const LANE_H = 48
+const TICK_H = 16
+
+/** Lane labels: next upcoming, then major events (newest first), then the rest (newest first). */
+function laneCands(pts: Pt[], now: number, maxChars: number): Cand[] {
+  const next = pts.find(p => p.t > now)
+  const rest = pts.filter(p => p !== next).sort((a, b) => Number(!!b.e.major) - Number(!!a.e.major) || b.t - a.t)
+  return [next, ...rest].filter((p): p is Pt => !!p).map(p => ({
+    pt: p,
+    caption: p === next ? `Next: ${caption(p.e.label, maxChars)}` : caption(p.e.label, maxChars),
+    tone: p.t > now ? 'text-warn-700' : KIND_TONE[p.e.kind],
+  }))
+}
+
 const fmtMonth = (t: number) => new Date(t).toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
 
-export function TimelineStrip({ events, onOpenSource, zoomUi = 'none' }: {
+export function TimelineStrip({ events, onOpenSource, zoomUi = 'none', lanes = false, focusDate }: {
   events: TimelineEvent[]
   onOpenSource?: (c: Citation) => void
   zoomUi?: ZoomUi
+  /** Expanded layout: one lane per kind of event, more labels. */
+  lanes?: boolean
+  /** Zoom to and pulse the event nearest this date (chat deeplinks). */
+  focusDate?: string | null
 }) {
   const ref = useRef<HTMLDivElement>(null)
   const [w, setW] = useState(900)
   const [hover, setHover] = useState<Pt | null>(null)
   const [showAll, setShowAll] = useState(false)
+  const [pulse, setPulse] = useState<TimelineEvent | null>(null)
+  const outer = useRef<HTMLDivElement>(null)
   const [view, setView] = useState<View>([0, 100])
   const viewRef = useRef<View>(view)
   viewRef.current = view
@@ -181,6 +213,31 @@ export function TimelineStrip({ events, onOpenSource, zoomUi = 'none' }: {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [pts, w, zoomed])
   const labelled = new Set(labels.map(l => l.pt.e))
+
+  const shownLanes = useMemo(() => LANES.filter(l => s.pts.some(p => l.kinds.includes(p.e.kind))), [s])
+  const laneLabels = useMemo(() => {
+    if (!lanes) return []
+    const maxChars = w < 520 ? 12 : zoomed ? 26 : 22
+    return shownLanes.flatMap((l, li) => packLabels(
+      laneCands(inView.filter(p => l.kinds.includes(p.e.kind)), s.now, maxChars), w, 1, zoomed ? 10 : 5,
+    ).map(lab => ({ ...lab, row: li })))
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [lanes, pts, w, zoomed, shownLanes])
+  const laneLabelled = new Set(laneLabels.map(l => l.pt.e))
+  const laneOf = (e: TimelineEvent) => Math.max(0, shownLanes.findIndex(l => l.kinds.includes(e.kind)))
+
+  // Deeplink focus: zoom to the date, pulse the nearest event, bring the timeline into view.
+  useEffect(() => {
+    const t = parseDate(focusDate)?.getTime()
+    if (t == null || !s.pts.length) return
+    const u = s.u(t)
+    animateTo([u - 7, u + 7])
+    const near = s.pts.reduce((a, b) => (Math.abs(b.t - t) < Math.abs(a.t - t) ? b : a))
+    setPulse(near.e)
+    outer.current?.scrollIntoView({ behavior: 'smooth', block: 'center' })
+    const id = setTimeout(() => setPulse(null), 2800)
+    return () => clearTimeout(id)
+  }, [focusDate, s, animateTo])
 
   // Direct manipulation: ⌘/Ctrl-wheel (and trackpad pinch) zooms at the pointer.
   useEffect(() => {
@@ -232,6 +289,106 @@ export function TimelineStrip({ events, onOpenSource, zoomUi = 'none' }: {
   const ticks = timeTicks(s, v0, v1, w)
   const rowsH = 30 + cfg.rows * 28
   const rangeText = `${fmtMonth(s.tOf(v0))} – ${fmtMonth(s.tOf(v1))}`
+
+  if (lanes) {
+    const H = TICK_H + shownLanes.length * LANE_H
+    const nowX = vx(s.nowU)
+    return (
+      <div ref={outer} className="mt-4">
+        <div className="flex items-start gap-3">
+          <div className="w-[64px] shrink-0 sm:w-[76px]" style={{ paddingTop: TICK_H }}>
+            {shownLanes.map(l => (
+              <div key={l.key} className="flex items-start gap-1.5 text-[10.5px] font-semibold uppercase tracking-wider text-slate-400" style={{ height: LANE_H }}>
+                <span className={`mt-[3px] h-2 w-2 shrink-0 rounded-full ${DOT[l.kinds[l.kinds.length - 1]]}`} />{l.name}
+              </div>
+            ))}
+          </div>
+          <div className="relative min-w-0 flex-1">
+            <div ref={ref}
+              onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onDoubleClick={onDoubleClick}
+              className={`relative overflow-x-clip select-none ${zoomUi === 'direct' ? `touch-pan-y ${drag.current ? 'cursor-grabbing' : 'cursor-grab'}` : ''}`}
+              style={{ height: H }}>
+              {nowX < 100 && (
+                <div className="absolute bottom-0 rounded-r-md bg-warn-50/70" style={{ top: TICK_H - 4, left: `${Math.max(0, nowX)}%`, right: 0 }} />
+              )}
+              {ticks.map(t => (
+                <span key={t.key} className={`pointer-events-none absolute top-0 -translate-x-1/2 whitespace-nowrap text-[9.5px] tabular-nums ${t.major ? 'text-slate-400' : 'text-slate-300'}`}
+                  style={{ left: `${t.x}%` }}>{t.text}</span>
+              ))}
+              {ticks.filter(t => t.major).map(t => (
+                <span key={`g${t.key}`} className="pointer-events-none absolute bottom-0 w-px bg-line-soft" style={{ left: `${t.x}%`, top: TICK_H - 2 }} />
+              ))}
+              {shownLanes.map((l, li) => (
+                <div key={l.key} className="absolute inset-x-0 h-[3px] rounded-full bg-line-soft" style={{ top: TICK_H + li * LANE_H + 6 }} />
+              ))}
+              {nowX >= 0 && nowX <= 100 && (
+                <div className="pointer-events-none absolute bottom-0 -ml-px w-0.5 rounded bg-brand-700" style={{ left: `${nowX}%`, top: TICK_H - 4 }} />
+              )}
+              {inView.map((p, i) => {
+                const big = laneLabelled.has(p.e) || p.e.major
+                return (
+                  <button key={i} type="button" onClick={() => open(p.e)} onMouseEnter={() => setHover(p)} onMouseLeave={() => setHover(null)}
+                    onFocus={() => setHover(p)} onBlur={() => setHover(null)} aria-label={`${p.e.label}, ${fmtDate(p.e.date, true)}`}
+                    className="absolute -ml-[8px] grid h-4 w-4 cursor-pointer place-items-center rounded-full"
+                    style={{ left: `${p.x}%`, top: TICK_H + laneOf(p.e) * LANE_H }}>
+                    {pulse === p.e && <span className="absolute -inset-1.5 animate-ping rounded-full bg-brand-500/40" />}
+                    <span className={`block rounded-full transition-all duration-200 ${big ? 'h-2.5 w-2.5 ring-2 ring-white' : 'h-2 w-2 opacity-80'} ${p.t > s.now ? 'bg-white ring-[1.5px] !ring-warn-600' : DOT[p.e.kind]} ${hover?.e === p.e || pulse === p.e ? 'scale-150' : ''}`} />
+                  </button>
+                )
+              })}
+              {laneLabels.map(l => (
+                <button key={`${l.pt.e.date}-${l.pt.e.label}`} type="button" onClick={() => open(l.pt.e)} title={l.pt.e.label}
+                  className={`tl-fade absolute cursor-pointer whitespace-nowrap leading-tight hover:underline ${l.align === 'left' ? '' : l.align === 'right' ? '-translate-x-full' : '-translate-x-1/2'} ${l.align === 'center' ? 'text-center' : l.align === 'right' ? 'text-right' : 'text-left'}`}
+                  style={{ left: `${Math.max(0, Math.min(100, l.pt.x))}%`, top: TICK_H + l.row * LANE_H + 17 }}>
+                  <span className={`block text-[11px] font-semibold ${l.tone}`}>{l.caption}</span>
+                  <span className="block text-[10.5px] tabular-nums text-slate-400">{fmtDate(l.pt.e.date, true)}</span>
+                </button>
+              ))}
+            </div>
+            {hover && !laneLabelled.has(hover.e) && (
+              <div className={`pointer-events-none absolute z-10 max-w-[280px] rounded-lg bg-slate-900 px-2.5 py-1.5 text-[11.5px] text-white shadow-pop ${hover.x > 70 ? '-translate-x-full' : hover.x < 15 ? '' : '-translate-x-1/2'}`}
+                style={{ left: `${hover.x}%`, top: TICK_H + laneOf(hover.e) * LANE_H + 20 }}>
+                <div className="font-medium">{hover.e.label}</div>
+                <div className="text-slate-400">{KIND_LABEL[hover.e.kind]} · {fmtDate(hover.e.date, true)}</div>
+              </div>
+            )}
+          </div>
+        </div>
+        {s.pinned.length > 0 && (
+          <div className="mt-1 flex flex-wrap justify-end gap-1">
+            {s.pinned.slice(0, 2).map((e, i) => (
+              <button key={i} type="button" onClick={() => open(e)} title={e.label}
+                className="max-w-[240px] cursor-pointer truncate rounded-md bg-warn-50 px-2 py-1 text-[11px] text-warn-700 hover:bg-warn-200/50">
+                Later: {SOL_RE.test(e.label) ? 'SOL' : caption(e.label)} · {fmtDate(e.date, true)} →
+              </button>
+            ))}
+          </div>
+        )}
+        <div className="mt-2 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
+          <span className="inline-flex items-center gap-1.5"><span className="h-3 w-0.5 rounded bg-brand-700" />Today</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-4 rounded-sm bg-warn-50 ring-1 ring-warn-200" />Upcoming</span>
+          <span className="inline-flex items-center gap-1.5"><span className="h-2.5 w-2.5 rounded-full bg-white ring-[1.5px] ring-warn-600" />Scheduled</span>
+          {zoomed && (
+            <span className="tl-fade inline-flex items-center gap-1.5 rounded-md bg-brand-50 px-2 py-0.5 font-medium text-brand-700">
+              {rangeText} · {inView.length} events
+              <button type="button" onClick={() => animateTo([0, 100])} className="cursor-pointer font-semibold underline">Reset</button>
+            </span>
+          )}
+          {zoomUi === 'direct' && !zoomed && <span className="hidden text-slate-400 md:inline">Double-click or pinch to zoom · drag to pan</span>}
+          {zoomUi === 'direct' && (
+            <span className="ml-auto flex items-center gap-0.5 rounded-lg border border-line bg-surface p-0.5">
+              <IconBtn label="Zoom out" onClick={() => zoomAt((v0 + v1) / 2, 1 / 2)}>−</IconBtn>
+              <IconBtn label="Zoom in" onClick={() => zoomAt((v0 + v1) / 2, 2)}>+</IconBtn>
+            </span>
+          )}
+          <button type="button" onClick={() => setShowAll(v => !v)} className={`${zoomUi === 'direct' ? '' : 'ml-auto '}cursor-pointer font-semibold text-brand-700 hover:underline`}>
+            {showAll ? 'Hide events' : `All ${s.sorted.length} events`}
+          </button>
+        </div>
+        {showAll && <EventList events={s.sorted} onOpen={open} />}
+      </div>
+    )
+  }
 
   return (
     <div className="mt-5">

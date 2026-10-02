@@ -14,9 +14,11 @@ export interface CaseBriefProps {
   onShare?: () => void
   onSearch?: (q: string) => void
   onRefresh?: () => void
+  /** Zoom the timeline to this date and pulse the nearest event (chat deeplinks). */
+  focusDate?: string | null
 }
 
-export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh }: CaseBriefProps) {
+export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh, focusDate }: CaseBriefProps) {
   const contactAge = daysFromToday(d.last_client_contact?.date)
   const billedTotal = d.treatment.reduce((s, t) => s + (t.billed?.amount ?? 0), 0)
 
@@ -48,14 +50,49 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
           </div>
         </header>
 
-        {/* Where it stands */}
-        <Card className="p-5 sm:p-6" pad={false}>
-          <StageStepper stage={d.headline.stage} />
-          <TimelineStrip events={d.timeline} onOpenSource={onOpenSource} zoomUi="direct" />
-        </Card>
+        {/* Timeline first: lawyers read the case through it. Section ids match PageSection (chat deeplinks). */}
+        <section id="timeline" className="scroll-mt-4">
+          <Card className="p-5 sm:p-6" pad={false}>
+            <StageStepper stage={d.headline.stage} />
+            <TimelineStrip events={d.timeline} onOpenSource={onOpenSource} zoomUi="direct" lanes focusDate={focusDate} />
+          </Card>
+        </section>
 
-        {/* Money: the attorney's first two questions (worth, coverage) above the fold. */}
-        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
+          <section id="next-steps" className="scroll-mt-4 lg:col-span-7">
+            <NextSteps data={d} onOpenSource={onOpenSource} />
+          </section>
+          <section id="status" className="scroll-mt-4 lg:col-span-5">
+            <Card className="h-full" title="Where the case stands">
+              <p className="text-[17px] font-medium leading-snug text-slate-900">{d.headline.status_line}</p>
+              {!!d.headline.status_citations?.length && (
+                <div className="mt-1.5"><SourceChips citations={d.headline.status_citations} onOpen={onOpenSource} max={2} /></div>
+              )}
+              <ul className="mt-4 space-y-3">
+                {d.headline.bullets.map(b => (
+                  <li key={b.id} className="flex gap-3 text-[13.5px] leading-relaxed text-slate-700">
+                    <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${b.verified ? 'bg-brand-500' : 'bg-warn-600'}`} />
+                    <span>
+                      {b.label.length <= 40 && <span className="font-semibold text-slate-900">{b.label}. </span>}{b.value}{' '}
+                      <SourceChips citations={b.citations} onOpen={onOpenSource} max={2} />
+                    </span>
+                  </li>
+                ))}
+              </ul>
+              {d.last_client_contact && (
+                <div className={`mt-5 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-[12.5px] ${contactAge != null && contactAge <= -30 ? 'bg-warn-50 text-warn-700' : 'bg-page text-slate-600'}`}>
+                  <span className="font-semibold">Last client contact</span>
+                  <span>{d.last_client_contact.value}{contactAge != null && ` · ${relDays(contactAge)}`}</span>
+                  <SourceChips citations={d.last_client_contact.citations} onOpen={onOpenSource} max={1} />
+                </div>
+              )}
+              {d.recent.length > 0 && <RecentActivity items={d.recent} onOpenSource={onOpenSource} />}
+            </Card>
+          </section>
+        </div>
+
+        {/* Money: compact here; the Cases page carries these across matters. */}
+        <section id="kpis" className="mt-5 grid scroll-mt-4 grid-cols-2 gap-3 lg:grid-cols-4">
           {d.kpis.case_value
             ? <Tile compact fact={d.kpis.case_value} tone="warn" onOpen={onOpenSource} sub="Draft range · attorney review" />
             : <Tile compact label="Case value (draft)" tone="warn" />}
@@ -65,39 +102,11 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
             : <Tile compact label="Coverage / policy limits" tone="brand" />}
           <Tile compact fact={d.kpis.specials} label="Medical specials" tone="ok" onOpen={onOpenSource} sub={liensSub(d.kpis.liens)} />
           <Tile compact fact={d.kpis.firm_spent} label="Firm costs advanced" tone="neutral" onOpen={onOpenSource} />
-        </div>
-
-        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
-          <Card className="lg:col-span-7" title="Where the case stands">
-            <p className="text-[18px] font-medium leading-snug text-slate-900 sm:text-[19px]">{d.headline.status_line}</p>
-            <ul className="mt-4 space-y-3">
-              {d.headline.bullets.map(b => (
-                <li key={b.id} className="flex gap-3 text-[13.5px] leading-relaxed text-slate-700">
-                  <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${b.verified ? 'bg-brand-500' : 'bg-warn-600'}`} />
-                  <span>
-                    {b.label.length <= 40 && <span className="font-semibold text-slate-900">{b.label}. </span>}{b.value}{' '}
-                    <SourceChips citations={b.citations} onOpen={onOpenSource} max={2} />
-                  </span>
-                </li>
-              ))}
-            </ul>
-            {d.last_client_contact && (
-              <div className={`mt-5 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-[12.5px] ${contactAge != null && contactAge <= -30 ? 'bg-warn-50 text-warn-700' : 'bg-page text-slate-600'}`}>
-                <span className="font-semibold">Last client contact</span>
-                <span>{d.last_client_contact.value}{contactAge != null && ` · ${relDays(contactAge)}`}</span>
-                <SourceChips citations={d.last_client_contact.citations} onOpen={onOpenSource} max={1} />
-              </div>
-            )}
-            {d.recent.length > 0 && <RecentActivity items={d.recent} onOpenSource={onOpenSource} />}
-          </Card>
-          <div className="order-first lg:order-none lg:col-span-5">
-            <NextSteps data={d} onOpenSource={onOpenSource} />
-          </div>
-        </div>
+        </section>
 
         {/* Detail */}
         <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
-          <Card className="lg:col-span-5" title="Injuries" extra={<span className="text-[12px] text-slate-400">{d.injuries.length} documented</span>}>
+          <section id="injuries" className="scroll-mt-4 lg:col-span-5"><Card className="h-full" title="Injuries" extra={<span className="text-[12px] text-slate-400">{d.injuries.length} documented</span>}>
             {d.injuries.length ? (
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
                 {d.injuries.map(f => (
@@ -109,8 +118,8 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
                 ))}
               </ul>
             ) : <Empty>No injuries found in the record yet.</Empty>}
-          </Card>
-          <Card className="lg:col-span-7" title="Treatment by provider"
+          </Card></section>
+          <section id="treatment" className="scroll-mt-4 lg:col-span-7"><Card className="h-full" title="Treatment by provider"
             extra={billedTotal > 0 && <span className="text-[12px] text-slate-500">Billed to date <b className="text-slate-900">{money(billedTotal)}</b></span>}>
             {d.treatment.length ? (
               <ul>
@@ -124,8 +133,9 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
                           <div className="text-[12px] text-slate-500">
                             {t.visit_count != null && <>{t.visit_count} visit{t.visit_count === 1 ? '' : 's'} billed · </>}
                             {t.first_visit && <>first {fmtDate(t.first_visit, true)}</>}
-                            {/* last_visit is a billing service-through date, not the last appointment. */}
-                            {t.last_visit && <> · billed through {fmtDate(t.last_visit, true)}</>}
+                            {/* last_visit is usually a billing service-through date, not the last appointment. */}
+                            {t.last_visit && <> · {t.last_visit_basis === 'records' ? 'last visit' : 'billed through'} {fmtDate(t.last_visit, true)}</>}
+                            {t.next_visit && <span className="text-ok-700"> · next visit {fmtDate(t.next_visit, true)}</span>}
                           </div>
                         </div>
                         <div className="min-w-0 max-w-[55%] shrink-0 text-right">
@@ -141,7 +151,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
                 })}
               </ul>
             ) : <Empty>No treatment found in the record yet.</Empty>}
-          </Card>
+          </Card></section>
         </div>
 
         <footer className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[11.5px] text-slate-400">
@@ -162,7 +172,7 @@ function RecentActivity({ items, onOpenSource }: { items: Fact[]; onOpenSource?:
   const [all, setAll] = useState(false)
   const shown = all ? items : items.slice(0, RECENT_VISIBLE)
   return (
-    <div className="mt-5 border-t border-line-soft pt-4">
+    <div id="recent" className="mt-5 scroll-mt-4 border-t border-line-soft pt-4">
       <div className="mb-2 flex items-baseline justify-between">
         <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Recent activity</h3>
         {items.length > RECENT_VISIBLE && (
