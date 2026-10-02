@@ -20,7 +20,7 @@ export function TextView({ source, citation }: { source: SourceDetail; citation:
       <div>
         <MetaRow items={[
           <Badge key="k" tone="brand">{KIND_LABEL[source.kind]}</Badge>,
-          source.date ? fmtDate(source.date, true) : null,
+          source.date ? (source.kind === 'document' ? `Filed in Clio ${fmtDate(source.date, true)}` : fmtDate(source.date, true)) : null,
           source.author,
         ]} />
         <h3 className="mt-2 text-[15px] font-semibold leading-snug text-slate-900">{prettyTitle(source.title)}</h3>

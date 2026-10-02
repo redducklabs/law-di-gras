@@ -45,7 +45,7 @@ export function PdfView({ source, citation }: { source: SourceDetail; citation: 
       <div className="sticky top-0 z-10 space-y-3 border-b border-line bg-surface/95 px-5 pb-3 pt-4 backdrop-blur">
       <MetaRow items={[
         <Badge key="k" tone="brand">{KIND_LABEL[source.kind]}</Badge>,
-        source.date ? fmtDate(source.date, true) : null,
+        source.date ? `Filed in Clio ${fmtDate(source.date, true)}` : null,
         source.author,
         `${total} page${total === 1 ? '' : 's'}`,
       ]} />
