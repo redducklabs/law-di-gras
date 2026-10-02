@@ -185,5 +185,7 @@ class ProviderView(BaseModel):
     requests: list[ActionItem] | None = None
     treatment: list[TreatmentLine] | None = None
     liens: list[Fact] | None = None  # this provider's own lien(s), with treatment
+    updates: list[TimelineEvent] | None = None  # provider-safe milestones since updates_since
+    updates_since: str | None = None  # this link's previous view, else 30 days ago
     timeline: list[TimelineEvent] | None = None
     documents: list[SharedDocument] | None = None
