@@ -71,7 +71,13 @@ CATEGORIES = [
         "surgery or injections recommended, prognosis, permanent impairment",
     ], "Extract each distinct injury or diagnosis as one item: label=short injury name (e.g. body part + "
        "condition), value=one-line clinical description, date=date first documented if stated. Merge "
-       "duplicates of the same injury. Skip symptoms already covered by a diagnosis.", top_k=10),
+       "duplicates of the same injury. Skip symptoms already covered by a diagnosis. Only the client's "
+       "injuries as documented by treating providers, imaging or hospital records. Do NOT list findings or "
+       "opinions from a defense / independent medical examination (IME) or defense expert as the client's "
+       "injuries; if such an opinion disputes an injury, put it in that injury's value as 'Defense IME "
+       "(<doctor>): <what they said, in their words>'. Never call something 'no injury' unless a quote says "
+       "exactly that. The value must not add procedures, dates or findings that its quotes do not state.",
+       top_k=10),
     Category("treatment", [
         "medical provider treatment visits and dates of service",
         "physical therapy chiropractic sessions number of visits",
@@ -115,7 +121,9 @@ CATEGORIES = [
        "subpoenas, commands or sets it; 'adjourned' if it was adjourned, cancelled or postponed; 'unknown' "
        "otherwise. A notice or subpoena dated earlier that sets a later date is 'scheduled', never 'occurred'. "
        "Use 'deadline' for a limit or due date (statute of limitations, notice-of-claim period, discovery "
-       "cutoff, response due), which neither occurs nor is scheduled."),
+       "cutoff, response due), which neither occurs nor is scheduled. date must be the date of the event or "
+       "the stated due date itself, never the date the document was written; if a due date is only relative "
+       "(e.g. 'within 15 days'), skip the item."),
     Category("requests", [
         "waiting on records or bills from provider",
         "requested medical records and billing, follow up",
@@ -158,10 +166,11 @@ class Extracted:
     count: int | None
     citations: list[Citation] = field(default_factory=list)
     status: str | None = None
+    value_ok: bool = True  # every date/amount/name/claim in value is in its own quotes
 
     @property
     def verified(self) -> bool:
-        return any(c.verified for c in self.citations)
+        return self.value_ok and any(c.verified for c in self.citations)
 
 
 def _always_evidence(matter_id: str) -> list[Hit]:
@@ -271,3 +280,50 @@ def save_facts(matter_id: str, extracted: dict[str, list[Extracted]], input_hash
                      c.char_start if c else None, c.char_end if c else None,
                      json.dumps([r.model_dump() for r in c.rects]) if c else None,
                      int(x.verified), MODEL_SONNET, input_hash))
+
+
+def verify_values(matter_id: str, extracted: dict[str, list[Extracted]]) -> dict:
+    """Audit every fact's value and date against its own verified quotes.
+
+    Tokens (dates, amounts, codes, names) are checked deterministically; claims by one Sonnet judge
+    call. Unsupported parts are stripped (judge's supported_text); if nothing safe remains the fact
+    keeps its text but is marked unverified. A date not in the quotes is dropped.
+    """
+    from app.digest.verify import Corpus, check_tokens, judge_claims
+
+    with connect() as conn:
+        titles = [r[0] or "" for r in conn.execute("SELECT title FROM sources WHERE matter_id = ?", (matter_id,))]
+    names = Corpus("\n".join(titles))
+    todo: list[Extracted] = []
+    for items in extracted.values():
+        for x in items:
+            quotes = [c.quote for c in x.citations if c.verified]
+            if not quotes:
+                continue
+            corpus = Corpus("\n".join(quotes))
+            if x.date and x.date not in corpus.dates:
+                if x.category in ("key_dates", "incident") and not x.end_date:
+                    x.value_ok = False  # the date is the fact; keep it visible but unverified
+                else:
+                    x.date = None
+            if x.end_date and x.end_date not in corpus.dates:
+                x.end_date = None
+            todo.append(x)
+    if not todo:
+        return {"checked": 0}
+    judged = judge_claims(matter_id, [(x.value, [c.quote for c in x.citations if c.verified]) for x in todo],
+                          purpose="verify_facts")
+    stripped = flagged = 0
+    for x, j in zip(todo, judged):
+        quotes = Corpus("\n".join(f"{c.source_title}\n{c.quote}" for c in x.citations if c.verified))
+        bad = check_tokens(x.value, quotes, names) + list(j.unsupported)
+        if not bad:
+            continue
+        safe = j.supported_text.strip()
+        if safe and not check_tokens(safe, quotes, names):
+            x.value = safe
+            stripped += 1
+        else:
+            x.value_ok = False
+            flagged += 1
+    return {"checked": len(todo), "stripped": stripped, "flagged": flagged}

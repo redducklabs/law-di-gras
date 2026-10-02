@@ -14,11 +14,12 @@ from rapidfuzz import fuzz
 from app.db import connect
 from app.digest.spans import locate
 from app.digest.structured import iso, row_citation
-from app.llm import MODEL_HAIKU, structured
+from app.digest.verify import Corpus, check_tokens, judge_claims
+from app.llm import MODEL_HAIKU, MODEL_SONNET, structured
 from app.retrieval.fence import FENCE_RULE, fence
 from app.schemas import Fact, TimelineEvent
 
-VERSION = "c4"
+VERSION = "c5"
 RECENT_DAYS = 14
 RECENT_MIN = 5
 RECENT_MAX = 10
@@ -44,6 +45,7 @@ class RecentItem(BaseModel):
     headline: str   # who did what, max ~12 words
     detail: str     # one sentence
     quote: str      # verbatim span from the record
+    event_date: str | None = None  # YYYY-MM-DD when the record itself states when the event happened
 
 
 class RecentOut(BaseModel):
@@ -62,7 +64,13 @@ RECENT_PROMPT = """For EACH record below, write one item:
 - detail: one sentence with the specific substance (dates, amounts, next step) from the record.
 - quote: a short span (10-150 characters) copied character-for-character from the record that
   supports the headline. No ellipses, no paraphrase.
+- event_date: the date the event itself happened IF the record states it (e.g. a report's date or the
+  date it was served/filed/received as written in the text), as YYYY-MM-DD; otherwise null. The record's
+  'date' attribute is only when it was entered in the case system.
 - record_id: the record's id.
+Attribute precisely: if the client asked and the attorney advised, say exactly that; never upgrade a
+question, request or plan into a confirmation, and never add words the record does not support
+(e.g. "initial", "confirmed", "agreed").
 
 {records}"""
 
@@ -85,14 +93,35 @@ def recent_activity(matter_id: str, today: date) -> list[Fact]:
             fence(i, f'kind="{r["kind"]}" date="{iso(r["date"])}" title="{(r["title"] or "")[:120]}"',
                   r["text"] or r["title"] or "", cap=2500)
             for i, r in enumerate(picked))
-        out = structured(MODEL_HAIKU, RecentOut, RECENT_SYSTEM, RECENT_PROMPT.format(records=records),
-                         purpose="recent", matter_id=matter_id, max_tokens=3000)
+        out = structured(MODEL_SONNET, RecentOut, RECENT_SYSTEM, RECENT_PROMPT.format(records=records),
+                         purpose="recent", matter_id=matter_id, effort="low", max_tokens=4000)
         _store(matter_id, "recent", ih, out.model_dump_json())
+
+    # Same verifier as the headline: each headline and detail against its own record's text.
+    valid = [it for it in out.items if 0 <= it.record_id < len(picked)]
+    texts = {i: (picked[i]["text"] or picked[i]["title"] or "")[:2500] for i in {it.record_id for it in valid}}
+    stmts = [(t, [texts[it.record_id]]) for it in valid for t in (it.headline, it.detail)]
+    judged = judge_claims(matter_id, stmts, purpose="verify_recent") if stmts else []
+    fixed: dict[int, tuple[str, str, bool]] = {}
+    for k, it in enumerate(valid):
+        corpus = Corpus(texts[it.record_id])
+        ok, parts = True, []
+        for text, j in ((it.headline, judged[2 * k]), (it.detail, judged[2 * k + 1])):
+            if not j.unsupported and not check_tokens(text, corpus):
+                parts.append(text)
+                continue
+            safe = j.supported_text.strip()
+            if safe and not check_tokens(safe, corpus):
+                parts.append(safe)
+            else:
+                parts.append(text)
+                ok = False
+        fixed[id(it)] = (parts[0], parts[1], ok)
 
     facts: list[Fact] = []
     seen: set[int] = set()
     with connect() as conn:
-        for it in out.items:
+        for it in valid:
             if not 0 <= it.record_id < len(picked) or it.record_id in seen:
                 continue
             seen.add(it.record_id)
@@ -102,8 +131,12 @@ def recent_activity(matter_id: str, today: date) -> list[Fact]:
             c = locate(conn, r["id"], it.quote)
             if c is None or not c.verified:
                 c = row_citation(conn, r)  # still links to the record; quote = its title
-            facts.append(Fact(id=f"recent-{it.record_id}", label=it.headline.strip(), value=it.detail.strip(),
-                              date=iso(r["date"]), citations=[c], verified=c.verified))
+            head, detail, ok = fixed[id(it)]
+            ev = iso(it.event_date)
+            if ev and ev not in Corpus(texts[it.record_id]).dates:
+                ev = None  # a stated event date must literally be in the record
+            facts.append(Fact(id=f"recent-{it.record_id}", label=head.strip(), value=detail.strip(),
+                              date=ev or iso(r["date"]), citations=[c], verified=c.verified and ok))
     facts.sort(key=lambda f: f.date or "", reverse=True)
     return facts
 

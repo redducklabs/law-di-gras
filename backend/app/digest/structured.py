@@ -89,6 +89,12 @@ def actions_from_tasks(matter_id: str, today: date) -> list[ActionItem]:
     return out
 
 
+_CAL_LEGAL_DATE = re.compile(r"(?<![a-z])(deadline|due|limitations?|trial|hearing|conference|deposition|ebt|"
+                             r"mediation|arbitration|motion|filing|ime)(?![a-z])", re.I)
+_CAL_CLINICAL = re.compile(r"(?<![a-z])(surgery|surgical|arthroscopy|operative|consultation|follow-up|therapy|"
+                           r"treatment|chiropractic|physical therapy|injection|mri|x-ray|visit)(?![a-z])", re.I)
+
+
 def calendar(matter_id: str, today: date) -> tuple[list[TimelineEvent], list[ActionItem]]:
     events: list[TimelineEvent] = []
     upcoming: list[ActionItem] = []
@@ -101,8 +107,15 @@ def calendar(matter_id: str, today: date) -> tuple[list[TimelineEvent], list[Act
             label = raw.get("summary") or row["title"] or "Calendar entry"
             future = date.fromisoformat(d) >= today
             cit = row_citation(conn, row, label)
-            events.append(TimelineEvent(date=d, label=label, kind="deadline" if future else "legal",
-                                        is_future=future, citations=[cit]))
+            if _CAL_LEGAL_DATE.search(label):
+                kind = "deadline" if future else "legal"
+            elif _CAL_CLINICAL.search(label):
+                kind = "treatment"
+            else:
+                kind = "legal"
+            # A past calendar entry is the firm's plan, not proof it happened.
+            shown = label if future else f"Calendar: {label}"
+            events.append(TimelineEvent(date=d, label=shown, kind=kind, is_future=future, citations=[cit]))
             if future and (date.fromisoformat(d) - today).days <= 45:
                 upcoming.append(ActionItem(title=label, due_date=d, status="upcoming", citations=[cit]))
     return events, upcoming

@@ -15,7 +15,7 @@ from app.db import connect
 from app.digest import structured as st
 from app.digest.brief import write_brief
 from app.digest.curate import mark_milestones, recent_activity
-from app.digest.extract import PROMPT_VERSION, Extracted, extract_all, save_facts
+from app.digest.extract import PROMPT_VERSION, Extracted, extract_all, save_facts, verify_values
 from app.retrieval.embed import embed_matter
 from app.retrieval.hyde import hyde_matter
 from app.retrieval.search import warm
@@ -23,7 +23,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 9
+PIPELINE_REV = 12
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -85,29 +85,50 @@ def _round5k(x: float) -> float:
     return round(x / 5000) * 5000
 
 
+_LIMITATIONS = re.compile(r"limitation", re.I)
+_FILED = re.compile(r"complaint|summons|action commenced|commenced|suit filed|lawsuit|filed|index no", re.I)
+
+
+def _suit_filed_before(ex: dict[str, list[Extracted]], deadline: str) -> str | None:
+    """Date of a verified filing/commencement event on or before the deadline, if the record shows one."""
+    dates = [x.date for cat in ("key_dates", "stage") for x in ex.get(cat, [])
+             if x.date and x.verified and x.date <= deadline and (x.status in (None, "occurred"))
+             and _FILED.search(f"{x.label} {x.value}") and not _LIMITATIONS.search(x.label)]
+    return min(dates) if dates else None
+
+
+def _usd(x: float) -> str:
+    return f"${x:,.2f}".removesuffix(".00")
+
+
 def value_range(specials: Fact | None, coverage: list[Fact], liens: list[Fact]) -> Fact | None:
     """Draft range by a fixed, stated rule (no model): 1.5x-3x billed specials, capped by the sum of
     stated per-person liability limits only when every liability coverage has a stated limit."""
     if not specials or not specials.amount or not specials.verified:
         return None
     s_amt = specials.amount
-    low, high = _round5k(VALUE_LOW_X * s_amt), _round5k(VALUE_HIGH_X * s_amt)
+    low, high = round(VALUE_LOW_X * s_amt, 2), round(VALUE_HIGH_X * s_amt, 2)  # exact, no rounding
     liab = [c for c in coverage if c.verified and _LIABILITY.search(c.label)]
     uncapped = [c for c in liab if _UNCAPPED.search(c.value) or c.amount is None]
-    notes = [f"Firm rule (configurable): {VALUE_LOW_X:g}x–{VALUE_HIGH_X:g}x billed specials (${s_amt:,.0f})"]
+    capped = [c for c in liab if c not in uncapped and c.amount]
+    notes = [f"Firm rule (configurable): {VALUE_LOW_X:g}x–{VALUE_HIGH_X:g}x billed specials (${s_amt:,.2f})"]
     if liab and not uncapped:
         cap = sum(c.amount for c in liab)
         if high > cap:
             high, low = cap, min(low, cap)
             notes.append(f"capped at stated liability limits (${cap:,.0f})")
     elif uncapped:
-        notes.append(f"not capped: {uncapped[0].label.split(' · ')[0]} {uncapped[0].value.lower()}")
+        who = uncapped[0].label.split(" · ")
+        party = who[1] if len(who) > 1 else who[0]
+        notes.append(f"no cap only while {party} ({uncapped[0].value.lower()}) remains liable")
+        if capped:
+            notes.append(f"otherwise stated limits total ${sum(c.amount for c in capped):,.0f}")
     lien_total = sum(l.amount or 0 for l in liens if l.verified)
     if lien_total:
         notes.append(f"before liens (${lien_total:,.0f})")
     used = [specials] + liab + [l for l in liens if l.verified and l.amount]
     return Fact(id="case_value", label="Case value (draft): " + "; ".join(notes) + ".",
-                value=f"${low:,.0f} – ${high:,.0f}", amount=high,
+                value=f"{_usd(low)} – {_usd(high)}", amount=high,
                 citations=[c for f in used for c in f.citations[:1]], verified=True)
 
 
@@ -135,6 +156,8 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     embed_matter(matter_id)
     hyde_matter(matter_id)
     ex = extract_all(matter_id)
+    vstats = verify_values(matter_id, ex)
+    print(f"fact values verified: {vstats}")
     save_facts(matter_id, ex, ih)
 
     facts: dict[str, list[Fact]] = {cat: [_fact(x, f"{cat}-{i}") for i, x in enumerate(items)]
@@ -156,6 +179,7 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             billed.append(bill)
         treatment.append(TreatmentLine(provider=name, contact_id=cid[0] if cid else None,
                                        first_visit=st.iso(x.date), last_visit=st.iso(x.end_date),
+                                       last_visit_basis="records" if x.end_date else None,
                                        visit_count=x.count, billed=bill, citations=x.citations))
     # Medical bills logged in Clio as expense entries are the authoritative per-provider specials.
     charges = st.medical_charges(matter_id)
@@ -167,6 +191,7 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             if line is None or _name_sim(name, line.provider) < 85:
                 cid = max(contacts, key=lambda c: fuzz.token_set_ratio(name, c[1]), default=None)
                 line = TreatmentLine(provider=name, first_visit=ch["first"], last_visit=ch["last"],
+                                     last_visit_basis="billed_through" if ch["last"] else None,
                                      contact_id=cid[0] if cid and fuzz.token_set_ratio(name, cid[1]) >= 85 else None,
                                      citations=list(ch["citations"]))
                 treatment.append(line)
@@ -176,7 +201,8 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             line.billed = Fact(id=f"charge-{len(billed)}", label=f"Billed: {line.provider}", value=f"${amt:,.2f}",
                                amount=amt, citations=cits, verified=all(c.verified for c in cits))
             line.first_visit = line.first_visit or ch["first"]
-            line.last_visit = line.last_visit or ch["last"]
+            if not line.last_visit and ch["last"]:
+                line.last_visit, line.last_visit_basis = ch["last"], "billed_through"
         for t in treatment:  # LLM-read amounts give way to the Clio entries
             if t.billed and not t.billed.id.startswith("charge-"):
                 t.billed = None
@@ -204,7 +230,11 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
         status = x.status or "unknown"
         label = f.label
         if status == "deadline":
-            label = f.label if fut else f"{f.label} (deadline passed)"
+            label = f.label
+            if not fut and _LIMITATIONS.search(f.label):
+                filed = _suit_filed_before(ex, f.date)
+                if filed:
+                    label = f"{f.label}: {f.date} (suit filed {filed[:4]}, satisfied)"
         elif status == "adjourned":
             label = f"Adjourned: {f.label}"
         elif status in ("scheduled", "unknown") and fut:
@@ -223,6 +253,10 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
                                           kind="treatment", is_future=False, citations=t.citations))
     cal_events, cal_actions = st.calendar(matter_id, today)
     timeline.extend(cal_events)
+    for t in treatment:  # treatment still scheduled with this provider → treatment is ongoing
+        nxt = [e.date for e in cal_events if e.is_future and e.kind == "treatment"
+               and fuzz.token_set_ratio(t.provider, e.label) >= 90]
+        t.next_visit = min(nxt) if nxt else None
     uniq: list[TimelineEvent] = []
     rank = {"incident": 0, "deadline": 1, "legal": 2, "treatment": 3, "communication": 4}
     for e in sorted(timeline, key=lambda e: (e.date, rank[e.kind])):
@@ -244,7 +278,13 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             e.major = False  # never put an unconfirmed past event on the compact strip
 
     # Actions
-    actions: list[ActionItem] = st.actions_from_tasks(matter_id, today) + cal_actions
+    actions: list[ActionItem] = st.actions_from_tasks(matter_id, today)
+    for ca in cal_actions:  # a calendar reminder for the same ask on the same day as a task is a duplicate
+        cw = set(re.findall(r"[a-z]{5,}", ca.title.lower()))
+        if any(a.due_date == ca.due_date and len(cw & set(re.findall(r"[a-z]{5,}", a.title.lower()))) >= 2
+               for a in actions):
+            continue
+        actions.append(ca)
     for x, f in zip(ex.get("requests", []), facts.get("requests", [])):
         if any(fuzz.token_set_ratio(a.title, f.label) >= 70 for a in actions):
             continue  # already tracked as a Clio task
