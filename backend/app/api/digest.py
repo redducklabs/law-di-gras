@@ -7,7 +7,8 @@ from app.digest import dashboard
 from app.digest.ask import ask as ask_question
 from app.digest.extract import ExtractionFailed
 from app.retrieval.search import search as hybrid_search
-from app.schemas import Answer, AskRequest, Dashboard, Passage
+from app.digest.draft import draft as make_draft
+from app.schemas import Answer, AskRequest, Dashboard, Draft, DraftRequest, Passage
 
 router = APIRouter(prefix="/api/matters/{matter_id}", tags=["digest"])
 
@@ -42,3 +43,12 @@ def ask(matter_id: str, body: AskRequest) -> Answer:
     if not body.question.strip():
         raise HTTPException(400, "empty question")
     return ask_question(matter_id, body.question.strip())
+
+
+@router.post("/draft", response_model=Draft)
+def draft(matter_id: str, body: DraftRequest) -> Draft:
+    """Grounded draft for one next step. Returned for review only; nothing is sent."""
+    try:
+        return make_draft(matter_id, body.action_index, body.title)
+    except LookupError as e:
+        raise HTTPException(404, str(e))
