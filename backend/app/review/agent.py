@@ -271,7 +271,7 @@ class Session:
                 problems.append(f"{label} has tokens not in your quotes: {bad}")
         legal = unsourced_legal_cites([f["title"], f["why_it_matters"], f["suggested_next_step"], *f["facts"]], cits)
         if legal:
-            problems.append(f"legal citations not on any cited page (quote the page that states them, or remove): {legal}")
+            problems.append(f"legal citations not inside any of your quotes (quote the span that states the rule, or remove it): {legal}")
         problems += overreach([f["title"], f["why_it_matters"], f["suggested_next_step"], *f["facts"]],
                               "\n".join(quotes), cits)
         if not problems:
@@ -327,17 +327,9 @@ _LEGAL = re.compile(r"(?:§+|\bCPLR\b|\bsection\b|\bRule\b)\s*(\d+[\w.()-]*)|\b\
 
 
 def unsourced_legal_cites(texts: list[str], cits: list[Citation]) -> list[str]:
-    """Statute/rule/case cites in the text whose number (or name) is not in a cited page or source.
-    No legal citations from model memory: they must be on a page the chips open."""
-    with connect() as conn:
-        record = []
-        for c in cits:
-            if c.page is not None:
-                row = conn.execute("SELECT text FROM pages WHERE source_id = ? AND page_no = ?", (c.source_id, c.page)).fetchone()
-            else:
-                row = conn.execute("SELECT text FROM sources WHERE id = ?", (c.source_id,)).fetchone()
-            record.append((row[0] if row else "") or "")
-    blob = "\n".join(record)
+    """Statute/rule/case cites in the text whose number (or name) is not inside a cited QUOTE.
+    No legal citations from model memory, and the highlighted span must show the rule itself."""
+    blob = "\n".join(c.quote for c in cits if c.verified)
     bad = []
     for t in texts:
         for m in _LEGAL.finditer(t):

@@ -20,7 +20,13 @@ from app.llm import MODEL_SONNET, structured
 from app.retrieval.fence import FENCE_RULE, fence
 from app.schemas import Citation
 
-_EXCLUSIVE = re.compile(r"\b(only|never|sole|solely|nobody|no one|always|entirely)\b", re.I)
+# Words that overstate the record unless a quote uses them: exclusivity, absolutes, intent.
+_EXCLUSIVE = re.compile(r"\b(only|never|sole|solely|nobody|no one|always|entirely|neither|nor any|"
+                        r"planned|plans to|intends?|intended|decided)\b", re.I)
+# Absolute absence and certainty about changes the record does not show.
+_ABSOLUTE = re.compile(r"\b(?:without (?:any|a single)|not (?:a single|once)|no (?:analysis|attempt|effort|one has)|"
+                       r"will (?:also )?have (?:grown|increased|risen|changed|expired|lapsed)|"
+                       r"has (?:since )?(?:grown|increased|risen))\b", re.I)
 _FUTURE = re.compile(r"\b(upcoming|forthcoming|scheduled|set for|next (?:week|month)'s|pending (?:conference|hearing|motion))\b", re.I)
 _SCHEDULED_IN_QUOTE = re.compile(r"schedul|set for|adjourned to|will be held|is calendared|on calendar", re.I)
 
@@ -33,6 +39,10 @@ def overreach(texts: list[str], quotes: str, cits: list[Citation]) -> list[str]:
         for m in _EXCLUSIVE.finditer(scrub):
             if not re.search(rf"\b{re.escape(m.group(1).lower())}\b", low):
                 problems.append(f'"{m.group(0)}" (exclusivity/superlative not stated in your quotes; soften or quote it)')
+        for m in _ABSOLUTE.finditer(scrub):
+            if m.group(0).lower() not in low:
+                problems.append(f'"{m.group(0)}" (absolute or certain claim the quotes do not state; say what the record '
+                                f'shows, or "No record found of ..." after a search)')
     today = date.today().isoformat()
     future_cite = any(c.source_kind in ("calendar_entry", "task") and (c.date or "")[:10] >= today for c in cits)
     if not future_cite and not _SCHEDULED_IN_QUOTE.search(quotes):
