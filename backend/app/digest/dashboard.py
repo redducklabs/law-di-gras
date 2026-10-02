@@ -12,13 +12,14 @@ from rapidfuzz import fuzz
 from app.db import connect
 from app.digest import structured as st
 from app.digest.brief import write_brief
+from app.digest.curate import mark_milestones, recent_activity
 from app.digest.extract import PROMPT_VERSION, Extracted, extract_all, save_facts
 from app.retrieval.embed import embed_matter
 from app.retrieval.hyde import hyde_matter
 from app.retrieval.search import warm
 from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, TimelineEvent, TreatmentLine)
 
-PIPELINE_VERSION = f"d2-{PROMPT_VERSION}"
+PIPELINE_VERSION = f"d3-{PROMPT_VERSION}"
 
 
 def input_hash(matter_id: str) -> str:
@@ -135,6 +136,8 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             continue
         uniq.append(e)
 
+    mark_milestones(matter_id, uniq, today)
+
     # Actions
     actions: list[ActionItem] = st.actions_from_tasks(matter_id, today) + cal_actions
     for x, f in zip(ex.get("requests", []), facts.get("requests", [])):
@@ -175,7 +178,7 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
         last_client_contact=contact,
         injuries=facts.get("injuries", []),
         treatment=treatment,
-        recent=st.recent_activity(matter_id),
+        recent=recent_activity(matter_id, today),
     )
     with connect() as conn:
         conn.execute("INSERT OR REPLACE INTO digests (matter_id, kind, input_hash, payload_json, model, created_at)"

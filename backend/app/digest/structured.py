@@ -137,17 +137,6 @@ def last_client_contact(matter_id: str) -> Fact | None:
     return None
 
 
-def recent_activity(matter_id: str, limit: int = 6) -> list[Fact]:
-    out: list[Fact] = []
-    with connect() as conn:
-        rows = conn.execute("SELECT * FROM sources WHERE matter_id = ? AND kind IN ('note', 'communication')"
-                            " AND date IS NOT NULL ORDER BY date DESC LIMIT ?", (matter_id, limit)).fetchall()
-        for i, row in enumerate(rows):
-            out.append(Fact(id=f"recent-{i}", label=row["kind"].capitalize(), value=row["title"] or "",
-                            date=iso(row["date"]), citations=[row_citation(conn, row)], verified=True))
-    return out
-
-
 def provider_contact_ids(matter_id: str) -> list[tuple[str, str]]:
     """(contact_id, name) for every contact source, used to link treatment lines."""
     with connect() as conn:
