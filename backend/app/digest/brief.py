@@ -168,7 +168,9 @@ def write_brief(matter_id: str, facts: list[Fact], actions: list[ActionItem], st
     for i, (text, (_, _, refs)) in enumerate(zip(texts[1:], rows[1:])):
         if not text or not refs:
             continue
-        cits = [c for r in refs for c in _cits(r)] + extra.get(i + 1, [])
+        # record sources first, computed billing rows after, so a bullet's limits aren't "cited" to bills
+        cits = [c for r in refs if not r.id.startswith(DERIVED) for c in _cits(r)] + extra.get(i + 1, []) + \
+            [c for r in refs if r.id.startswith(DERIVED) for c in _cits(r)]
         bullets.append(Fact(id=f"brief-{i}", label=", ".join(r.label for r in refs[:3]), value=text,
                             citations=cits, verified=True))
     head = Headline(status_line=status_line, stage=out.stage, bullets=bullets,

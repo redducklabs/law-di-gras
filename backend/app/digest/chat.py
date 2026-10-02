@@ -24,10 +24,19 @@ from app.retrieval.fence import FENCE_RULE, fence
 from app.retrieval.search import search
 from app.schemas import ChatRequest, ChatResponse, Citation, Dashboard, DeepLink
 
-VERSION = "ch5"
+VERSION = "ch6"
 SECTIONS = {"timeline", "next-steps", "status", "kpis", "injuries", "treatment", "recent"}
 ROUTES = {"/cases"}
 MAX_LINKS = 3
+
+
+_TOPIC_DEFENSE = re.compile(r"injur|defen|\bIME\b|dispute|diagnos|exam|causation|resolved", re.I)
+_DEFENSE_QUERIES = [
+    "independent medical examination impression diagnosis resolved",
+    "defense orthopedic examination cervical lumbar sprain resolved",
+    "defense neurological examination findings resolved",
+    "defense radiology review no evidence of traumatic injury",
+]
 
 
 class LinkOut(BaseModel):
@@ -228,6 +237,13 @@ def chat(matter_id: str, req: ChatRequest) -> ChatResponse:
         for p in search(matter_id, f"{prev_q} {question}", top_k=4):
             if (p.citation.source_id, p.citation.char_start) not in seen:
                 passages.append(p)
+    if _TOPIC_DEFENSE.search(question):  # route by topic: defense exams/reviews may not rank for the wording
+        seen = {(p.citation.source_id, p.citation.char_start) for p in passages}
+        for q in _DEFENSE_QUERIES:
+            for p in search(matter_id, q, top_k=4):
+                if (p.citation.source_id, p.citation.char_start) not in seen:
+                    seen.add((p.citation.source_id, p.citation.char_start))
+                    passages.append(p)
     evidence: list[tuple[str, Citation]] = [(p.citation.quote[:3000], p.citation) for p in passages
                                            if p.citation.verified]
     if d:

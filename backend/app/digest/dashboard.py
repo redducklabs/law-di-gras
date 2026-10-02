@@ -26,7 +26,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 21
+PIPELINE_REV = 23
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -89,18 +89,23 @@ def _round5k(x: float) -> float:
 
 
 _LIMITATIONS = re.compile(r"limitation", re.I)
-_FILED = re.compile(r"complaint|summons|action commenced|commenced|suit filed|lawsuit|filed|index no", re.I)
+_FILED = re.compile(r"complaint|summons|commenced|recommenced|suit filed|lawsuit filed|action filed|CPLR 205", re.I)
 
 
 def _suit_filed_before(ex: dict[str, list[Extracted]], deadline: str) -> Extracted | None:
-    """The earliest verified filing/commencement event on or before the deadline, if the record shows one."""
+    """The operative action: the LATEST verified filing/commencement on or before the deadline, skipping
+    prior/dismissed actions (a dismissed suit does not satisfy the limitations period)."""
     hits = [x for cat in ("key_dates", "stage") for x in ex.get(cat, [])
             if x.date and x.verified and x.date <= deadline and (x.status in (None, "occurred"))
-            and _FILED.search(f"{x.label} {x.value}") and not _LIMITATIONS.search(x.label)]
-    return min(hits, key=lambda x: x.date) if hits else None
+            and _FILED.search(f"{x.label} {x.value}") and not _LIMITATIONS.search(x.label)
+            and not _PRIOR.search(f"{x.label} {x.value}")]
+    return max(hits, key=lambda x: x.date) if hits else None
 
 
-_FILED_STAMP = re.compile(r"FILED:?[^\n]{0,40}?(\d{1,2}/\d{1,2}/\d{4})")
+_PRIOR = re.compile(r"prior (?:law)?suit|prior action|dismiss|discontinu|first action", re.I)
+
+
+_FILED_STAMP = re.compile(r"FILED:?[^\n]{0,40}?(\d{1,2}[/ ]\d{1,2}[/ ]\d{4})")  # OCR may drop slashes
 _PERSON = re.compile(r"(?:Dr\.?\s+)?([A-Z][a-z]+(?:\s+[A-Z]\.)?\s+([A-Z][a-z]{2,}))")
 
 
@@ -119,7 +124,7 @@ def _filed_before(matter_id: str, e: TimelineEvent):
             s = _FILED_STAMP.search(h.text)
             if not s:
                 continue
-            mm, dd, yy = s.group(1).split("/")
+            mm, dd, yy = re.split(r"[/ ]", s.group(1))
             filed = f"{yy}-{int(mm):02d}-{int(dd):02d}"
             if filed < e.date:
                 c = locate(conn, h.source_id, s.group(0), h.page_no)
@@ -128,11 +133,50 @@ def _filed_before(matter_id: str, e: TimelineEvent):
     return None
 
 
+_RECOMMENCED = re.compile(r"CPLR\s*(?:§\s*)?205|recommenc|commenced (?:this|the present) action", re.I)
+
+
+def _complaint_filed_before(matter_id: str, deadline: str):
+    """(label, citations) for the operative complaint: a filed pleading stamped on/before the deadline,
+    preferring one that says it was recommenced (CPLR 205). Cites the filing stamp and the clause."""
+    from app.retrieval.search import search_hits
+    best = None
+    with connect() as conn:
+        hits = search_hits(matter_id, "summons and complaint action commenced recommenced CPLR 205", top_k=8) +             search_hits(matter_id, "this action is timely recommenced pursuant to CPLR 205(a)", top_k=8)
+        for h in hits:
+            if h.kind != "document" or not re.search(r"complaint|summons", h.title, re.I):
+                continue
+            stamp = _FILED_STAMP.search(h.text)
+            if not stamp:
+                continue
+            mm, dd, yy = re.split(r"[/ ]", stamp.group(1))
+            filed = f"{yy}-{int(mm):02d}-{int(dd):02d}"
+            if filed > deadline or _PRIOR.search(h.title):
+                continue
+            rec = _RECOMMENCED.search(h.text)
+            score = (1 if rec else 0, filed)
+            if best is None or score > best[0]:
+                cits = [c for c in [locate(conn, h.source_id, stamp.group(0), h.page_no),
+                                    locate(conn, h.source_id, rec.group(0), h.page_no) if rec else None]
+                        if c and c.verified]
+                what = "action recommenced (CPLR 205)" if rec and "205" in rec.group(0) else "complaint filed"
+                page = f", p.{h.page_no}" if h.page_no else ""
+                best = (score, (f"{what}{page}, filed {filed}", cits))
+    return best[1] if best and best[1][1] else None
+
+
+_NAMES: dict = {}  # names corpus (all record titles incl. contacts), set per build
+
+
 def _apply_finding(f: Fact, v, cit, injury: bool = False, bullet: bool = False) -> None:
     """Make a whole-record conflict or caveat visible on the fact, citing the other source too."""
     if cit is None or v.verdict not in ("contradicted", "qualified"):
         return
     note = v.note.strip().rstrip(".")
+    from app.digest.verify import Corpus, check_tokens
+    # the note may not add figures or dates beyond its quote (the source's own date and title are allowed)
+    if check_tokens(note, Corpus(f"{cit.source_title}\n{cit.date or ''}\n{cit.quote}"), _NAMES.get("names")):
+        note = f"per {cit.source_title[:60]}" + (f" ({cit.date[:10]})" if cit.date else "") + f": \"{cit.quote[:160].strip()}\""
     if cit.model_dump() not in [c.model_dump() for c in f.citations]:
         f.citations = list(f.citations) + [cit]
     if v.verdict == "contradicted":
@@ -279,6 +323,10 @@ def build(matter_id: str, force: bool = False, store: bool = True) -> Dashboard:
                         verified=all(b.verified for b in billed))
 
     # Whole-record check: conflicts and caveats elsewhere in the file become visible, with both citations.
+    from app.digest.verify import Corpus
+    with connect() as conn:
+        _NAMES["names"] = Corpus("\n".join(r[0] or "" for r in conn.execute(
+            "SELECT title FROM sources WHERE matter_id = ?", (matter_id,))))
     checked = [f for f in facts.get("coverage", []) + facts.get("liens", []) + facts.get("injuries", [])
                if f.verified] + ([specials] if specials else [])
     for f, (v, cit) in zip(checked, check_statements(matter_id, [(f"{f.label}: {f.value}", f.citations)
@@ -301,7 +349,10 @@ def build(matter_id: str, force: bool = False, store: bool = True) -> Dashboard:
             if f1 is f2 or not f1.value.startswith("Conflict:"):
                 continue
             amts1 = {v for tok in _MONEY.findall(f1.value) if (v := _money_val(tok))}
-            if amts2 and amts2 <= amts1 and src2 & {c.source_id for c in f1.citations}:
+            # only when that line is the conflicting source's own party (not another party's policy)
+            party = re.search(r"\(([^()]+?),\s*\d{4}-\d{2}-\d{2}\)\s*$", f1.value)
+            same_party = bool(party) and fuzz.partial_ratio(party.group(1).lower(), f2.label.lower()) >= 90
+            if same_party and amts2 and amts2 <= amts1 and src2 & {c.source_id for c in f1.citations}:
                 cov.remove(f2)
                 break
 
@@ -323,8 +374,13 @@ def build(matter_id: str, force: bool = False, store: bool = True) -> Dashboard:
             label = f.label
             if not fut and _LIMITATIONS.search(f.label):
                 filed = _suit_filed_before(ex, f.date)
+                if not filed:
+                    found = _complaint_filed_before(matter_id, f.date)
+                    if found:
+                        label = f"{f.label}: {f.date} (satisfied: {found[0]})"
+                        f.citations = list(f.citations) + found[1]
                 if filed:
-                    label = f"{f.label}: {f.date} (suit filed {filed.date[:4]}, satisfied)"
+                    label = f"{f.label}: {f.date} (satisfied: {filed.label.rstrip('.')}, {filed.date})"
                     f.citations = list(f.citations) + [c for c in filed.citations if c.verified][:1]  # cite the filing
         elif status == "adjourned":
             label = f"Adjourned: {f.label}"
