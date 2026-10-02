@@ -2,15 +2,15 @@
 
 One DigitalOcean Droplet (`law-di-gras-demo`, sfo3, s-1vcpu-2gb, about $12/mo)
 running Docker Compose: `api` (FastAPI) and `caddy` (Let's Encrypt TLS, static
-frontend, `/api` proxy). Sign-in is a branded `/login` page with a session
-cookie (`backend/app/demo_auth.py`, checked by Caddy `forward_auth`). Provider
-links (`/p/*`, `/api/share/*`), the static bundle and `/brand/*` logos are public.
+frontend, `/api` proxy). Sign-in is the app's own (`backend/app/auth`,
+`APP_LOGIN_USER` / `APP_LOGIN_PASSWORD`; `APP_SESSION_SECRET` is generated on
+first use into the data volume). Provider links (`/p/*`, `/api/share/*`) are public.
 
 | Where | What |
 |---|---|
 | `/opt/law-di-gras/{backend,deploy,frontend-dist}` | code, shipped by CI |
 | `/etc/law-di-gras/app.env` | secrets + sign-in credentials, written by CI (mode 600) |
-| `/var/lib/law-di-gras` | SQLite + downloaded files (seeded from a laptop) + `clio.env` (tokens from Connect Clio) |
+| `/var/lib/law-di-gras` | SQLite + downloaded files (seeded from a laptop) + `clio.env` (Clio tokens from Connect Clio, session secret) |
 
 ## GitHub configuration
 
@@ -20,7 +20,7 @@ Repository **secrets** (Settings → Secrets and variables → Actions):
 |---|---|---|
 | `DO_TOKEN` | yes | DigitalOcean API token, read+write (Droplets, SSH keys, Domains) |
 | `DEMO_SSH_KEY` | yes | private key of the deploy keypair (`~/.ssh/law_di_gras_demo`) |
-| `DEMO_BASIC_AUTH_PASSWORD` | yes | sign-in password for the site |
+| `DEMO_BASIC_AUTH_PASSWORD` | yes | firm sign-in password (shipped as `APP_LOGIN_PASSWORD`; user from var `DEMO_BASIC_AUTH_USER`) |
 | `ANTHROPIC_API_KEY` | yes | AI drafts, Ask, re-digest |
 | `OPENAI_API_KEY` | yes | query embeddings for Find / Ask |
 | `COHERE_API_KEY` | optional | rerank; without it search uses RRF order |
