@@ -135,7 +135,7 @@ export default function ProviderViewBody({ view, onOpenDoc, compact }: { view: P
         <p className="text-sm text-slate-500">{view.matter_title}</p>
       </header>
 
-      <div className={`grid gap-3 ${view.coverage ? 'sm:grid-cols-2' : ''}`}>
+      <div className={`grid items-start gap-3 ${view.coverage ? 'sm:grid-cols-2' : ''}`}>
         <div className={`rounded-lg border p-5 ${view.case_active ? 'border-emerald-200 bg-emerald-50' : 'border-slate-300 bg-slate-100'}`}>
           <div className="flex items-center gap-2">
             <span className={`h-2.5 w-2.5 rounded-full ${view.case_active ? 'bg-emerald-500' : 'bg-slate-400'}`} />
