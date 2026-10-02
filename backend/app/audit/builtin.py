@@ -16,7 +16,7 @@ from app.db import connect
 from app.schemas import AuditFlag, AuditReport, Citation, Dashboard, RunProgress
 
 KINDS = {"dashboard": "audit:dashboard", "review": "audit:review"}
-VERSION = "a4"  # bump to re-audit everything when the checks change
+VERSION = "a5"  # bump to re-audit everything when the checks change
 _lock = threading.Lock()
 _jobs: dict[tuple[str, str, str], AuditReport] = {}  # (matter, target, hash) -> in-flight/failed report
 
@@ -149,7 +149,25 @@ CHECK_NAME = {"1-code": "fact-support", "1-judge": "fact-support", "2-record": "
 
 def _plain(note: str) -> str:
     note = re.sub(r"^(partial|unsupported|misleading|tense_wrong|wrong_party|wrong_date|wrong_amount|contradicted):\s*", "", note)
-    return note.split(" [claim:")[0].strip()[:400]
+    return _attorney(note.split(" [claim:")[0].strip())
+
+
+def _attorney(note: str) -> str:
+    """Attorney-facing wording: what the record shows, never instructions to a model."""
+    m = re.match(r'Overstates the record: "([^"]+)" \((?:exclusivity|absolute)', note)
+    if m:
+        return f'Overstates the record: "{m.group(1)}" is not supported by the cited passages.'
+    m = re.match(r'Overstates the record: "([^"]+)" \(no cited calendar', note)
+    if m:
+        return f'Overstates the record: "{m.group(1)}", but no cited calendar entry, task or passage shows it is scheduled.'
+    m = re.match(r"the cited source itself reconciles this \((.*)\): (.*?)\.? Drop or narrow the conflict\.?$", note, re.S)
+    if m:
+        return f"The cited source itself may resolve this conflict: {m.group(2)} ({m.group(1)})."
+    note = re.sub(r"\s*Drop or reconcile it\.?$", "", note)
+    m = re.match(r"Supported in the record but not by the cited sources; cite (.+)\.$", note)
+    if m:
+        return f"Supported elsewhere in the record ({m.group(1)}), but not by the passages cited on screen."
+    return note[:400]
 
 
 def audit_dashboard(matter_id: str, step) -> tuple[list[AuditFlag], int]:
@@ -257,7 +275,7 @@ def audit_review(matter_id: str, step) -> tuple[list[AuditFlag], int]:
 
         def add(sev, check, note, cits=None):
             flags.append(AuditFlag(target="review", item_id=f.id, section="blind-spots", severity=sev,
-                                   check=check, note=note[:400], citations=cits or []))
+                                   check=check, note=_attorney(note), citations=cits or []))
 
         for c in f.citations:
             ok, how = span_check(c)
@@ -277,7 +295,7 @@ def audit_review(matter_id: str, step) -> tuple[list[AuditFlag], int]:
                 or word == "neither" or word.startswith(("without", "will", "has ", "not a", "no "))
             add("major" if strong else "minor", "overreach", f"Overstates the record: {p}")
         for cite in unsourced_legal_cites(texts, f.citations):
-            add("major", "legal-cite", f"Legal citation \"{cite}\" is not inside any cited quote, so the highlight does not show it.")
+            add("major", "legal-cite", f"Legal citation \"{cite}\" does not appear in any cited passage, so the highlighted source does not show it.")
         if f.category in ("conflict", "inconsistency"):
             step(f"Re-reading the cited sources for finding {i + 1}", base + 3)
             p = same_source(matter_id, f"{f.title}. {f.why_it_matters}", f.citations)
