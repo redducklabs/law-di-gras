@@ -1,7 +1,7 @@
 // Cited PDF page with the quote's rects highlighted. Paging, OCR label, open-full link.
 import { useEffect, useLayoutEffect, useRef, useState } from 'react'
 import { Document, Page, pdfjs } from 'react-pdf'
-import workerUrl from 'pdfjs-dist/build/pdf.worker.min.mjs?url'
+import workerUrl from 'pdfjs-dist/legacy/build/pdf.worker.min.mjs?url' // legacy: polyfills Map.getOrInsertComputed for older Chromium
 import type { Citation, SourceDetail } from '../api/types'
 import { api } from '../api/client'
 import { Badge, fmtDate } from '../components'
