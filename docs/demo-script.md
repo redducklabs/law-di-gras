@@ -11,7 +11,7 @@ draft once beforehand so PDFs and drafts are warm.
 
 **Restart both servers after the last pull:** uvicorn `:8000` (fully, not --reload) and Vite with `npm run dev -- --force`; a stale Vite serves old modules (e.g. "api.chat is not a function").
 
-**Chat questions safe to demo (S6 r23 gate, b678391: pass, no criticals):** injuries/defense, coverage, last client contact, overdue / waiting on, Pullano deposition. Keep headline bullets 1 and 3 (MRI and coverage-conflict bullets, G1/G2) out of close-up narration unless S2 lands a fix.
+**Final gate (S6, r26, fff2318): PASS.** Everything on the dashboard is safe to show. Chat questions safe: injuries/defense, coverage, last client contact, overdue / waiting on, Pullano deposition. Cache is final: no more POST /digest or /review before recording.
 
 **Blind spots (S6 Check 8b, cache frozen; never POST /review before recording):** safe to show as worded: #1 incident report "annexed" vs "not produced" (the demo beat), #7 IME dates, #9 deferring surgery vs "available", #10 prior injuries "Not applicable". In narration never say "only eyewitness", "without any analysis", "neither matches the pleadings", "the lien will have grown" (#2/#4/#6/#8 overstate), "planned motion to compel" or "the only contemporaneous account" (#1), or "were never reported" (#7). S7's verifier (016061d) now catches all of these on any future run.
 
