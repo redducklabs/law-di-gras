@@ -37,4 +37,8 @@ for module in ("app.api.sources", "app.api.digest", "app.api.share"):
 
 @app.get("/api/health")
 def health() -> dict:
-    return {"ok": True}
+    try:
+        from app.digest.dashboard import PIPELINE_REV
+    except ImportError:
+        PIPELINE_REV = None
+    return {"ok": True, "pipeline_rev": PIPELINE_REV}
