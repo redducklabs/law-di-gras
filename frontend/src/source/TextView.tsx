@@ -15,7 +15,8 @@ export function TextView({ source, citation }: { source: SourceDetail; citation:
   }, [source.id, span?.[0], span?.[1]])
 
   return (
-    <div className="space-y-3.5 p-5">
+    <div>
+      <div className="sticky top-0 z-10 space-y-3 border-b border-line bg-surface/95 px-5 pb-3 pt-4 backdrop-blur">
       <div>
         <MetaRow items={[
           <Badge key="k" tone="brand">{KIND_LABEL[source.kind]}</Badge>,
@@ -29,9 +30,12 @@ export function TextView({ source, citation }: { source: SourceDetail; citation:
       {citation.verified && !span && (
         <Notice tone="warn">The cited words could not be located in this record's current text. Quote: “{citation.quote}”</Notice>
       )}
+      </div>
+
+      <div className="space-y-3 p-5">
       {source.has_file && <Notice>This record also has an attached file; the text below is its extracted content.</Notice>}
 
-      <article className="whitespace-pre-wrap break-words rounded-lg border border-line bg-page px-4 py-3.5 font-sans text-[13px] leading-relaxed text-slate-700">
+      <article className="whitespace-pre-wrap break-words rounded-lg border border-line bg-surface px-4 py-3.5 font-sans text-[13px] leading-relaxed text-slate-700">
         {span ? (
           <>
             {d(text.slice(0, span[0]))}
@@ -43,6 +47,7 @@ export function TextView({ source, citation }: { source: SourceDetail; citation:
           </>
         ) : d(text) || <span className="text-slate-400">This record has no text.</span>}
       </article>
+      </div>
     </div>
   )
 }

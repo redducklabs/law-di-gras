@@ -40,7 +40,9 @@ export function PdfView({ source, citation }: { source: SourceDetail; citation: 
   }
 
   return (
-    <div className="space-y-3.5 p-5">
+    <div>
+      {/* Pinned: what this is, the cited words, and page controls stay visible while the page scrolls. */}
+      <div className="sticky top-0 z-10 space-y-3 border-b border-line bg-surface/95 px-5 pb-3 pt-4 backdrop-blur">
       <MetaRow items={[
         <Badge key="k" tone="brand">{KIND_LABEL[source.kind]}</Badge>,
         source.date ? fmtDate(source.date, true) : null,
@@ -83,7 +85,10 @@ export function PdfView({ source, citation }: { source: SourceDetail; citation: 
         </div>
       )}
 
-      <div ref={box} className="overflow-hidden rounded-lg border border-line bg-page shadow-card">
+      </div>
+
+      <div className="bg-page p-4 sm:p-5">
+      <div ref={box} className="overflow-hidden rounded-md border border-line bg-white shadow-card">
         {failed ? (
           <div className="p-4"><Notice tone="danger">Could not load this PDF. <a className="font-medium underline" href={fileUrl} target="_blank" rel="noreferrer">Open the file</a> instead.</Notice></div>
         ) : (
@@ -106,6 +111,7 @@ export function PdfView({ source, citation }: { source: SourceDetail; citation: 
             )}
           </Document>
         )}
+      </div>
       </div>
     </div>
   )
