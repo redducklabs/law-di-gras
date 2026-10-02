@@ -167,3 +167,46 @@ export interface Draft {
   segments: DraftSegment[]
   unverified: string[]
 }
+
+// --- Cases page (portfolio) ---
+export interface NextDeadline { date: string; label: string }
+
+/** One row on the Cases landing page, sorted by attention_score (desc). */
+export interface CaseRow {
+  id: string                  // Clio matter id; sample rows use "sample:<n>"
+  display_number: string
+  title: string
+  client_name: string
+  stage?: string | null
+  sample: boolean             // fictional demo row, NOT from Clio; never clickable
+  digested: boolean
+  attention_score: number
+  attention_reasons: string[]
+  overdue_count: number
+  waiting_count: number
+  next_deadline?: NextDeadline | null
+  last_client_contact?: string | null
+  specials?: Fact | null
+  coverage: Fact[]
+  case_value?: Fact | null
+  firm_spent?: Fact | null
+}
+
+// --- Ask-the-case chat with deeplinks ---
+export interface ChatTurn { role: 'user' | 'assistant'; content: string }
+export interface ChatRequest { messages: ChatTurn[] }
+
+export type PageSection = 'timeline' | 'next-steps' | 'status' | 'kpis' | 'injuries' | 'treatment' | 'recent'
+
+export interface DeepLink {
+  label: string
+  kind: 'section' | 'source' | 'timeline' | 'share' | 'route'
+  section?: PageSection | null
+  citation?: Citation | null
+  date?: string | null
+  contact_id?: string | null
+  path?: string | null
+}
+
+/** [n] markers in answer_markdown index citations, 1-based. */
+export interface ChatResponse { answer_markdown: string; citations: Citation[]; links: DeepLink[] }

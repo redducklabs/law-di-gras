@@ -220,3 +220,59 @@ class Draft(BaseModel):
     subject: str
     segments: list[DraftSegment] = Field(default_factory=list)
     unverified: list[str] = Field(default_factory=list)  # tokens/claims the record does not support
+
+
+# --- Cases page (portfolio) ---------------------------------------------------
+
+class NextDeadline(BaseModel):
+    date: str
+    label: str
+
+
+class CaseRow(BaseModel):
+    """One row on the Cases landing page, sorted by attention_score (desc)."""
+    id: str                       # Clio matter id; sample rows use "sample:<n>"
+    display_number: str
+    title: str
+    client_name: str
+    stage: str | None = None
+    sample: bool = False          # True = fictional demo row, NOT from Clio; never clickable
+    digested: bool = False        # a cached Dashboard exists
+    attention_score: float = 0.0  # higher = needs attention first
+    attention_reasons: list[str] = Field(default_factory=list)  # e.g. "2 overdue", "SOL in 30 days"
+    overdue_count: int = 0
+    waiting_count: int = 0
+    next_deadline: NextDeadline | None = None
+    last_client_contact: str | None = None   # ISO date
+    specials: Fact | None = None
+    coverage: list[Fact] = Field(default_factory=list)
+    case_value: Fact | None = None
+    firm_spent: Fact | None = None
+
+
+# --- Ask-the-case chat with deeplinks ---------------------------------------
+
+class ChatTurn(BaseModel):
+    role: Literal["user", "assistant"]
+    content: str
+
+
+class ChatRequest(BaseModel):
+    messages: list[ChatTurn]      # full conversation so far; last is the user's question
+
+
+class DeepLink(BaseModel):
+    """Where the UI should take the user. Only these kinds; the server validates targets."""
+    label: str                    # e.g. "Jump to Next steps"
+    kind: Literal["section", "source", "timeline", "share", "route"]
+    section: Literal["timeline", "next-steps", "status", "kpis", "injuries", "treatment", "recent"] | None = None
+    citation: Citation | None = None   # kind=source: open the source pane here
+    date: str | None = None            # kind=timeline: focus/zoom the timeline on this date
+    contact_id: str | None = None      # kind=share: open the share panel for this provider
+    path: str | None = None            # kind=route: in-app path, e.g. "/cases"
+
+
+class ChatResponse(BaseModel):
+    answer_markdown: str          # [n] markers index citations (1-based)
+    citations: list[Citation] = Field(default_factory=list)
+    links: list[DeepLink] = Field(default_factory=list)
