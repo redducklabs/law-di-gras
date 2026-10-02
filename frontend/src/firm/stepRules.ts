@@ -4,12 +4,16 @@
 import type { ActionItem, Citation, Dashboard } from '../api/types'
 import { daysFromToday, fmtDate, relDays, type Tone } from '../components'
 
+export type StepKind = 'overdue' | 'upcoming' | 'waiting' | 'client'
+
 export interface Step {
+  kind: StepKind
   title: string
   why: string
   tone: Tone
   group: 'do' | 'waiting'
   owner?: string | null
+  waitingOn?: string | null
   date?: string | null
   citations: Citation[]
 }
@@ -19,18 +23,18 @@ export const CLIENT_CONTACT_STALE_DAYS = 30
 
 function fromAction(a: ActionItem): Step & { sort: number } {
   const n = daysFromToday(a.due_date)
-  const base = { title: a.title, owner: a.owner, date: a.due_date, citations: a.citations }
+  const base = { title: a.title, owner: a.owner, waitingOn: a.waiting_on, date: a.due_date, citations: a.citations }
   if (a.status === 'overdue') {
     const late = n != null && n < 0 ? -n : null
-    return { ...base, group: 'do', tone: 'danger', sort: -1000 + (n ?? 0),
+    return { ...base, kind: 'overdue', group: 'do', tone: 'danger', sort: -1000 + (n ?? 0),
       why: late ? `Overdue by ${late} day${late === 1 ? '' : 's'}` : 'Overdue' }
   }
   if (a.status === 'upcoming') {
-    return { ...base, group: 'do', tone: n != null && n <= 7 ? 'warn' : 'brand', sort: n ?? 500,
+    return { ...base, kind: 'upcoming', group: 'do', tone: n != null && n <= 7 ? 'warn' : 'brand', sort: n ?? 500,
       why: n == null ? 'Upcoming' : `Due ${relDays(n)}` }
   }
   const who = a.waiting_on ? `Waiting on ${a.waiting_on}` : 'Waiting on others'
-  return { ...base, group: 'waiting', tone: 'neutral', sort: 2000 + (n ?? 0),
+  return { ...base, kind: 'waiting', group: 'waiting', tone: 'neutral', sort: 2000 + (n ?? 0),
     why: a.due_date ? `${who} · ${fmtDate(a.due_date)}${n != null ? ` (${relDays(n)})` : ''}` : who }
 }
 
@@ -39,7 +43,7 @@ export function buildNextSteps(d: Dashboard): Step[] {
   const c = d.last_client_contact
   const age = c?.date ? daysFromToday(c.date) : null
   if (c && age != null && -age >= CLIENT_CONTACT_STALE_DAYS) {
-    steps.push({ title: 'Check in with the client', group: 'do', tone: 'warn', sort: 400,
+    steps.push({ kind: 'client', title: 'Check in with the client', group: 'do', tone: 'warn', sort: 400,
       why: `No client contact in ${-age} days`, date: c.date, citations: c.citations })
   }
   return steps.sort((a, b) => a.sort - b.sort).map(({ sort: _s, ...s }) => s)

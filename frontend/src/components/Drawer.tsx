@@ -18,7 +18,7 @@ export function Drawer({ open, onClose, title, subtitle, width = 560, children, 
   }, [open, onClose])
 
   return (
-    <div className={`fixed inset-0 z-50 ${open ? '' : 'pointer-events-none'}`} aria-hidden={!open}>
+    <div className={`fixed inset-0 z-50 overflow-hidden transition-[visibility] duration-200 ${open ? 'visible' : 'pointer-events-none invisible'}`} aria-hidden={!open}>
       <div onClick={onClose}
         className={`absolute inset-0 bg-slate-900/25 transition-opacity duration-200 ${open ? 'opacity-100' : 'opacity-0'}`} />
       <aside role="dialog" aria-modal="true" style={{ maxWidth: width }}

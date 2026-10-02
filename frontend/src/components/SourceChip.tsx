@@ -37,7 +37,7 @@ export function SourceChips({ citations, onOpen, max = 3 }: {
   const shown = citations.slice(0, max)
   const more = citations.length - shown.length
   return (
-    <span className="inline-flex flex-wrap items-center gap-1">
+    <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1">
       {shown.map((c, i) => <SourceChip key={`${c.source_id}-${i}`} citation={c} onOpen={onOpen} />)}
       {more > 0 && <span className="text-[11px] text-slate-400">+{more}</span>}
     </span>
