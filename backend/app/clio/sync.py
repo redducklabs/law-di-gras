@@ -16,7 +16,7 @@ from pathlib import Path
 from app import config
 from app.clio.client import client
 from app.db import connect, init_db
-from app.ingest import chunk, pdf
+from app.ingest import chunk, files, pdf
 
 log = logging.getLogger("clio.sync")
 
@@ -34,7 +34,8 @@ ENDPOINTS = {
     # kind: (endpoint, fields, extra params)
     "note": ("notes.json", "id,subject,detail,date,created_at,updated_at,author{name},type", {"type": "Matter"}),
     "communication": ("communications.json",
-                      "id,subject,body,date,received_at,type,created_at,updated_at,user{name},senders,receivers", {}),
+                      "id,subject,body,date,received_at,type,created_at,updated_at,user{name},senders,receivers,"
+                      "documents{id,name}", {}),
     "task": ("tasks.json", "id,name,description,status,priority,due_at,completed_at,created_at,updated_at,"
                            "assignee{name,type},assigner{name}", {}),
     "calendar_entry": ("calendar_entries.json", "id,summary,description,start_at,end_at,all_day,location,"
@@ -82,8 +83,10 @@ def _render(kind: str, r: dict) -> tuple[str, str | None, str | None, str]:
         return r.get("subject") or "Note", r.get("date"), (r.get("author") or {}).get("name"), f"{head}\n\n{r.get('detail') or ''}".strip()
     if kind == "communication":
         sender = _names(r.get("senders"))
+        attachments = ", ".join(d.get("name") or f"document {d.get('id')}" for d in r.get("documents") or [])
         head = _lines(("Subject", r.get("subject")), ("Type", (r.get("type") or "").replace("Communication", "")),
-                      ("Date", r.get("date") or r.get("received_at")), ("From", sender), ("To", _names(r.get("receivers"))))
+                      ("Date", r.get("date") or r.get("received_at")), ("From", sender), ("To", _names(r.get("receivers"))),
+                      ("Attachments", attachments))
         return r.get("subject") or "Communication", r.get("date") or r.get("received_at"), sender or None, f"{head}\n\n{r.get('body') or ''}".strip()
     if kind == "task":
         text = _lines(("Task", r.get("name")), ("Status", r.get("status")), ("Priority", r.get("priority")),
@@ -152,29 +155,46 @@ class Sync:
         sid = f"document:{r['id']}"
         ver = r.get("latest_document_version") or {}
         ctype = (ver.get("content_type") or r.get("content_type") or "").lower()
+        fname = ver.get("filename") or r.get("filename") or ""
+        ext = fname.rsplit(".", 1)[-1].lower() if "." in fname else ""
         title = r.get("name") or r.get("filename") or "Document"
         date = r.get("received_at") or r.get("created_at")
         folder = (r.get("parent") or {}).get("name")
-        h = _sha("document", ver.get("id"), ver.get("size"), title, date, pdf.PARSER_VERSION, pdf.MIN_TEXT_CHARS)
+        kind = files.kind_of(ext, ctype)
+        viewable = kind in ("pdf", "image")  # stored as PDF, pages with line boxes
+        h = _sha("document", ver.get("id"), ver.get("size"), title, date, pdf.PARSER_VERSION, pdf.MIN_TEXT_CHARS,
+                 *(() if viewable else ("text", files.TEXT_PARSER_VERSION)))
         rel = f"{r['id']}.pdf"
         path = config.FILES_DIR / rel
         old = self.conn.execute("SELECT content_hash FROM sources WHERE id=?", (sid,)).fetchone()
-        if old and old[0] == h and path.exists():
+        if old and old[0] == h and (path.exists() or not viewable):
             self.seen.add(sid)
             self.counts["document"] = self.counts.get("document", 0) + 1
             self.conn.execute("UPDATE sources SET raw_json=?, synced_at=? WHERE id=?", (json.dumps(r), self.synced_at, sid))
             return
         data = client().download(f"documents/{r['id']}/download")
-        if "pdf" not in ctype and not data[:5] == b"%PDF-":
-            ext = (ver.get("filename") or r.get("filename") or "").rsplit(".", 1)[-1].lower()
+        kind = files.kind_of(ext, ctype, data[:5])
+        if kind == "image":
             try:
                 data = pdf.to_pdf(data, ext or ctype.split("/")[-1])
             except Exception as e:
-                # Not convertible (e.g. docx): keep a text-less source so it still lists.
-                self.errors.append(f"{sid} ({ctype}): not convertible to PDF: {e}")
-                self.upsert(sid, "document", title, date, folder, "", r, content_hash=h)
-                chunk.delete_chunks(self.conn, sid)
-                return
+                self.errors.append(f"{sid} ({ctype}): image not convertible: {e}")
+                kind = "other"
+        if kind not in ("pdf", "image"):
+            # docx / html / email / text -> plain text; anything else -> visible "not processed" marker.
+            label = ext or ctype or "unknown"
+            try:
+                text = files.extract_text(kind, data, label)
+            except Exception as e:
+                self.errors.append(f"{sid} ({label}): text extraction failed: {e}")
+                text = f"File type not processed: {label} (extraction failed)"
+            self.conn.execute("DELETE FROM pages WHERE source_id=?", (sid,))
+            chunk.delete_chunks(self.conn, sid)
+            self.upsert(sid, "document", title, date, folder, text, {**r, "ingest_kind": kind}, content_hash=h)
+            chunk.chunk_source(self.conn, sid, text)
+            self.counts[f"document_{kind}"] = self.counts.get(f"document_{kind}", 0) + 1
+            log.info("document %s: %s, %d chars", title, kind, len(text))
+            return
         path.write_bytes(data)
         pages = pdf.extract(str(path))
         self.conn.execute("DELETE FROM pages WHERE source_id=?", (sid,))
@@ -185,9 +205,9 @@ class Sync:
                 (sid, p.page_no, p.width, p.height, p.text, int(p.ocr), json.dumps(p.lines)),
             )
             chunk.chunk_source(self.conn, sid, p.text, p.page_no)
-        self.upsert(sid, "document", title, date, folder, "\f".join(p.text for p in pages), r,
+        self.upsert(sid, "document", title, date, folder, "\f".join(p.text for p in pages), {**r, "ingest_kind": kind},
                     content_hash=h, file_path=rel, page_count=len(pages))
-        log.info("document %s: %d pages (%d OCR)", title, len(pages), sum(p.ocr for p in pages))
+        log.info("document %s: %s, %d pages (%d OCR)", title, kind, len(pages), sum(p.ocr for p in pages))
 
 
 def sync_matter(matter_id: str | None = None) -> dict:
@@ -268,6 +288,9 @@ def sync_matter(matter_id: str | None = None) -> dict:
                         s.document(r)
                     else:
                         title, date, author, text = render(kind, r)
+                        if kind == "communication" and r.get("documents"):
+                            # Lets a citation on the email point at its attachment (also synced as a document).
+                            r = {**r, "attachment_source_ids": [f"document:{d['id']}" for d in r["documents"] if d.get("id")]}
                         s.text_source(f"{kind}:{r['id']}", kind, title, date, author, text, r)
                 except Exception as e:
                     log.exception("failed %s %s", kind, r.get("id"))
