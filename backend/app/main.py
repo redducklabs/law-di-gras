@@ -41,9 +41,8 @@ async def require_session(request: Request, call_next):
 
 # Each stream exposes `router` in its module. Missing modules are skipped so
 # streams can land independently.
-# app.api.auth must precede app.demo_auth: it owns the shared /api/auth/* routes.
 for module in ("app.api.auth", "app.api.cases", "app.api.sources", "app.api.digest", "app.api.share",
-               "app.clio.web", "app.demo_auth"):
+               "app.clio.web"):
     try:
         app.include_router(importlib.import_module(module).router)
     except ModuleNotFoundError as e:
