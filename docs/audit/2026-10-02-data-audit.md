@@ -122,7 +122,51 @@ David Capiola sees no lines because he bills under McCulloch (minor).
 Saved links: 10 providers, 0 leaked citations, 0 cross-provider names, and no
 strategy terms (case value, settlement, liability, deposition) in any saved view.
 
+## Re-run after S2 r12 (dashboard 18:53 UTC)
+
+Checks 1, 2, 3, 5 and 6 ran on the re-digested dashboard and cost $0.63.
+
+Result: **0 claims the record contradicts or does not contain**. The judge's 3
+"critical" flags are false positives: it confirmed that firm costs and specials
+sum correctly while still flagging them. Raw output is in
+[auto-report.md](auto-report.md).
+
+| # | Finding | Status |
+|---|---|---|
+| 1 | Case value rounding | **Resolved.** Shows $177,600 – $355,200, and the cap note is now conditional on Metro-North staying liable. |
+| A | "No police report" in headline | **Resolved.** The claim is removed. |
+| 2 | Bullet 0 liability claims | **Still open (re-cite).** The wording is now accurate, but the bullet still cites only pleadings. Cite note 2996972633. |
+| 3 | Bullet 4 "McCulloch overdue" | **Resolved.** Now cites tasks 1417160243 and 1417160363. |
+| 4 | Bullet 1 knee/spine/TBI dispute, 07/2023 repair | **Resolved.** Both claims are removed, and "no MMI declared" is cited. |
+| 5 | Status line has no own citations | **Still open.** The new text, "in discovery against Metro-North; both sides are trying to schedule the client deposition", names only one of two defendants (Ferrara is also a defendant). The deposition claim is in note 2996972258 but is not cited. |
+| 6, E | Defense IME findings in the injury list; carpal tunnel | **Resolved.** The Tsao cards are gone, and defense opinions are now labeled "Defense IME (Dr. Katzman)". |
+| 7 | Left shoulder "repair 07/26/2023" | **Resolved.** Removed. |
+| 8 | Recent activity used Clio filing dates | **Resolved.** The Tsao and Katzman reports are now dated 2026-03-24 and 2026-02-04. |
+| 9 | "Client confirmed he will continue PT" | **Resolved.** Now reads "he was told yes… and he confirmed the right shoulder surgery still has no date", which matches the note. |
+| 10 | SOL "deadline passed" | **Resolved.** Now reads "(suit filed 2024, satisfied)". Minor: cite the complaint for "suit filed". |
+| 11 | Statement-of-damages deadline | **Resolved.** Removed. |
+| 12 | IME dates conflict with the reports (Mar vs Sep 2026) | **Partly.** Now hedged as "Calendar: … IME", but the conflict with the reports' March 2026 dates is still not surfaced. |
+| 13 | Compliance conference shown as occurred | **Resolved.** Now "Calendar: Compliance conference". |
+| 14 | Hudson Valley "Treatment starts 2023-05-08" | **Still open.** The date is still not in the cited quote, which is a provider list from the bill of particulars. |
+| 15 | Last visit reads as end of treatment | **Resolved (S3).** Firm and provider views now say "billed through". |
+| 16 | Document header dates | **Resolved (S5).** The header now reads "Filed in Clio …". |
+| Kinds | Medical calendar events typed `legal` | **Resolved.** Now typed `treatment`. |
+| B | CSB email gives $100k/$300k, cited as Ferrara's | **Still open** (sent after r12 started). |
+| C | UM listed as coverage | **Mostly resolved.** Bullet 2 now reads "client UM/UIM $25,000/$50,000" with no claim that it adds to recovery. |
+| D | Specials shown as final | **Still open** (sent after r12). The KPI still says "billed" with no "running/unreconciled" label. |
+| 17 | OCR on the photo ID | **Deferred** by the manager. |
+
+**New findings in this pass:**
+
+| Sev | On screen | What's wrong | Owner |
+|---|---|---|---|
+| major | Knee card: "MRI of both knees… Defense IME (Dr. Katzman): 'no recent traumatic injury or internal derangement.'" | Katzman's quote is his **left-knee** conclusion, attached to a bilateral card. Scope it ("left knee") or cite the right-knee conclusion too. | S2 |
+| major | Status line "Litigation is in discovery against Metro-North" | It drops Ferrara, a named defendant (see #5). | S2 |
+| minor | Several injury cards, and bullets 1, 2 and 3 | The record supports these claims, but a different source than the one cited is the primary one. Examples: knee MRI → doc 21121911503; specials → note 2996971223; no-fault → comm 5029430243. Exact cites are in auto-report.md, check 2b. | S2 |
+| minor | Recent "notice dated March 24 / February 4" | These are NYSCEF filing dates; the notices carry no date of their own. Say "filed". | S2 |
+| minor | Recent: "CSB sent Katzman review" (9/22) and "Defense counsel served Katzman report" (2/4) | The same report appears twice, from two transmittals. | S2 |
+
 ## Status
 
 - [x] Checks 1–6 run on the current cached dashboard.
-- [ ] Re-run after S2/S4 fixes land and mark each row resolved.
+- [x] Re-run after S2 r12; see delta above. Open: 2, 5, 12, 14, B, D + 2 new majors.
