@@ -2,27 +2,31 @@
 import type { ReactNode } from 'react'
 import type { Citation, Dashboard, Fact } from '../api/types'
 import { SourceChips, money } from '../components'
+import { FlagDot, type AuditIndex } from './audit'
 
-export function KpiStrip({ data: d, onOpenSource }: { data: Dashboard; onOpenSource?: (c: Citation) => void }) {
+export function KpiStrip({ data: d, onOpenSource, ax }: { data: Dashboard; onOpenSource?: (c: Citation) => void; ax?: AuditIndex }) {
   const k = d.kpis
   const cov = k.coverage
   return (
     <div className="grid grid-cols-2 overflow-hidden rounded-xl border border-line bg-line shadow-card [gap:1px] lg:grid-cols-4">
-      <Cell fact={k.case_value} label="Case value (draft)" sub="Draft range · attorney review" onOpen={onOpenSource} />
+      <Cell fact={k.case_value} label="Case value (draft)" sub="Draft range · attorney review" onOpen={onOpenSource} ax={ax} />
       <Cell fact={cov[0]} label="Coverage / policy limits" onOpen={onOpenSource}
-        sub={cov.length > 1 ? `+${cov.length - 1} more polic${cov.length > 2 ? 'ies' : 'y'}` : undefined} />
-      <Cell fact={k.specials} label="Medical specials" sub={liensSub(k.liens)} onOpen={onOpenSource} />
-      <Cell fact={k.firm_spent} label="Firm costs advanced" onOpen={onOpenSource} />
+        sub={cov.length > 1 ? `+${cov.length - 1} more polic${cov.length > 2 ? 'ies' : 'y'}` : undefined} ax={ax} />
+      <Cell fact={k.specials} label="Medical specials" sub={liensSub(k.liens)} onOpen={onOpenSource} ax={ax} />
+      <Cell fact={k.firm_spent} label="Firm costs advanced" onOpen={onOpenSource} ax={ax} />
     </div>
   )
 }
 
-function Cell({ fact, label, sub, onOpen }: { fact?: Fact | null; label: string; sub?: ReactNode; onOpen?: (c: Citation) => void }) {
+function Cell({ fact, label, sub, onOpen, ax }: { fact?: Fact | null; label: string; sub?: ReactNode; onOpen?: (c: Citation) => void; ax?: AuditIndex }) {
   const v = fact?.value ?? ''
   const size = v.length <= 14 ? 'text-[20px]' : v.length <= 28 ? 'text-[16px]' : 'text-[13.5px] leading-snug'
   return (
     <div className="flex min-w-0 flex-col bg-surface px-4 py-3">
-      <div className="truncate text-[12px] text-slate-500" title={fact?.label ?? label}>{label}</div>
+      <div className="flex items-center justify-between gap-2 text-[12px] text-slate-500">
+        <span className="truncate" title={fact?.label ?? label}>{label}</span>
+        {fact && ax && <FlagDot flags={ax.item(fact.id)} />}
+      </div>
       {fact ? (
         <>
           <div title={v} className={`mt-0.5 line-clamp-2 font-semibold tracking-tight tabular-nums ${size} ${fact.verified ? 'text-slate-900' : 'text-warn-700'}`}>{v}</div>

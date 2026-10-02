@@ -11,6 +11,7 @@ import { StageStepper } from './CaseProgress'
 import { TimelineStrip } from './Timeline'
 import { NextSteps } from './NextSteps'
 import { KpiStrip } from './KpiStrip'
+import { AuditBadge, FlagCount, FlagDot, indexAudit, useAudit, type AuditIndex } from './audit'
 import { BlindSpots, useReview } from '../review'
 
 export interface CaseBriefProps {
@@ -26,6 +27,8 @@ export interface CaseBriefProps {
 export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh, focusDate }: CaseBriefProps) {
   const contactAge = daysFromToday(d.last_client_contact?.date)
   const review = useReview(d.matter.id)
+  const audit = useAudit(d.matter.id)
+  const ax = indexAudit(audit)
   const billedTotal = d.treatment.reduce((s, t) => s + (t.billed?.amount ?? 0), 0)
   const nextVisit = d.treatment.map(t => t.next_visit).filter((v): v is string => !!v).sort()[0]
 
@@ -58,6 +61,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
             </div>
           </div>
           <div className="flex w-full items-center gap-2 sm:w-auto">
+            <AuditBadge report={audit} />
             {onSearch && <SearchBox onSearch={onSearch} />}
             <button type="button" onClick={onShare}
               className="shrink-0 cursor-pointer rounded-lg bg-brand-700 px-4 py-2 text-[13px] font-semibold text-white shadow-sm hover:bg-brand-800">
@@ -90,23 +94,23 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
             <NextSteps data={d} onOpenSource={onOpenSource} />
           </section>
           <section id="status" className="scroll-mt-4 lg:col-span-5">
-            <KeyFacts bullets={d.headline.bullets} onOpenSource={onOpenSource} />
+            <KeyFacts bullets={d.headline.bullets} onOpenSource={onOpenSource} ax={ax} />
           </section>
         </div>
 
         {/* Detail on demand: one card, three collapsed rows. Deeplinks open them. */}
         <div className="mt-4 overflow-hidden rounded-xl border border-line bg-surface shadow-card">
           <Disclosure id="kpis" title="Money" summary={moneySummary(d)}
-            extra={<Unverified facts={[d.kpis.case_value, d.kpis.specials, d.kpis.firm_spent, ...d.kpis.coverage].filter((f): f is Fact => !!f)} />}>
-            <KpiStrip data={d} onOpenSource={onOpenSource} />
+            extra={<Markers facts={[d.kpis.case_value, d.kpis.specials, d.kpis.firm_spent, ...d.kpis.coverage, ...(d.kpis.liens ?? [])].filter((f): f is Fact => !!f)} section="kpis" ax={ax} />}>
+            <KpiStrip data={d} onOpenSource={onOpenSource} ax={ax} />
           </Disclosure>
-          <Disclosure id="injuries" title="Injuries" extra={<Unverified facts={d.injuries} />}
+          <Disclosure id="injuries" title="Injuries" extra={<Markers facts={d.injuries} section="injuries" ax={ax} />}
             summary={d.injuries.length ? `${d.injuries.length} documented · ${d.injuries.map(f => f.label).join(', ')}` : 'None found in the record yet'}>
             {d.injuries.length ? (
               <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {d.injuries.map(f => (
                   <li key={f.id} className={`rounded-lg border px-3 py-2.5 ${f.verified ? 'border-line' : 'border-dashed border-warn-600/70'}`}>
-                    <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{f.label}</div>
+                    <div className="flex items-center justify-between gap-2 text-[11px] font-medium uppercase tracking-wide text-slate-400">{f.label}<FlagDot flags={ax.item(f.id)} /></div>
                     <div className={`text-[13.5px] font-medium ${f.verified ? '' : 'text-warn-700'}`}>{f.value}</div>
                     <div className="mt-1.5"><SourceChips citations={f.citations} onOpen={onOpenSource} max={2} compact /></div>
                   </li>
@@ -115,7 +119,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
             ) : <Empty>No injuries found in the record yet.</Empty>}
           </Disclosure>
 
-          <Disclosure id="treatment" title="Treatment" extra={<Unverified facts={d.treatment.flatMap(t => (t.billed ? [t.billed] : []))} />}
+          <Disclosure id="treatment" title="Treatment" extra={<Markers facts={d.treatment.flatMap(t => (t.billed ? [t.billed] : []))} section="treatment" ax={ax} />}
             summary={d.treatment.length
               ? <>{d.treatment.length} provider{d.treatment.length === 1 ? '' : 's'}{billedTotal > 0 && <> · {money(billedTotal)} billed</>}{nextVisit && <> · next visit {fmtDate(nextVisit, true)}</>}</>
               : 'None found in the record yet'}>
@@ -127,7 +131,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
                     <li key={i} className="border-t border-line-soft py-2.5 first:border-0 first:pt-0">
                       <div className="flex items-start justify-between gap-3">
                         <div className="min-w-0">
-                          <div className="text-[13.5px] font-medium">{t.provider}</div>
+                          <div className="flex items-center gap-2 text-[13.5px] font-medium">{t.provider}{t.billed && <FlagDot flags={ax.item(t.billed.id)} />}</div>
                           <div className="text-[12px] text-slate-500">
                             {t.visit_count != null && <>{t.visit_count} visit{t.visit_count === 1 ? '' : 's'} billed · </>}
                             {t.first_visit && <>first {fmtDate(t.first_visit, true)}</>}
@@ -151,7 +155,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
             ) : <Empty>No treatment found in the record yet.</Empty>}
           </Disclosure>
 
-          <Disclosure id="recent" title="Recent activity" extra={<Unverified facts={d.recent} />}
+          <Disclosure id="recent" title="Recent activity" extra={<Markers facts={d.recent} section="recent" ax={ax} />}
             summary={d.recent[0] ? `${d.recent.length} items · latest ${fmtDate(d.recent[0].date)}: ${d.recent[0].label}` : 'Nothing recent in the record'}>
             <ul>
               {d.recent.map(f => (
@@ -159,7 +163,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
                   <span className="w-12 shrink-0 pt-px text-[12px] tabular-nums text-slate-400">{fmtDate(f.date)}</span>
                   <span className="min-w-0 flex-1">
                     <span className={f.verified ? 'text-slate-800' : 'text-warn-700'} title={f.value}>{f.label}</span>{' '}
-                    <SourceChips citations={f.citations} onOpen={onOpenSource} max={1} compact />
+                    <SourceChips citations={f.citations} onOpen={onOpenSource} max={1} compact /> <FlagDot flags={ax.item(f.id)} />
                   </span>
                 </li>
               ))}
@@ -196,7 +200,7 @@ function moneySummary(d: Dashboard) {
 const FACTS_VISIBLE = 3
 
 /** Headline bullets: the first three, the rest on demand. A "status" deeplink opens all. */
-function KeyFacts({ bullets, onOpenSource }: { bullets: Fact[]; onOpenSource?: (c: Citation) => void }) {
+function KeyFacts({ bullets, onOpenSource, ax }: { bullets: Fact[]; onOpenSource?: (c: Citation) => void; ax: AuditIndex }) {
   const [all, setAll] = useState(false)
   useReveal('status', () => setAll(true))
   const shown = all ? bullets : bullets.slice(0, FACTS_VISIBLE)
@@ -209,7 +213,7 @@ function KeyFacts({ bullets, onOpenSource }: { bullets: Fact[]; onOpenSource?: (
               <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${b.verified ? 'bg-slate-300' : 'bg-warn-600'}`} />
               <span className={b.verified ? '' : 'text-warn-700'}>
                 {b.label.length <= 40 && <span className="font-semibold text-slate-900">{b.label}. </span>}{b.value}{' '}
-                <SourceChips citations={b.citations} onOpen={onOpenSource} max={2} compact />
+                <SourceChips citations={b.citations} onOpen={onOpenSource} max={2} compact /> <FlagDot flags={ax.item(b.id)} />
               </span>
             </li>
           ))}
@@ -218,9 +222,20 @@ function KeyFacts({ bullets, onOpenSource }: { bullets: Fact[]; onOpenSource?: (
       {bullets.length > FACTS_VISIBLE && (
         <button type="button" onClick={() => setAll(v => !v)} className="mt-3 cursor-pointer px-1 text-[12px] font-semibold text-brand-700 hover:underline">
           {all ? 'Show fewer' : `${bullets.length - FACTS_VISIBLE} more`}
+          {!all && <> <FlagCount flags={bullets.slice(FACTS_VISIBLE).flatMap(b => ax.item(b.id))} /></>}
         </button>
       )}
     </Card>
+  )
+}
+
+/** Collapsed rows still say what inside is unverified or flagged by the audit. */
+function Markers({ facts, section, ax }: { facts: Fact[]; section: string; ax: AuditIndex }) {
+  return (
+    <span className="inline-flex items-center gap-1.5">
+      <Unverified facts={facts} />
+      <FlagCount flags={ax.section(section, facts.map(f => f.id))} />
+    </span>
   )
 }
 
