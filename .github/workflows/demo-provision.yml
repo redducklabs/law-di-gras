@@ -31,7 +31,7 @@ jobs:
           DEMO_SSH_KEY: ${{ secrets.DEMO_SSH_KEY }}
         run: |
           umask 077
-          printf '%s\n' "$DEMO_SSH_KEY" > key
+          printf '%s\n' "$DEMO_SSH_KEY" | tr -d '\r' > key
           ssh-keygen -y -f key > key.pub
           rm -f key
           fp=$(ssh-keygen -E md5 -lf key.pub | awk '{print $2}' | sed 's/^MD5://')

@@ -68,7 +68,7 @@ jobs:
           if [ -z "$AUTH_PASSWORD" ]; then echo "::error::DEMO_BASIC_AUTH_PASSWORD secret is not set"; exit 1; fi
           umask 077
           mkdir -p ~/.ssh "$RUNNER_TEMP/srv"
-          printf '%s\n' "$DEMO_SSH_KEY" > ~/.ssh/id_ed25519
+          printf '%s\n' "$DEMO_SSH_KEY" | tr -d '\r' > ~/.ssh/id_ed25519
           ssh-keyscan -T 30 "${{ steps.host.outputs.ip }}" >> ~/.ssh/known_hosts 2>/dev/null
 
           # app.env: single-quoted so Compose reads values literally. Unset values are left out.
