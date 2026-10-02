@@ -267,6 +267,34 @@ What I checked:
 
 Net: **3 keep (bs1, bs5, bs2 with cites added), 2 fix (bs3 wording, bs4 cut the location claim).** None needs to be cut entirely. bs1 is the strongest demo moment.
 
+## Check 8b: S7 Blind spots, new run (cache 19:46 UTC, 10 findings). This supersedes Check 8.
+
+What I checked:
+- All **41/41 citation quotes are verbatim** and on the cited page.
+- Each claim is read against the full source: complaint p7, verified answer pp2–3,
+  doc-40, the Hostin and Tsao reports with their NYSCEF stamps, notes, emails,
+  tasks and the calendar.
+- The review is still firm-only.
+
+| # | Finding | Verdict | Why |
+|---|---|---|---|
+| 1 | Defense response says the incident report and 5 photos were annexed; the firm says they were never produced | **KEEP** (optional wording) | Verified. Doc-40 p1 says both were annexed. The 9/5/2026 email says not produced, and the 9/6/2026 note says "they say it is being searched for". Minor: "the **planned** motion to compel" should be "possible": the 10/21 calendar entry is a decision ("Whether to move to compel"). "Before the conference": a conference was requested (9/6 note), not scheduled. |
+| 2 | No record of Pullano's 12/8/2025 subpoenaed deposition | **FIX (one phrase)** | Hedged correctly, and the firm's own subpoena is verified. **The same overreach as last time:** "he is **the only** non-party eyewitness". Plaintiff's discovery response refers to witnesses "listed on the Police Accident Report". Say "a non-party eyewitness". |
+| 3 | The $100k/$300k confirmation matches Ferrara's personal limits; the $100k cap may undervalue | **KEEP** | This is inference, but explicitly conditional ("If that is what it describes…"). Every premise is cited and verbatim: the 2023 coverage note, the CSB 9/8/2026 email, and the 9/9/2026 note "Practical read: recovery is capped at $100,000 unless the case reaches a second defendant". Metro-North is a named defendant. It is a fair question to raise, not a conclusion. |
+| 4 | First suit dismissed for no Presentation of Claim; refiled under CPLR 205; SOL task marked satisfied (§1276 risk) | **FIX** | The legal cites check out. The complaint p7 says the court "dismissed the Complaint, noting Plaintiffs failure to provide the Presentation ofClaim" and that plaintiff "started this suit, pursuant to CPLR 205". The answer p3, 7th affirmative defense, pleads §1276 ("barred by §1276 of the Public [Authorities] Law"), and the 8th pleads SOL. Task 1417160198 reads "Satisfied". **Two fixes:** (a) the §1276 citation's quote is just "is barred by", so the highlighted span never shows §1276. Widen it to the full 7th defense sentence. (b) "The file treats limitations as closed **without any analysis**" is overstated. Complaint p7 itself argues "this action is within the Statute of limitations and complies with all conditions precedent". Say "relies on the complaint's own assertion; no independent memo on file". The risk itself is real and well cited. |
+| 5 | $214,000 "out of work since DOI" vs the client saying commissions dried up after the first surgery | **KEEP** | Verified. The custom field reads "out of work since DOI"; the 7/9/2025 call note says "commissions dried up after the first surgery" (7/26/2023, so he had commissions after the 4/23 accident). The SSD claim is pending, and Hostin p12 says he can "return to work without restrictions". The conditional framing ("If the client earned…") is appropriate. |
+| 6 | The two defense IMEs record two different mechanisms | **FIX** | The two accounts are verbatim (Hostin p4, Tsao p3). why_it_matters says "**neither account matches the pleaded contact** with the client's driver-side door and fender", but the pleaded contact (BoP p3) is **not cited**. "Neither matches" also overstates it. Hostin's account conflicts on who struck whom ("his vehicle struck another"). Tsao's (sideswiped, struck the sidewalk) doesn't specify sides and isn't inconsistent with a sideswipe; it adds a sidewalk strike. Reword to "Hostin's version has the client's vehicle striking; Tsao's adds a sidewalk strike not in the pleadings", and cite BoP p3. The comparative-negligence defense *is* pleaded (answer, 1st affirmative defense), so cite that too. |
+| 7 | IME reports give March 2026 exam dates; the firm calendar logs the IMEs in September 2026 | **KEEP** | Verified. Hostin: "Date of Examination: March 31, 2026"; Tsao: "examined… on March 4, 2026"; calendar 9/2 and 9/7/2026. It is stronger than stated: the reports' own NYSCEF stamps are 04/09/2026 (Hostin) and 03/24/2026 (Tsao), and Hostin's says "Type of Examination: Rescheduled". Consider citing those. The hypotheses are hedged ("If…", "either… or…"). |
+| 8 | Specials frozen at $118,400 since February 2024 while weekly PT and chiro continue | **FIX (one sentence)** | The core is verified. The 2024-02-17 note says "Specials tally to date: $118,400.00", the 9/25/2026 note says "$118,400.00 stands", the 4/22/2025 note says weekly PT and chiro, and the Medicaid billing email says treatment is now "billing through Medicaid". Inference, but sound. **Overreach:** "The Medicaid lien quoted as 'unchanged' **will also have grown** with every visit". The record's only statement is the lien unit's (7/23/2025 note): "the asserted figure is unchanged at $22,180.00. They will not re-audit until the case resolves". Say "may be understated until the lien unit re-audits". |
+| 9 | The surgeon says the client is deferring; firm letters say the client is available | **KEEP** | Verified and a genuine conflict. Capiola "will not schedule until the client stops deferring" (10/24/2025 note); the firm's 7/4/2026 letter says "The client is available at short notice"; the client told Hostin the surgery is "scheduled… in the near future"; the 7/9/2025 call says "cannot afford to be out of work again". Failure to mitigate *is* pleaded (answer, 5th affirmative defense), but not cited; add it. |
+| 10 | Discovery response says prior injuries "Not applicable" despite the 2011 ankle-fracture X-rays | **KEEP** | Verified. Doc-08 p4 says "Not applicable"; the 2023 intake note quotes the 2011 X-ray impression ("small dorsal avulsion fracture of the anterior talus"); Hostin p4 says "He notes injuries isolated to… his left ankle". It **understates** its own case: Tsao's report p4 already lists "X-ray report of the left ankle, dated 10/5/11" among the defense's records, so the defense *has* it, not "likely has". |
+
+Net: **6 keep (1, 3, 5, 7, 9, 10), 4 fix (2, 4, 6, 8), 0 cut.** The fixes are wording
+or added cites; none makes a finding false. If S7 cannot regenerate before 2:30,
+the safe demo picks are **#1, #7, #9 and #10** (verified as worded). In the
+narration, avoid "only eyewitness" (#2), "without any analysis" (#4), "neither
+matches the pleadings" (#6) and "the lien will have grown" (#8).
+
 ## Status
 
 - [x] Checks 1–6 run on the current cached dashboard.
