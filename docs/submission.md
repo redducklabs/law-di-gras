@@ -82,7 +82,21 @@ Sapini today and is in the repo.
    injuries, and a scheduled deposition shown as held. Findings and each fix
    round are in `docs/audit/2026-10-02-data-audit.md`. It ran as a release
    gate before we recorded.
-9. **Provider privacy by construction.** Provider views are filtered on the
+9. **Blind spots (agentic whole-case review) is verified the same way.** An
+   Opus agent reads the whole file for conflicts, gaps, stale threads and
+   leverage. Every finding's quotes are span-matched and judged, and it must
+   pass four extra checks:
+   - Words like "only" or "never" must appear in the quotes, and an upcoming
+     event needs a cited calendar entry, task or quote.
+   - A claimed conflict is re-read against the full text of the documents it
+     cites, and rejected if those documents reconcile it.
+   - Each fact is checked against the whole record: supporting passages are
+     attached as extra citations, and a contradiction rejects the finding.
+   - Statute or rule cites must appear on a cited page.
+
+   The audit stream checked every finding (Check 8b); open wording items are
+   listed there.
+10. **Provider privacy by construction.** Provider views are filtered on the
    server. The audit confirms that none of the 10 provider links exposes notes,
    strategy or another provider's data.
 
