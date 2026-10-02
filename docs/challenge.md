@@ -170,3 +170,12 @@ Brainstorm, 2026-10-02. Plan: `docs/plans/2026-10-02-case-brief-dashboard.md`.
   verbatim (normalized) span of the source; otherwise shown as unverified.
 - **Cache:** all digestion keyed by content hash in SQLite; re-digest only
   changed sources.
+
+## Clio API access verified (2026-10-02 09:45 PT)
+
+OAuth works; tokens are in `.env`. Read-only checks on matter `1811191943`
+(00001-Sapini) match the seeder exactly: 42 notes, 69 communications, 14 tasks,
+17 calendar entries, 31 documents, 14 activities, 16 custom field values, 14
+relationships, 15 contacts. Gotchas: `notes.json` requires `type=Matter`; the
+developer app must have **read** permission on every category (default
+permissions returned 403), and new permissions apply only after re-approving.
