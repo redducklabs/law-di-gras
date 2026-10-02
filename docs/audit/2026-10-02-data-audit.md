@@ -231,6 +231,41 @@ The judge's "critical" flags on firm costs and specials are false positives agai
 | minor | UM/UIM note "sits under defendant's $100,000" | $100,000 is not in the cited quote. The note says it, but the cited span doesn't. | S2 |
 | minor | Timeline "Calendar: Post-operative follow-up", "Calendar: Consultation re second surgery" | Hedged with "Calendar:", which is acceptable. The judge still reads them as occurred. | S2 |
 
+## Re-run after S2 r23 (dashboard 19:49 UTC): pre-freeze gate
+
+Dashboard checks 1, 2, 3, 5 and 6 plus the chat check cost about $1.0 combined.
+
+**Result: no criticals.** The judge flagged two items "critical": specials (it
+confirmed the sum) and the bullet 3 conflict parenthetical. The parenthetical is
+real but major (G1 below). KPIs reconcile, provider views are clean, and every
+chat span and link checks out.
+
+| # | Finding | Status |
+|---|---|---|
+| R1 | Ferrara coverage missing | **Resolved.** "Auto liability · Ferrara personal policy · defendant Anthony F. Ferrara · $100,000 / $300,000". |
+| R2 | SOL "satisfied" citing the dismissed suit | **Resolved in substance.** Now "action recommenced (CPLR 205)… filed 2024-10-11", citing complaint p2 (the NYSCEF stamp and "CPLR 205"). Minor: the label contains "p.2" (cite text leaking into the label). The OCR'd stamp reads "10 11 2024", so the date check can't match it. Optionally cite complaint p7 for the 205 narrative. |
+| R3 | Coverage bullet limits uncited | **Resolved**, but see G1. |
+| C1 | Chat omits the defense IMEs | **Resolved.** The injuries answer now lists Tsao's "objectively resolved" spine strains and TBI, Katzman per side, and Hostin's ROM note. The remaining hedge ("couldn't find a defense position on the left shoulder tears or spine MRI findings") is accurate. |
+| 12 | IME dates | **Resolved.** The timeline shows "(Conflict: report filed 2026-04-09 / 2026-03-24, before this calendar date)", citing the NYSCEF stamps. |
+| 5 | Status line | **Text resolved.** It now names both defendants ("case against Anthony Ferrara and Metro-North Commuter Railroad"). It still has no citations of its own; minor, since the claim is trivially true. |
+| 2 | Bullet 0 cites only pleadings | **Still open.** "Liability contested on two independent levels, neither investigated…" cites only the complaint and the BoP. It should cite note 2996972633. |
+
+**New or still showing in r23:**
+
+| Sev | On screen | What's wrong | Owner |
+|---|---|---|---|
+| **major G1** | Headline bullet 3 ends with "(Conflict: per firm note of 2026-09-09: $100,000/$300,000 limits; Metro-North self-insured with no stated ceiling)" | **Misattribution.** The 9/9/2026 note states the limits, but "self-insured with no stated ceiling" comes from the 2023-05-09 and 05-14 notes, and the 9/9 note isn't among the bullet's citations. This is the rough edge S2 flagged. Replace it with "Conflict: CSB email of 2026-09-08 states $100,000/$300,000 on claim SIR068120", citing comm 5029429688. That matches the coverage tile. | S2 |
+| major G2 | Headline bullet 1: "MRIs: …shoulder tears, and a medial meniscus tear; **a contrary review reports 'no recent traumatic injury or internal derangement.'**" | This is Katzman's **knee-only** quote placed in a spine/shoulder bullet, so it reads as disputing everything listed. Scope it ("defense radiology review of the knees: …"), or drop it from the headline. The injury cards already scope it correctly. | S2 |
+| minor | Bullet 3 "chiropractic/PT ledgers unreconciled" | Not cited; note 2996972063 says it. | S2 |
+| minor | Chat follow-up "Both, according to different sources" | The answer then says the CSB email "does not say whose policy". "Both" overstates it; "The record attributes it to Ferrara in a 2023 note; CSB's email doesn't say whose" is accurate. | S2 |
+| minor | Chat Pullano/summary-judgment answers | They attribute facts to "the timeline" or "the dashboard" rather than the underlying record. This is cosmetic; the underlying cites are correct. | S2 |
+
+**Gate verdict:** there are no criticals in the dashboard or chat. The two majors
+are G1 (a misattributed note date in a headline bullet) and G2 (a knee-only quote
+in a spine/shoulder bullet). Fix them if S2 has a cycle; otherwise keep headline
+bullets 1 and 3 out of close-up narration. Chat is safe for the injuries,
+coverage, last contact, overdue and Pullano questions.
+
 ## Check 7: ask-the-case chat (S2 /chat, 7 questions incl. 1 follow-up and 1 trick)
 
 Run: `uv run python -m app.audit --checks 7 --suffix=-chat` ($0.23). Full Q&A
