@@ -53,7 +53,8 @@ def share_documents(matter_id: str, contact_id: str) -> list[dict]:
 def share_preview(matter_id: str, contact_id: str, body: ShareSettings):
     """What the provider would see with these (unsaved) settings. Not logged."""
     try:
-        return build_view(matter_id, _provider(matter_id, contact_id), body)
+        saved = get_settings(matter_id, contact_id)  # preview what their next visit shows
+        return build_view(matter_id, _provider(matter_id, contact_id), body, since=saved.last_viewed_at)
     except LookupError as e:
         raise HTTPException(404, str(e))
 
@@ -69,7 +70,8 @@ def _by_token(token: str) -> tuple[str, ShareSettings]:
 def provider_view(token: str, request: Request):
     matter_id, s = _by_token(token)
     try:
-        view = build_view(matter_id, _provider(matter_id, s.contact_id), s)
+        # s.last_viewed_at is read before this visit is logged = the previous view.
+        view = build_view(matter_id, _provider(matter_id, s.contact_id), s, since=s.last_viewed_at)
     except LookupError as e:
         raise HTTPException(404, str(e))
     log_view(token, request.headers.get("user-agent"))

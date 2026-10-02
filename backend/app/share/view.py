@@ -12,7 +12,7 @@ confidential material never. Concretely:
 
 import json
 import secrets
-from datetime import date, datetime, timezone
+from datetime import date, datetime, timedelta, timezone
 
 from app.db import connect
 from app.schemas import (
@@ -24,6 +24,9 @@ from app.share.providers import contact_key, list_providers, load_dashboard, mat
 ACTIVE_STATUSES = {"open", "pending"}
 # Timeline kinds a provider may see (communications can carry strategy).
 PROVIDER_TIMELINE_KINDS = {"incident", "treatment", "legal", "deadline"}
+# "Since you last checked": past case milestones only (future deadlines are firm tasks).
+UPDATE_KINDS = {"incident", "treatment", "legal"}
+UPDATES_FALLBACK_DAYS = 30
 
 
 def _now() -> str:
@@ -171,7 +174,28 @@ def _fmt_date(d: str | None) -> str | None:
         return d
 
 
-def build_view(matter_id: str, provider: Provider, s: ShareSettings) -> ProviderView:
+def _updates(dash: Dashboard | None, since: str | None, allowed: set[str]) -> tuple[list[TimelineEvent], str]:
+    """Major past milestones after `since`; if none, the last 30 days. Returns (events, cutoff date)."""
+    today = date.today().isoformat()
+    fallback = (date.today() - timedelta(days=UPDATES_FALLBACK_DAYS)).isoformat()
+
+    def pick(cutoff: str) -> list[TimelineEvent]:
+        return [
+            TimelineEvent(date=e.date, label=e.label, kind=e.kind, is_future=False, major=True,
+                          citations=_keep_citations(e.citations, allowed))
+            for e in sorted(dash.timeline if dash else [], key=lambda e: e.date, reverse=True)
+            if e.major and e.kind in UPDATE_KINDS and not e.is_future and cutoff < e.date[:10] <= today
+        ]
+
+    if since:
+        events = pick(since[:10])
+        if events or since[:10] <= fallback:
+            return events, since[:10]
+    return pick(fallback), fallback
+
+
+def build_view(matter_id: str, provider: Provider, s: ShareSettings, since: str | None = None) -> ProviderView:
+    """since: this link's previous view (ISO); updates fall back to the last 30 days."""
     with connect() as conn:
         m = conn.execute("SELECT * FROM matters WHERE id=?", (matter_id,)).fetchone()
     dash = load_dashboard(matter_id)
@@ -225,10 +249,12 @@ def build_view(matter_id: str, provider: Provider, s: ShareSettings) -> Provider
             view.liens = [_fact(f, allowed) for f in _provider_liens(dash, provider)]
         if sec.timeline:
             view.timeline = [
-                TimelineEvent(date=e.date, label=e.label, kind=e.kind, is_future=e.is_future,
+                TimelineEvent(date=e.date, label=e.label, kind=e.kind, is_future=e.is_future, major=e.major,
                               citations=_keep_citations(e.citations, allowed))
                 for e in dash.timeline if e.kind in PROVIDER_TIMELINE_KINDS
             ]
+    if sec.status:
+        view.updates, view.updates_since = _updates(dash, since, allowed)
     if sec.documents:
         titles = {d["id"]: d["title"] for d in matter_documents(matter_id)}
         view.documents = [SharedDocument(source_id=sid, title=titles[sid] or sid)

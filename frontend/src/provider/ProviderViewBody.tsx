@@ -8,6 +8,9 @@ export function fmtDate(d?: string | null) {
   return d ? fmt(d, true) : null
 }
 
+/** Days since the last visit before attendance is flagged. */
+const ATTENDANCE_GAP_DAYS = 30
+
 type OpenDoc = (sourceId: string, title: string, page?: number | null) => void
 
 function DocChip({ c, onOpenDoc }: { c: Citation; onOpenDoc?: OpenDoc }) {
@@ -84,6 +87,21 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   )
 }
 
+function Attendance({ line }: { line: TreatmentLine }) {
+  const n = daysFromToday(line.last_visit)
+  if (n == null) return null
+  const gap = Math.max(0, -n)
+  const ok = gap <= ATTENDANCE_GAP_DAYS
+  return (
+    <div className={`mb-3 flex flex-wrap items-center gap-x-2 rounded-lg px-3 py-2 text-[13px] ${ok ? 'bg-ok-50 text-ok-700' : 'bg-warn-50 text-warn-700'}`}>
+      <span className={`h-2 w-2 shrink-0 rounded-full ${ok ? 'bg-ok-600' : 'bg-warn-600'}`} />
+      {ok
+        ? <span>Patient seen {relDays(n)} · {fmtDate(line.last_visit)}</span>
+        : <><span className="font-semibold">No visit recorded in {gap} days</span><span>· last visit {fmtDate(line.last_visit)}</span></>}
+    </div>
+  )
+}
+
 function Treatment({ lines, onOpenDoc }: { lines: TreatmentLine[]; onOpenDoc?: OpenDoc }) {
   if (!lines.length) return <Empty>No visits or bills from your office are recorded on the file yet.</Empty>
   return (
@@ -93,6 +111,7 @@ function Treatment({ lines, onOpenDoc }: { lines: TreatmentLine[]; onOpenDoc?: O
         return (
           <div key={i}>
             {lines.length > 1 && <div className="mb-2 text-[13px] font-semibold">{t.provider}</div>}
+            <Attendance line={t} />
             <dl className="grid grid-cols-2 gap-2 sm:grid-cols-4">
               <Stat label="Visits on file" value={t.visit_count != null ? String(t.visit_count) : '—'} />
               <Stat label="First visit" value={fmtDate(t.first_visit) ?? '—'} />
@@ -152,7 +171,7 @@ export default function ProviderViewBody({ view, onOpenDoc, compact }: { view: P
       </div>
 
       {!!view.updates?.length && (
-        <Card title={view.updates_since ? `Since you last checked · ${fmtDate(view.updates_since)}` : 'Recent updates'}
+        <Card title={view.updates_since ? `Case updates since ${fmtDate(view.updates_since)}` : 'Case updates'}
           extra={<Badge tone="ok">{view.updates.length} new</Badge>}>
           <ul>
             {view.updates.map((e, i) => (
