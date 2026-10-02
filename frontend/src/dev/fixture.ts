@@ -74,7 +74,7 @@ export const fixture: Dashboard = {
     { title: 'Records from Example Ortho', status: 'waiting', waiting_on: 'Example Ortho', due_date: '2026-09-10', citations: [task('t6', 'Ortho records', 'records requested 09/10')] },
     { title: 'UIM declarations page', status: 'waiting', waiting_on: 'Client carrier', citations: [note('n4', 'UIM inquiry', '2026-06-02', 'awaiting UIM dec page')] },
   ],
-  last_client_contact: fact('c1', 'Last client contact', 'Phone call · 8 days ago', [note('n7', 'Client call', '2026-09-24', 'still having lower back pain most days')], { date: '2026-09-24' }),
+  last_client_contact: fact('c1', 'Last client contact', 'Phone call', [note('n7', 'Client call', '2026-09-24', 'still having lower back pain most days')], { date: '2026-09-24' }),
   injuries: [
     fact('i1', 'Lumbar', 'L4–L5 disc protrusion', [mri(1, 'L4-L5 broad-based disc protrusion')]),
     fact('i2', 'Cervical', 'Cervical strain', [er(2, 'Dx: cervical strain')]),
