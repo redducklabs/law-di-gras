@@ -231,4 +231,37 @@ export interface CaseReview {
   cost_usd: number
   model: string
   findings: ReviewFinding[]
+  /** Present while a new review runs in the background; findings are the last completed review. */
+  run?: RunProgress | null
+}
+
+// --- Progress for long background jobs (Blind spots review, built-in audit) ---
+export interface RunProgress {
+  status: 'queued' | 'running' | 'done' | 'failed'
+  stage: string
+  pct: number
+  started_at?: string | null
+  finished_at?: string | null
+  error?: string | null
+}
+
+// --- Built-in audit: runs automatically on every new dashboard or review ---
+export interface AuditFlag {
+  target: 'dashboard' | 'review'
+  item_id: string
+  section: string
+  severity: 'critical' | 'major' | 'minor'
+  check: string
+  note: string
+  citations: Citation[]
+}
+
+export interface AuditReport {
+  matter_id: string
+  target: 'dashboard' | 'review'
+  target_hash: string
+  run: RunProgress
+  items_checked: number
+  flags: AuditFlag[]
+  cost_usd: number
 }

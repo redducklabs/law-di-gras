@@ -305,3 +305,39 @@ class CaseReview(BaseModel):
     cost_usd: float
     model: str
     findings: list[ReviewFinding] = Field(default_factory=list)  # sorted by severity
+    # Background run state. GET /review returns the last completed review plus `run` while a new one is in flight.
+    run: "RunProgress | None" = None
+
+
+# --- Progress for long background jobs (Blind spots review, built-in audit) ---
+class RunProgress(BaseModel):
+    status: Literal["queued", "running", "done", "failed"]
+    stage: str = ""                # plain words, e.g. "Reading documents (12/31)", "Verifying findings"
+    pct: int = 0                   # 0-100, monotonic; best estimate
+    started_at: str | None = None
+    finished_at: str | None = None
+    error: str | None = None
+
+
+# --- Built-in audit: runs automatically on every new dashboard or review ---
+class AuditFlag(BaseModel):
+    target: Literal["dashboard", "review"]
+    item_id: str                   # Fact.id / TimelineEvent label key / ReviewFinding.id / "kpis" etc.
+    section: str = ""              # PageSection id where the item shows (status, kpis, injuries, blind-spots, ...)
+    severity: Literal["critical", "major", "minor"]
+    check: str                     # e.g. "fact-support", "overreach", "whole-record", "kpi-reconcile", "provider-leak"
+    note: str                      # one sentence, plain language, for the attorney
+    citations: list[Citation] = Field(default_factory=list)  # record passages behind the flag
+
+
+class AuditReport(BaseModel):
+    matter_id: str
+    target: Literal["dashboard", "review"]
+    target_hash: str               # hash of the payload audited; a new digest/review => new audit
+    run: RunProgress
+    items_checked: int = 0
+    flags: list[AuditFlag] = Field(default_factory=list)
+    cost_usd: float = 0.0
+
+
+CaseReview.model_rebuild()
