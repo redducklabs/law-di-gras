@@ -68,6 +68,11 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
           </Card>
         </section>
 
+        {/* Blind spots: S7's whole-case review, a thin expandable bar under the timeline. */}
+        <section id="blind-spots" className="mt-4 scroll-mt-4">
+          <BlindSpots review={review.review} loading={review.loading} onRun={review.run} onOpenSource={onOpenSource} collapsible />
+        </section>
+
         <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
           <section id="next-steps" className="scroll-mt-4 lg:col-span-7">
             <NextSteps data={d} onOpenSource={onOpenSource} />
@@ -100,11 +105,6 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
             </Card>
           </section>
         </div>
-
-        {/* Blind spots: S7's whole-case review, under Next steps. */}
-        <section id="blind-spots" className="mt-5 scroll-mt-4">
-          <BlindSpots review={review.review} loading={review.loading} onRun={review.run} onOpenSource={onOpenSource} />
-        </section>
 
         {/* Money: compact here; the Cases page carries these across matters. */}
         <section id="kpis" className="mt-5 grid scroll-mt-4 grid-cols-2 gap-3 lg:grid-cols-4">

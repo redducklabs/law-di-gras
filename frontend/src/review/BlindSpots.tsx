@@ -24,25 +24,31 @@ const VISIBLE = 5
  * "Blind spots": what an item-by-item read of the file misses, from the agentic whole-case review.
  * Every finding is verified against verbatim quotes; chips open the source at the quote.
  */
-export function BlindSpots({ review, onOpenSource, loading = false, onRun }: {
+export function BlindSpots({ review, onOpenSource, loading = false, onRun, collapsible = false }: {
   review: CaseReview | null | undefined
   onOpenSource?: (c: Citation) => void
   loading?: boolean
   onRun?: () => void
+  /** Render as a thin full-width bar that expands (animated) on click. */
+  collapsible?: boolean
 }) {
   const [expanded, setExpanded] = useState(false)
+  const [open, setOpen] = useState(false)
   const findings = review?.findings ?? []
   const high = findings.filter(f => f.severity === 'high').length
   const shown = expanded ? findings : findings.slice(0, VISIBLE)
 
-  return (
-    <Card title={<span className="inline-flex items-center gap-2"><EyeIcon /> Blind spots</span>} extra={
-      <div className="flex flex-wrap items-center gap-1.5">
-        {high > 0 && <Badge tone="danger">{high} high</Badge>}
-        {findings.length > 0 && <Badge tone="brand">{findings.length} found</Badge>}
-        <Badge>AI file review · draft</Badge>
-      </div>
-    }>
+  const badges = (
+    <div className="flex flex-wrap items-center gap-1.5">
+      {high > 0 && <Badge tone="danger">{high} high</Badge>}
+      {findings.length > 0 && <Badge tone="brand">{findings.length} found</Badge>}
+      {loading && !findings.length && <Badge>Reviewing…</Badge>}
+      <Badge>AI file review · draft</Badge>
+    </div>
+  )
+
+  const body = (
+    <>
       <p className="-mt-1 mb-3 text-[12.5px] text-slate-500">
         What a page-by-page read misses: conflicts, gaps, stale threads and unused leverage across the whole file.
         Each point is checked against the quoted record.
@@ -87,7 +93,39 @@ export function BlindSpots({ review, onOpenSource, loading = false, onRun }: {
           Reviewed {fmtDate(review.generated_at)} · draft for attorney review
         </div>
       )}
-    </Card>
+    </>
+  )
+
+  if (!collapsible) {
+    return <Card title={<span className="inline-flex items-center gap-2"><EyeIcon /> Blind spots</span>} extra={badges}>{body}</Card>
+  }
+  const top = findings[0]
+  return (
+    <section className="rounded-xl border border-line bg-surface shadow-card">
+      <button type="button" onClick={() => setOpen(v => !v)} aria-expanded={open}
+        className="flex w-full cursor-pointer items-center gap-3 rounded-xl px-4 py-3 text-left hover:bg-page/60 sm:px-5">
+        <Chevron open={open} />
+        <span className="inline-flex shrink-0 items-center gap-2 text-[14px] font-semibold text-slate-900"><EyeIcon /> Blind spots</span>
+        <span className={`hidden min-w-0 flex-1 truncate text-[12.5px] text-slate-500 transition-opacity md:block ${open ? 'opacity-0' : 'opacity-100'}`}>
+          {top ? <>Top: {top.title}</> : !loading && !review ? 'Run a whole-file review for conflicts, gaps and stale threads' : ''}
+        </span>
+        <span className="ml-auto shrink-0">{badges}</span>
+      </button>
+      <div className="grid transition-[grid-template-rows] duration-300 ease-out" style={{ gridTemplateRows: open ? '1fr' : '0fr' }}>
+        <div className="overflow-hidden">
+          <div className={`px-4 pb-5 transition-opacity duration-300 sm:px-5 ${open ? 'opacity-100' : 'opacity-0'}`}>{body}</div>
+        </div>
+      </div>
+    </section>
+  )
+}
+
+function Chevron({ open }: { open: boolean }) {
+  return (
+    <svg width="14" height="14" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden
+      className={`shrink-0 text-slate-400 transition-transform duration-300 ${open ? 'rotate-90' : ''}`}>
+      <path d="M6 3l5 5-5 5" />
+    </svg>
   )
 }
 
