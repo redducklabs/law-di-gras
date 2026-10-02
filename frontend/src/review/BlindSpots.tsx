@@ -40,7 +40,7 @@ export function BlindSpots({ review, onOpenSource, loading = false, onRun, colla
   const run = review?.run ?? null
   const running = run?.status === 'running' || run?.status === 'queued'
   const audit = useReviewAudit(review?.matter_id, findings.length ? review?.generated_at : undefined)
-  const flagsFor = (id: string) => (audit?.run.status === 'done' ? audit.flags.filter(f => f.item_id === id) : [])
+  const flagsFor = (id: string) => (audit?.run.status === 'done' ? audit.flags.filter(f => f.item_id === id && serious(f)) : [])
   const shown = expanded ? findings : findings.slice(0, VISIBLE)
 
   const badges = (
@@ -166,7 +166,7 @@ function Finding({ f, flags, onOpenSource }: { f: ReviewFinding; flags: AuditFla
       <div className="mt-2"><SourceChips citations={f.citations} onOpen={onOpenSource} max={3} /></div>
       {flags.map((fl, i) => (
         <div key={i} className="mt-2 rounded-md border border-dashed border-warn-600/60 bg-warn-50 px-2.5 py-1.5 text-[12.5px] text-warn-700">
-          <span className="font-semibold">Audit flag{fl.severity === 'minor' ? '' : ` (${fl.severity})`}: </span>{fl.note}
+          <span className="font-semibold">Audit: review{fl.severity === 'critical' ? ' (critical)' : ''} · </span>{fl.note}
           {fl.citations.length > 0 && <div className="mt-1"><SourceChips citations={fl.citations} onOpen={onOpenSource} max={2} /></div>}
         </div>
       ))}
@@ -190,10 +190,18 @@ function ArrowIcon() {
   )
 }
 
+/** Only critical/major flags are counted and shown; minor ones are hover-only on the badge. */
+const serious = (f: AuditFlag) => f.severity !== 'minor'
+
 /** "Unaudited" until the built-in audit is done; then "Audited · N flags". Missing audit route → Unaudited. */
 function AuditBadge({ audit }: { audit: AuditReport | null }) {
   if (!audit || audit.run.status === 'failed') return <Badge>Unaudited</Badge>
   if (audit.run.status !== 'done') return <Badge>Audit running · {pctOf(audit.run)}%</Badge>
-  const n = audit.flags.length
-  return <Badge tone={n ? 'warn' : 'ok'}>Audited · {n} flag{n === 1 ? '' : 's'}</Badge>
+  const n = audit.flags.filter(serious).length
+  const minor = audit.flags.length - n
+  return (
+    <span title={minor ? `${minor} minor audit note${minor === 1 ? '' : 's'} not shown` : undefined}>
+      <Badge tone={n ? 'warn' : 'ok'}>Audited · {n} to review</Badge>
+    </span>
+  )
 }
