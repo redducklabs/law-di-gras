@@ -15,7 +15,9 @@ from app.db import connect
 from app.digest import structured as st
 from app.digest.brief import write_brief
 from app.digest.curate import mark_milestones, recent_activity
+from app.digest.conflicts import check_statements
 from app.digest.extract import PROMPT_VERSION, Extracted, extract_all, save_facts, verify_values
+from app.digest.verify import _MONEY, _money_val
 from app.retrieval.embed import embed_matter
 from app.retrieval.hyde import hyde_matter
 from app.retrieval.search import warm
@@ -23,7 +25,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 12
+PIPELINE_REV = 16
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -97,6 +99,26 @@ def _suit_filed_before(ex: dict[str, list[Extracted]], deadline: str) -> str | N
     return min(dates) if dates else None
 
 
+def _apply_finding(f: Fact, v, cit, injury: bool = False, bullet: bool = False) -> None:
+    """Make a whole-record conflict or caveat visible on the fact, citing the other source too."""
+    if cit is None or v.verdict not in ("contradicted", "qualified"):
+        return
+    note = v.note.strip().rstrip(".")
+    if cit.model_dump() not in [c.model_dump() for c in f.citations]:
+        f.citations = list(f.citations) + [cit]
+    if v.verdict == "contradicted":
+        if bullet:
+            if "conflict" not in f.value.lower():  # the bullet may already state the conflict itself
+                f.value = f"{f.value} (Conflict: {note})"
+        elif injury:
+            f.label = f"Disputed: {f.label}"
+            f.value = f"{f.value} Disputed: {note}."
+        else:
+            f.value = f"Conflict: {f.value} vs {note}"
+    elif not bullet:  # a caveat on a headline bullet only repeats it; facts carry caveats in the label
+        f.label = f"{f.label} — {note}"
+
+
 def _usd(x: float) -> str:
     return f"${x:,.2f}".removesuffix(".00")
 
@@ -109,10 +131,18 @@ def value_range(specials: Fact | None, coverage: list[Fact], liens: list[Fact]) 
     s_amt = specials.amount
     low, high = round(VALUE_LOW_X * s_amt, 2), round(VALUE_HIGH_X * s_amt, 2)  # exact, no rounding
     liab = [c for c in coverage if c.verified and _LIABILITY.search(c.label)]
-    uncapped = [c for c in liab if _UNCAPPED.search(c.value) or c.amount is None]
-    capped = [c for c in liab if c not in uncapped and c.amount]
+    conflicted = [c for c in liab if c.value.startswith("Conflict:")]
+    uncapped = [c for c in liab if c not in conflicted and (_UNCAPPED.search(c.value) or c.amount is None)]
+    capped = [c for c in liab if c not in uncapped and c not in conflicted and c.amount]
     notes = [f"Firm rule (configurable): {VALUE_LOW_X:g}x–{VALUE_HIGH_X:g}x billed specials (${s_amt:,.2f})"]
-    if liab and not uncapped:
+    if conflicted:
+        c = conflicted[0]
+        other = c.value.split(" vs ", 1)[-1]
+        amounts = [v for tok in _MONEY.findall(other) if (v := _money_val(tok))]
+        notes.append(f"conflicting limits ({c.value.removeprefix('Conflict: ')})")
+        if amounts:
+            notes.append(f"capped at {_usd(amounts[0])} per person if those limits apply")
+    elif liab and not uncapped:
         cap = sum(c.amount for c in liab)
         if high > cap:
             high, low = cap, min(low, cap)
@@ -215,6 +245,13 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
                         amount=round(total, 2), citations=[c for b in billed for c in b.citations[:1]],
                         verified=all(b.verified for b in billed))
 
+    # Whole-record check: conflicts and caveats elsewhere in the file become visible, with both citations.
+    checked = [f for f in facts.get("coverage", []) + facts.get("liens", []) + facts.get("injuries", [])
+               if f.verified] + ([specials] if specials else [])
+    for f, (v, cit) in zip(checked, check_statements(matter_id, [(f"{f.label}: {f.value}", f.citations)
+                                                                 for f in checked], purpose="record_check_facts")):
+        _apply_finding(f, v, cit, injury=f in facts.get("injuries", []))
+
     # Timeline
     timeline: list[TimelineEvent] = []
     dated_incident = [f for f in facts.get("incident", []) if f.date]
@@ -305,6 +342,12 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     stage = st.clio_stage(matter_id)
     status = matter.status + (f"; Clio matter stage: {stage}" if stage else "")
     headline = write_brief(matter_id, pool, actions, status, today)
+    status_fact = Fact(id="status", label="Status", value=headline.status_line, citations=headline.status_citations)
+    hl = [status_fact] + headline.bullets
+    for f, (v, cit) in zip(hl, check_statements(matter_id, [(f.value, f.citations) for f in hl],
+                                                purpose="record_check_headline")):
+        _apply_finding(f, v, cit, bullet=True)
+    headline.status_line, headline.status_citations = status_fact.value, status_fact.citations
     case_value = value_range(specials, facts.get("coverage", []), facts.get("liens", []))
 
     with connect() as conn:

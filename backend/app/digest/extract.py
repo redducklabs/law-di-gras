@@ -99,7 +99,9 @@ CATEGORIES = [
        "limits, max ~30 characters: e.g. '$100,000 / $300,000', '$50,000 PIP', 'Self-insured; no stated limit', "
        "'Exhausted ($50,000)'. label=coverage type, carrier and whose policy, plus claim number when stated "
        "(e.g. 'BI liability · <carrier> · defendant · claim <no>'). party=carrier, amount=per-person limit in "
-       "dollars if stated."),
+       "dollars if stated. Attribute each coverage to the party the quoted source itself names (its sender, "
+       "claim or claim administrator); never assign one party's limits to another party. If sources state "
+       "different limits for the same party, extract each as its own item."),
     Category("liens", [
         "medical lien letter of protection",
         "health insurance subrogation reimbursement claim",

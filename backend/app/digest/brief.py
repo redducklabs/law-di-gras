@@ -15,12 +15,13 @@ from datetime import date
 from pydantic import BaseModel
 
 from app.db import connect
+from app.digest.conflicts import check_statements
 from app.digest.verify import Corpus, check_tokens, judge_claims
 from app.llm import MODEL_OPUS, structured
 from app.retrieval.fence import FENCE_RULE
 from app.schemas import ActionItem, Citation, Fact, Headline
 
-VERSION = "b2"
+VERSION = "b4"
 
 
 class Bullet(BaseModel):
@@ -39,7 +40,9 @@ SYSTEM = (
     "You are a senior personal-injury litigation attorney writing the top of a case brief for the firm's "
     "team; it is a draft for attorney review. Every statement must be supported by the QUOTES of the facts "
     "it cites (ids). Do not add counts, causes, characterizations, attributions (who said or wants what), "
-    "dates, amounts or names that those quotes do not state. Prefer fewer, safer words. "
+    "dates, amounts or names that those quotes do not state. Prefer fewer, safer words. Attribute every "
+    "defense IME / defense expert opinion explicitly (e.g. 'defense radiology review says ...'); never blend "
+    "it into the client's findings. Where a fact is marked Conflict or carries a caveat, keep that visible. "
     + FENCE_RULE
 )
 
@@ -144,19 +147,31 @@ def write_brief(matter_id: str, facts: list[Fact], actions: list[ActionItem], st
         out = structured(MODEL_OPUS, BriefOut, SYSTEM, PROMPT.format(**base, retry=retry), purpose="brief_retry",
                          matter_id=matter_id, effort="medium", max_tokens=4000)
         rows = items_of(out)
+    # Re-cite before dropping: a statement the cited facts don't support may be supported elsewhere.
+    fails = _check(matter_id, [(t, q) for t, q, _ in rows], names)
+    extra: dict[int, list[Citation]] = {}
+    failing = [i for i, f in enumerate(fails) if f]
+    if failing:
+        found = check_statements(matter_id, [(rows[i][0], [c for r in rows[i][2] for c in r.citations]) for i in failing],
+                                 purpose="record_check_recite")
+        for i, (v, cit) in zip(failing, found):
+            if v.verdict == "supported" and cit is not None:
+                extra[i] = [cit]
+                rows[i] = (rows[i][0], rows[i][1] + [cit.quote], rows[i][2])
     texts = _strip(matter_id, [(t, q) for t, q, _ in rows], names)
 
     status_refs = rows[0][2]
+    status_extra = extra.get(0, [])
     status_line = texts[0] or (f"{out.stage}." if out.stage else "")
     bullets: list[Fact] = []
     for i, (text, (_, _, refs)) in enumerate(zip(texts[1:], rows[1:])):
         if not text or not refs:
             continue
-        cits = [c for r in refs for c in _cits(r)]
+        cits = [c for r in refs for c in _cits(r)] + extra.get(i + 1, [])
         bullets.append(Fact(id=f"brief-{i}", label=", ".join(r.label for r in refs[:3]), value=text,
                             citations=cits, verified=True))
     head = Headline(status_line=status_line, stage=out.stage, bullets=bullets,
-                    status_citations=[c for r in status_refs for c in _cits(r)])
+                    status_citations=[c for r in status_refs for c in _cits(r)] + status_extra)
     with connect() as conn:
         conn.execute("INSERT OR REPLACE INTO digests (matter_id, kind, input_hash, payload_json, model, created_at)"
                      " VALUES (?, 'brief', ?, ?, ?, datetime('now'))", (matter_id, ih, head.model_dump_json(), MODEL_OPUS))
