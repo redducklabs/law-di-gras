@@ -34,6 +34,62 @@ it came from, with the quote highlighted.
 - **Per AI draft:** about $0.01–0.02. Per cited chat answer: about $0.12–0.14 (Opus + verification); repeats are cached.
 - **Total spend today including all development and audit runs:** about $12.
 
+## How we keep it honest (anti-hallucination)
+
+Built in one day, so these layers are prototype-grade, but every one runs on
+Sapini today and is in the repo.
+
+1. **Faithful ingestion.** Clio is read through a GET-only client. Note and email
+   text is stored exactly (HTML entities unescaped). PDFs keep per-line
+   positions, scans are OCR'd with line boxes, and source counts and texts were
+   reconciled against Clio.
+2. **Deterministic where the data is structured.** Specials, firm costs, next
+   steps, "waiting on" and the case-value range are computed in code from
+   Clio's own entries, not by a model. The case-value rule is a visible,
+   configurable firm setting (default 1.5x–3x billed specials).
+3. **Every fact carries a verbatim quote.** Extraction is schema-enforced. A
+   fact is "verified" only if its quote is found in the source text, which
+   gives the exact page and line to highlight. Anything else is shown and
+   visibly marked unverified, never silently dropped or promoted.
+4. **Claim verifier on all generated text.** The brief, status line, recent
+   activity, drafts and chat answers go through two checks: code checks that
+   every date, amount, name and claim number appears in the cited quotes, and
+   a Claude judge checks each claim against only its cited evidence. The text
+   is regenerated once with the failures listed; whatever still fails is
+   stripped, or in drafts becomes a visible `[verify: …]`.
+5. **Whole-record conflict check.** Each headline, coverage, lien, injury and
+   specials claim is also checked against the rest of the file. Where the
+   record disagrees with itself, the app shows "Conflict: X vs Y" with both
+   sources instead of picking a side. Example: Metro-North "self-insured" vs
+   the claims administrator's $100k/$300k email.
+6. **Tense and status.** Dated items are labeled occurred, scheduled, adjourned
+   or deadline from their own wording. A subpoenaed deposition with no record
+   of happening reads "Scheduled … (no record it occurred)".
+7. **Constrained chat.** Answers cite only retrieved or brief evidence, every
+   citation is span-verified, and deeplinks are validated server-side against
+   real sections, sources, timeline dates and providers.
+8. **Independent audit stream.** `cd backend; uv run python -m app.audit` re-runs
+   six checks:
+   - fact support
+   - claim vs whole record
+   - KPI reconciliation
+   - ingestion fidelity
+   - timeline semantics
+   - provider-view leaks
+
+   It found real issues that we then fixed, among them a rounded case value,
+   claims beyond their quotes, defense IME opinions listed as the client's
+   injuries, and a scheduled deposition shown as held. Findings and each fix
+   round are in `docs/audit/2026-10-02-data-audit.md`. It ran as a release
+   gate before we recorded.
+9. **Provider privacy by construction.** Provider views are filtered on the
+   server. The audit confirms that none of the 10 provider links exposes notes,
+   strategy or another provider's data.
+
+**Honest limits:** model judges are probabilistic; OCR on low-quality scans is
+imperfect (photo-ID page); open audit items at submission time are listed in the
+audit report.
+
 ## Notes for judges
 
 - **Where to look first:** `backend/app/digest/` (extraction, verbatim span
