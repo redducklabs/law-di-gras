@@ -1,8 +1,9 @@
 // Query mode: Ask (cited answer) + Find in case (ranked passages). Clicking opens the source.
-import { Fragment, useEffect, useState, type FormEvent, type ReactNode } from 'react'
+import { useEffect, useState, type FormEvent } from 'react'
 import type { Answer, Citation, Passage } from '../api/types'
 import { ApiError, api } from '../api/client'
-import { SourceChip, chipLabel } from '../components'
+import { chipLabel } from '../components'
+import { AnswerMarkdown, SourcesList } from './AnswerMarkdown'
 import { Notice, Spinner } from './parts'
 import { queryTerms } from './text'
 
@@ -122,63 +123,12 @@ function Bold({ text, terms }: { text: string; terms: string[] }) {
   return <>{text.split(re).map((s, i) => i % 2 ? <strong key={i} className="font-semibold text-slate-900">{s}</strong> : s)}</>
 }
 
-/** Minimal markdown: paragraphs, bullets, **bold**, and [n] citation markers as chips. */
 function AnswerView({ answer, onOpen }: { answer: Answer; onOpen: (c: Citation) => void }) {
-  const inline = (s: string): ReactNode[] =>
-    s.split(/(\[\d+(?:\s*,\s*\d+)*\]|\*\*[^*]+\*\*)/g).map((part, i) => {
-      const cite = part.match(/^\[(\d+(?:\s*,\s*\d+)*)\]$/)
-      if (cite) {
-        return <Fragment key={i}>{cite[1].split(/\s*,\s*/).map(n => {
-          const c = answer.citations[Number(n) - 1]
-          return c ? <CiteMark key={n} n={n} c={c} onOpen={onOpen} /> : <sup key={n} className="text-slate-400">[{n}]</sup>
-        })}</Fragment>
-      }
-      if (part.startsWith('**') && part.endsWith('**')) return <strong key={i} className="font-semibold text-slate-900">{part.slice(2, -2)}</strong>
-      return part
-    })
-
-  // Group lines: consecutive bullets → list, '#' lines → heading, other runs → paragraph.
-  type Block = { kind: 'ul' | 'h' | 'p'; lines: string[] }
-  const blocks: Block[] = []
-  for (const raw of answer.answer_markdown.trim().split('\n')) {
-    const line = raw.trimEnd()
-    const last = blocks[blocks.length - 1]
-    if (!line.trim()) { blocks.push({ kind: 'p', lines: [] }); continue }
-    const bullet = line.match(/^\s*(?:[-*]|\d+\.)\s+(.*)/)
-    const head = line.match(/^#+\s+(.*)/)
-    if (bullet) last?.kind === 'ul' ? last.lines.push(bullet[1]) : blocks.push({ kind: 'ul', lines: [bullet[1]] })
-    else if (head) blocks.push({ kind: 'h', lines: [head[1]] })
-    else last?.kind === 'p' && last.lines.length ? last.lines.push(line) : blocks.push({ kind: 'p', lines: [line] })
-  }
   return (
-    <div className="mt-3.5 space-y-2.5 border-t border-line-soft pt-3.5 text-[13px] leading-relaxed text-slate-700">
+    <div className="mt-3.5 space-y-2.5 border-t border-line-soft pt-3.5">
       <div className="text-[10.5px] font-semibold uppercase tracking-wide text-slate-500">Draft answer · verify against sources</div>
-      {blocks.filter(b => b.lines.length).map((b, i) =>
-        b.kind === 'ul' ? <ul key={i} className="list-disc space-y-1.5 pl-5 marker:text-slate-300">{b.lines.map((l, j) => <li key={j}>{inline(l)}</li>)}</ul>
-        : b.kind === 'h' ? <h4 key={i} className="pt-1 font-semibold text-slate-900">{inline(b.lines[0])}</h4>
-        : <p key={i}>{inline(b.lines.join(' '))}</p>)}
-      {answer.citations.length > 0 && (
-        <div className="pt-1">
-          <div className="mb-1.5 text-[10.5px] font-semibold uppercase tracking-wide text-slate-500">Sources</div>
-          <ol className="space-y-1">
-            {answer.citations.map((c, i) => (
-              <li key={i} className="flex items-center gap-2 text-[12px] text-slate-500">
-                <span className="w-4 shrink-0 text-right tabular-nums">{i + 1}</span>
-                <SourceChip citation={c} onOpen={onOpen} />
-              </li>
-            ))}
-          </ol>
-        </div>
-      )}
+      <AnswerMarkdown markdown={answer.answer_markdown} citations={answer.citations} onOpen={onOpen} />
+      <SourcesList citations={answer.citations} onOpen={onOpen} />
     </div>
-  )
-}
-
-function CiteMark({ n, c, onOpen }: { n: string; c: Citation; onOpen: (c: Citation) => void }) {
-  return (
-    <button type="button" onClick={() => onOpen(c)} title={`${chipLabel(c)}\n“${c.quote}”`}
-      className={`mx-0.5 inline-grid h-[18px] min-w-[18px] cursor-pointer place-items-center rounded-full px-1 align-[1px] text-[10.5px] font-semibold tabular-nums ${c.verified ? 'bg-brand-50 text-brand-700 hover:bg-brand-100' : 'border border-dashed border-warn-600 bg-warn-50 text-warn-700'}`}>
-      {n}
-    </button>
   )
 }
