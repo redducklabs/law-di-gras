@@ -2,6 +2,7 @@
 // fictional demo rows, visibly labeled and never clickable. Integration wires the route.
 import type { ReactNode } from 'react'
 import type { CaseRow, Citation, Fact } from '../api/types'
+import { Account } from './Account'
 import { Badge, Fonts, SourceChip, daysFromToday, fmtDate, money, relDays, type Tone } from '../components'
 
 function reasonTone(r: string): Tone {
@@ -120,7 +121,7 @@ export function CasesPage({ rows, onOpen }: { rows: CaseRow[]; onOpen: (id: stri
   return (
     <div className="min-h-screen bg-page text-slate-900">
       <Fonts />
-      <CasesHeader />
+      <CasesHeader right={<Account />} />
       <main className="mx-auto max-w-[1280px] px-4 py-6 sm:px-8">
         <div className="mb-4 flex flex-wrap items-end justify-between gap-2">
           <div>

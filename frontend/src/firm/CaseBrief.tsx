@@ -1,5 +1,7 @@
 // Firm Case Brief: one screen answering "where does this case stand, and what do I do next".
 import { useState, type FormEvent } from 'react'
+import { Link } from 'react-router-dom'
+import { Account } from '../cases/Account'
 import type { Citation, Dashboard, Fact } from '../api/types'
 import {
   Avatar, Badge, Card, Fonts, SourceChips, Tile, daysFromToday, fmtDate, fmtDateTime, money, relDays,
@@ -26,6 +28,12 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
     <div className="min-h-screen bg-page text-slate-900">
       <Fonts />
       <div className="mx-auto max-w-[1280px] px-4 py-5 sm:px-8 sm:py-6">
+        <nav className="mb-3 flex items-center justify-between">
+          <Link to="/cases" className="inline-flex items-center gap-1.5 rounded-md px-1.5 py-1 -ml-1.5 text-[12.5px] font-medium text-brand-700 hover:bg-brand-50">
+            <img src="/logo.png" alt="" width={18} height={18} className="h-[18px] w-[18px]" />← Cases
+          </Link>
+          <Account />
+        </nav>
         {/* Header */}
         <header className="mb-5 flex flex-wrap items-center justify-between gap-4">
           <div className="flex min-w-0 items-center gap-3.5">
