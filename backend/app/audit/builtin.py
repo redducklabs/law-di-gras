@@ -16,7 +16,7 @@ from app.db import connect
 from app.schemas import AuditFlag, AuditReport, Citation, Dashboard, RunProgress
 
 KINDS = {"dashboard": "audit:dashboard", "review": "audit:review"}
-VERSION = "a2"  # bump to re-audit everything when the checks change
+VERSION = "a3"  # bump to re-audit everything when the checks change
 _lock = threading.Lock()
 _jobs: dict[tuple[str, str, str], AuditReport] = {}  # (matter, target, hash) -> in-flight/failed report
 
@@ -133,6 +133,8 @@ def _keys(d: Dashboard) -> dict[str, tuple[str, str]]:
         k["last_client_contact"] = (d.last_client_contact.id, "next-steps")
     for i, f in enumerate(d.injuries):
         k[f"injuries[{i}]"] = (f.id, "injuries")
+    for i, f in enumerate(d.recent):
+        k[f"recent[{i}]"] = (f.id, "recent")
     for i, t in enumerate(d.treatment):
         k[f"treatment[{i}]"] = (f"treatment:{t.provider}", "treatment")
         k[f"treatment:{t.provider}"] = (f"treatment:{t.provider}", "treatment")
