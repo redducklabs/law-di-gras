@@ -6,4 +6,5 @@ Fill this in once the concept is chosen. Keep it to the one path the video shows
 2. Steps on screen, each with what the viewer should notice
 3. Closing line
 
-Before recording: clean start, seeded or cached data, browser zoom and window size fixed.
+Video is 90 seconds, on Sapini read live from Clio. Before recording: digestion
+already cached in our database, clean start, browser zoom and window size fixed.

@@ -45,9 +45,10 @@ The judges are **trial attorneys and AI builders**. The users are (1) the
 professionals, not consumers. Every design, prompt, and copy decision targets
 them:
 
-- **Speak their language.** Use litigation terms as-is (exhibits, depositions,
-  pin cites, motions in limine, impeachment, witness outlines, separate
-  statements). Do not simplify legal concepts or add consumer hand-holding.
+- **Speak their language.** Use PI and litigation terms as-is (matter, liens,
+  policy limits, demand, treatment, specials, settlement, statute of
+  limitations). No consumer hand-holding. Provider-facing views use plain
+  billing/treatment language, not legal strategy.
 - **Every claim traces to the record.** An attorney will not trust or use an
   output they cannot verify in seconds. Each factual or legal assertion links to
   its source: document, page, and line or highlighted span, opening the source
@@ -55,14 +56,16 @@ them:
 - **Courtroom-grade accuracy.** A wrong cite or misquoted testimony in front of a
   judge damages the attorney's credibility. Quotes must be verbatim; anything the
   app cannot verify is visibly marked, never presented as fact.
-- **Time pressure is the context.** Trial prep happens late at night and between
-  sessions. Favor dense, scannable screens, fast search, keyboard-friendly flows,
-  and outputs they can paste into a brief or outline (proper citation formats).
+- **Ninety seconds is the bar.** A user should absorb where the case stands in
+  about 90 seconds, then drill down on demand. One headline status, the few
+  items that need action, then detail. Fewer widgets, not more.
 - **Draft, not decision.** Outputs are work product the attorney reviews and
   owns. The AI assists their judgment; it does not replace it.
-- **Treat case materials as confidential and privileged.** Use sample or public
-  documents for the demo; never send real client files anywhere the user did not
-  approve.
+- **Provider views share only what the attorney allows.** Status changes, bills
+  and records yes; case strategy and unrelated confidential material no. The
+  attorney controls and can adjust what a provider sees.
+- **Treat case materials as confidential.** Sapini is the only case we use;
+  never send case data anywhere the user did not approve.
 
 ## The challenge
 
@@ -136,8 +139,8 @@ in a legal demo.
   user supplied, never from model memory. Prefer the simplest grounding pattern
   in the catalog that works; a clearly labeled "unverified" state is acceptable
   for a demo, a confidently invented citation is not.
-- **No consumer UPL framing.** The users are attorneys, so skip "information,
-  not advice" disclaimers and hedged consumer copy. Write direct, professional
+- **No consumer UPL framing.** The users are professionals, so skip
+  "information, not advice" disclaimers and hedged consumer copy. Write direct, professional
   analysis, and mark AI output as a draft for attorney review.
 - **Structured LLM output uses forced tool calling** (`tool_choice` +
   `input_schema`), not regex or `json.loads` on free text. It is also the

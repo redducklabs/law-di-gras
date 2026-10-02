@@ -1,6 +1,6 @@
 # Reuse catalog
 
-These are patterns worth copying from two earlier Red Duck Labs legal projects. Nothing has been copied yet. Once the challenge is known, pick what fits, copy it in, and simplify it for the prototype.
+These are patterns worth copying from two earlier Red Duck Labs legal projects. Nothing has been copied yet. Pick what fits the challenge in `docs/challenge.md`, copy it in, and simplify it for the prototype.
 
 **The source repos are read-only. Never edit them.**
 
@@ -8,24 +8,27 @@ These are patterns worth copying from two earlier Red Duck Labs legal projects. 
 - `R:` means `C:\Repos\redducklaw\`.
 - Line numbers were accurate on 2026-10-01 and may drift.
 
-## Fit for trial attorneys
+## Fit for the Sapini dashboard challenge
 
-The users are trial attorneys, so redducklaw is the closer match: it was built
-for litigators (summary judgment, deposition page:line cites, separate
-statements). Its citation chip, quote finding, citation verification and
-litigation citation parser (R2, R7, R8, R10) are high-value. From aurolegal.ai,
-take the grounding machinery (A1–A4, A6–A8, A12) and skip the consumer-facing
-pieces: UPL judges (A5, except `merge_verdict`), the standing gates, and the
-traffic-specific retrieval scoping (A10).
+The asks that matter most: "if a date is on screen, show where it came from",
+"click anything to open the note, document or email it came from", and
+"somewhere in a 200-page scan are my client's primary injuries". So the
+highest-value pieces are **source linking and highlighting** (R1–R3, R7, the
+PDF gaps below), **OCR ingestion of scanned PDFs** (R5), **verbatim span
+checks** (A7) and **forced tool-call extraction** (A6) for pulling dates,
+injuries, coverage and costs into typed fields. Skip the UPL judges (A5, except
+`merge_verdict`), standing gates and traffic retrieval scoping (A10). Legal
+citation grounding (A1–A3) matters less here, since the digestion is about case
+facts, not statutes; reuse the same idea for **facts**: every extracted fact
+must cite its Clio source (note, email, document page).
 
-## Lift order if the challenge involves AI over case materials
+## Lift order for the dashboard
 
-1. Grounding prompt block (A1)
-2. Forced tool-call helper (A6)
-3. Ungrounded-citation detector plus regenerate-once-then-scrub (A2, A3)
-4. Findings-only judges with a correction addendum (A4)
-5. Verbatim quote checking and prompt fencing (A7, A8)
-6. Citation chip and viewer, upgraded to real highlights (R1–R3, plus the gaps listed under PDF viewing). For attorneys, verifiable source highlighting is likely the core of the demo, so consider moving this up.
+1. Forced tool-call extraction of facts with source IDs (A6)
+2. Verbatim span check so every fact maps to real source text (A7), plus fencing (A8)
+3. OCR fallback for scanned PDFs (R5)
+4. Source chip and viewer with highlights (R1–R3, R7, PDF gaps)
+5. Findings-only fact judge if time allows (A4)
 
 ---
 
