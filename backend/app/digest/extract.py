@@ -88,9 +88,11 @@ CATEGORIES = [
         "uninsured underinsured motorist UM UIM coverage",
         "med pay PIP personal injury protection",
         "declarations page policy limits per person per accident",
-    ], "Extract each insurance coverage: label=coverage type and carrier (e.g. 'BI liability - <carrier>'), "
-       "party=carrier, amount=per-person limit in dollars if stated, value=limits as written (e.g. per "
-       "person / per accident) plus whose policy it is. Include claim numbers in value when stated."),
+    ], "Extract each insurance coverage. value is shown in large type on a tile, so it must be ONLY the "
+       "limits, max ~30 characters: e.g. '$100,000 / $300,000', '$50,000 PIP', 'Self-insured; no stated limit', "
+       "'Exhausted ($50,000)'. label=coverage type, carrier and whose policy, plus claim number when stated "
+       "(e.g. 'BI liability · <carrier> · defendant · claim <no>'). party=carrier, amount=per-person limit in "
+       "dollars if stated."),
     Category("liens", [
         "medical lien letter of protection",
         "health insurance subrogation reimbursement claim",

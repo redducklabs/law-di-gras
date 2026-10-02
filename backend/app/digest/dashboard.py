@@ -19,7 +19,7 @@ from app.retrieval.hyde import hyde_matter
 from app.retrieval.search import warm
 from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, TimelineEvent, TreatmentLine)
 
-PIPELINE_VERSION = f"d3-{PROMPT_VERSION}"
+PIPELINE_VERSION = f"d4-{PROMPT_VERSION}"
 
 
 def input_hash(matter_id: str) -> str:
@@ -53,6 +53,11 @@ def cached(matter_id: str) -> Dashboard | None:
 def _fact(x: Extracted, fid: str) -> Fact:
     return Fact(id=fid, label=x.label, value=x.value, amount=x.amount, date=st.iso(x.date),
                 citations=x.citations, verified=x.verified)
+
+
+def _name_sim(a: str, b: str) -> float:
+    a, b = a.replace("/", " "), b.replace("/", " ")
+    return max(fuzz.token_set_ratio(a, b), fuzz.partial_ratio(a.lower(), b.lower()))
 
 
 def _future(d: str, today: date) -> bool:
@@ -100,6 +105,30 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
         treatment.append(TreatmentLine(provider=name, contact_id=cid[0] if cid else None,
                                        first_visit=st.iso(x.date), last_visit=st.iso(x.end_date),
                                        visit_count=x.count, billed=bill, citations=x.citations))
+    # Medical bills logged in Clio as expense entries are the authoritative per-provider specials.
+    charges = st.medical_charges(matter_id)
+    if charges:
+        billed = []
+        for ch in charges:
+            name = ch["provider"] or "Medical provider"
+            line = max(treatment, key=lambda t: _name_sim(name, t.provider), default=None)
+            if line is None or _name_sim(name, line.provider) < 85:
+                cid = max(contacts, key=lambda c: fuzz.token_set_ratio(name, c[1]), default=None)
+                line = TreatmentLine(provider=name, first_visit=ch["first"], last_visit=ch["last"],
+                                     contact_id=cid[0] if cid and fuzz.token_set_ratio(name, cid[1]) >= 85 else None,
+                                     citations=list(ch["citations"]))
+                treatment.append(line)
+            prev = line.billed.amount if line.billed and line.billed.id.startswith("charge-") else 0.0
+            amt = round((prev or 0) + ch["amount"], 2)
+            cits = (line.billed.citations if prev else []) + ch["citations"]
+            line.billed = Fact(id=f"charge-{len(billed)}", label=f"Billed: {line.provider}", value=f"${amt:,.2f}",
+                               amount=amt, citations=cits, verified=all(c.verified for c in cits))
+            line.first_visit = line.first_visit or ch["first"]
+            line.last_visit = line.last_visit or ch["last"]
+        for t in treatment:  # LLM-read amounts give way to the Clio entries
+            if t.billed and not t.billed.id.startswith("charge-"):
+                t.billed = None
+        billed = [t.billed for t in treatment if t.billed]
     specials = None
     if billed:
         total = sum(b.amount or 0 for b in billed)

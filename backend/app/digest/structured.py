@@ -7,6 +7,7 @@ the raw item JSON as-is.
 """
 
 import json
+import re
 from datetime import date
 
 from rapidfuzz import fuzz
@@ -90,24 +91,98 @@ def calendar(matter_id: str, today: date) -> tuple[list[TimelineEvent], list[Act
     return events, upcoming
 
 
-def firm_spent(matter_id: str) -> Fact | None:
-    total, cits, n = 0.0, [], 0
+# Expense entries mix true case costs with medical bills logged for tracking.
+# Classified from the entry's own leading label + billable flag, never by name.
+_W = r"(?<![a-z])({})(?![a-z])"
+_MED_WORDS = re.compile(_W.format("medical|treatment|hospital|physician|therapy|chiropractic|radiology|"
+                                  "surgical|surgery|clinic|ambulance|pharmacy|imaging"), re.I)
+_BILL_WORDS = re.compile(_W.format("charges?|bills?|billed|services?|balance"), re.I)
+_NOT_NAME = re.compile(r"\d|\.pdf|" + _W.format("payment|status|charges?|unknown"), re.I)
+_DATE_RANGE = re.compile(r"(\d{4}-\d{2}-\d{2})(?:\s*(?:to|-|through)\s*(\d{4}-\d{2}-\d{2}))?")
+
+
+def _amount(raw: dict) -> float | None:
+    if raw.get("total") is not None:
+        return float(raw["total"])
+    if raw.get("price") is not None:
+        return float(raw.get("price") or 0) * float(raw.get("quantity") or 1)
+    return None
+
+
+def _note(row, raw: dict) -> str:
+    return (raw.get("note") or raw.get("activity_description") or row["title"] or "").strip()
+
+
+def _lead_label(note: str) -> str:
+    return re.split(r":|\s-\s|;", note, maxsplit=1)[0]
+
+
+def is_medical_charge(row, raw: dict) -> bool:
+    cat = raw.get("expense_category")
+    cat = cat.get("name", "") if isinstance(cat, dict) else (cat or "")
+    lead = f"{cat} {_lead_label(_note(row, raw))}"
+    if _MED_WORDS.search(lead) and _BILL_WORDS.search(lead):
+        return True
+    return bool(raw.get("non_billable")) and bool(_MED_WORDS.search(lead))
+
+
+def _provider_from_note(note: str) -> str | None:
+    """The first ';'-separated segment that reads like a name (no digits, no status words, no file)."""
+    for seg in [x.strip() for x in note.split(";")[1:]]:
+        if seg and not _NOT_NAME.search(seg):
+            return seg
+    return None
+
+
+def _expenses(matter_id: str):
     with connect() as conn:
         for row in _rows(conn, matter_id, "expense"):
             raw = _raw(row)
             if (raw.get("type") or "").lower() == "timeentry":
                 continue
-            amt = raw.get("total")
-            if amt is None and raw.get("price") is not None:
-                amt = float(raw.get("price") or 0) * float(raw.get("quantity") or 1)
-            if amt is None:
-                continue
-            total += float(amt)
-            n += 1
-            cits.append(row_citation(conn, row))
+            amt = _amount(raw)
+            if amt is not None:
+                yield conn, row, raw, amt
+
+
+def _amount_citation(conn, row, amt: float, extra_quote: str | None = None) -> list[Citation]:
+    cits = []
+    for q in (f"${amt:,.2f}", extra_quote):
+        if q:
+            c = locate(conn, row["id"], q)
+            if c and c.verified:
+                cits.append(c)
+    return cits or [row_citation(conn, row)]
+
+
+def medical_charges(matter_id: str) -> list[dict]:
+    """Per-entry medical bills logged as non-billable expenses: provider, amount, service dates, citations."""
+    out = []
+    for conn, row, raw, amt in _expenses(matter_id):
+        if not is_medical_charge(row, raw):
+            continue
+        note = _note(row, raw)
+        provider = _provider_from_note(note)
+        m = _DATE_RANGE.search(note.split(";", 2)[-1]) if ";" in note else None
+        out.append({"provider": provider, "amount": amt,
+                    "first": iso(m.group(1)) if m else iso(raw.get("date")),
+                    "last": iso(m.group(2) or m.group(1)) if m else None,
+                    "citations": _amount_citation(conn, row, amt, provider)})
+    return out
+
+
+def firm_spent(matter_id: str) -> Fact | None:
+    """True case costs only (filing, records, experts...), excluding medical bills."""
+    total, cits, n = 0.0, [], 0
+    for conn, row, raw, amt in _expenses(matter_id):
+        if is_medical_charge(row, raw):
+            continue
+        total += amt
+        n += 1
+        cits.append(row_citation(conn, row))
     if not n:
         return None
-    return Fact(id="firm_spent", label="Firm costs advanced", value=f"${total:,.2f} across {n} expense entries",
+    return Fact(id="firm_spent", label="Firm costs advanced", value=f"${total:,.2f} across {n} cost entries",
                 amount=round(total, 2), citations=cits, verified=True)
 
 
