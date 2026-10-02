@@ -42,8 +42,8 @@ def main_env() -> dict:
 
 # ---------- narration ----------
 SEGMENTS = [
-    ("cases", "A personal-injury file is thousands of pages. Here, every matter is read live from Clio, read-only, "
-              "and sorted by what needs you first."),
+    ("cases", "A personal-injury file is thousands of pages. Here, every matter is pulled live from Clio, "
+              "never written back, and sorted by what needs you first."),
     ("brief", "Open a case and it reads in ninety seconds: where it stands, what's next, "
               "and a timeline of medical, legal and deadlines."),
     ("source", "Every fact links to its source: the page opens with the exact quote highlighted. "
@@ -72,12 +72,13 @@ def tts(env: dict, voice: str, dry: bool) -> dict[str, Path]:
         from openai import OpenAI
         client = OpenAI(api_key=env["OPENAI_API_KEY"])
     for key, text in SEGMENTS:
-        p = OUT / f"{key}.wav"
+        import hashlib
+        p = OUT / f"{key}-{hashlib.sha1((voice + TTS_INSTRUCTIONS + text).encode()).hexdigest()[:8]}.wav"
         if dry:
             n = int(24000 * (len(text.split()) / 2.6))  # ~156 wpm placeholder
             with wave.open(str(p), "wb") as w:
                 w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(b"\0\0" * n)
-        elif not p.exists() or p.stat().st_mtime < Path(__file__).stat().st_mtime:
+        elif not p.exists():
             for attempt in range(4):  # raw 24 kHz 16-bit mono PCM -> our own WAV header
                 try:
                     pcm = client.audio.speech.create(model="gpt-4o-mini-tts", voice=voice, input=text,
