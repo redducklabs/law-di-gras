@@ -2,6 +2,7 @@
 // Usage: <SharePanel matterId={id} open={open} onClose={() => setOpen(false)} />
 import { useEffect, useState } from 'react'
 import { api } from '../api/client'
+import { prettyTitle } from '../components'
 import type { ShareSections } from '../api/types'
 import DocViewer, { type OpenedDoc } from './DocViewer'
 import ProviderViewBody, { fmtDate } from './ProviderViewBody'
@@ -20,7 +21,7 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
   return (
     <button
       type="button" role="switch" aria-checked={on} aria-label={label} onClick={() => onChange(!on)}
-      className={`relative h-5 w-9 shrink-0 rounded-full transition-colors ${on ? 'bg-slate-900' : 'bg-slate-300'}`}
+      className={`relative h-5 w-9 shrink-0 cursor-pointer rounded-full transition-colors ${on ? 'bg-brand-600' : 'bg-slate-300'}`}
     >
       <span className={`absolute top-0.5 h-4 w-4 rounded-full bg-white shadow transition-all ${on ? 'left-4.5' : 'left-0.5'}`} />
     </button>
@@ -59,32 +60,32 @@ export default function SharePanel({ matterId, open, onClose }: { matterId: stri
 
   return (
     <>
-    <div className="fixed inset-0 z-40 flex justify-end bg-slate-900/30" onClick={onClose}>
+    <div className="fixed inset-0 z-40 flex justify-end bg-slate-900/25" onClick={onClose}>
       <aside
-        className="flex h-full w-full max-w-6xl flex-col bg-slate-50 shadow-2xl"
+        className="flex h-full w-full max-w-6xl flex-col bg-page shadow-pop"
         onClick={(e) => e.stopPropagation()}
         aria-label="Share with provider"
       >
-        <header className="flex items-center justify-between border-b border-slate-200 bg-white px-5 py-3">
+        <header className="flex items-center justify-between gap-4 border-b border-line bg-surface px-5 py-4">
           <div>
-            <h2 className="text-base font-semibold text-slate-900">Share with a treating provider</h2>
-            <p className="text-xs text-slate-500">You choose what they see. Strategy and attorney notes are never shared.</p>
+            <h2 className="text-[15px] font-semibold text-slate-900">Share with a treating provider</h2>
+            <p className="text-[12.5px] text-slate-500">You choose what they see. Strategy and attorney notes are never shared.</p>
           </div>
-          <button type="button" onClick={onClose} className="rounded px-2 py-1 text-sm text-slate-500 hover:bg-slate-100">Close</button>
+          <button type="button" onClick={onClose} aria-label="Close" className="grid h-8 w-8 shrink-0 cursor-pointer place-items-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" strokeWidth="1.8"><path d="M4 4l8 8M12 4l-8 8" /></svg></button>
         </header>
 
         <div className="flex min-h-0 flex-1 flex-col md:flex-row">
           {/* Controls */}
-          <div className="w-full shrink-0 space-y-5 overflow-y-auto border-slate-200 bg-white p-5 md:w-80 md:border-r">
+          <div className="w-full shrink-0 space-y-6 overflow-y-auto border-line bg-surface p-5 max-md:max-h-[55vh] max-md:border-b md:w-80 md:border-r">
             <div>
-              <label className="mb-1 block text-xs font-semibold uppercase tracking-wide text-slate-500" htmlFor="share-provider">Provider</label>
+              <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider text-slate-400" htmlFor="share-provider">Provider</label>
               {provError && <p className="text-sm text-red-700">Could not load providers.</p>}
               {providers && !providers.length && <p className="text-sm text-slate-500">No medical providers found on this matter.</p>}
-              {!providers && !provError && <div className="h-9 animate-pulse rounded bg-slate-100" />}
+              {!providers && !provError && <div className="h-9 animate-pulse rounded-lg bg-slate-100" />}
               {!!providers?.length && (
                 <select
                   id="share-provider" value={contactId ?? ''} onChange={(e) => setContactId(e.target.value)}
-                  className="w-full rounded-md border border-slate-300 bg-white px-2 py-2 text-sm text-slate-900"
+                  className="w-full rounded-lg border border-line bg-surface px-2.5 py-2 text-[13.5px] text-slate-900 outline-none focus:border-brand-500 focus:ring-2 focus:ring-brand-500/15"
                 >
                   {providers.map((p) => <option key={p.contact_id} value={p.contact_id}>{p.name}{p.role ? ` — ${p.role}` : ''}</option>)}
                 </select>
@@ -94,13 +95,13 @@ export default function SharePanel({ matterId, open, onClose }: { matterId: stri
             {settings && (
               <>
                 <div>
-                  <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">What they can see</p>
+                  <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">What they can see</p>
                   <ul className="space-y-3">
                     {SECTIONS.map((s) => (
                       <li key={s.key} className="flex items-start justify-between gap-3">
                         <div>
-                          <p className="text-sm text-slate-900">{s.label}</p>
-                          <p className="text-xs text-slate-500">{s.hint}</p>
+                          <p className="text-[13.5px] font-medium text-slate-900">{s.label}</p>
+                          <p className="text-[12px] text-slate-500">{s.hint}</p>
                         </div>
                         <Toggle label={s.label} on={settings.sections[s.key]} onChange={(v) => setSection(s.key, v)} />
                       </li>
@@ -110,16 +111,16 @@ export default function SharePanel({ matterId, open, onClose }: { matterId: stri
 
                 {settings.sections.documents && (
                   <div>
-                    <p className="mb-2 text-xs font-semibold uppercase tracking-wide text-slate-500">Records to share</p>
+                    <p className="mb-2 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Records to share</p>
                     {!documents.length && <p className="text-sm text-slate-500">No documents on this matter.</p>}
                     <ul className="max-h-64 space-y-1 overflow-y-auto">
                       {documents.map((d) => (
                         <li key={d.id}>
-                          <label className="flex cursor-pointer items-start gap-2 rounded px-1 py-1 text-sm hover:bg-slate-50">
-                            <input type="checkbox" className="mt-0.5" checked={settings.source_ids.includes(d.id)} onChange={() => toggleDoc(d.id)} />
+                          <label className="flex cursor-pointer items-start gap-2 rounded-md px-1.5 py-1.5 text-[13px] hover:bg-page">
+                            <input type="checkbox" className="mt-0.5 accent-brand-600" checked={settings.source_ids.includes(d.id)} onChange={() => toggleDoc(d.id)} />
                             <span className="text-slate-800">
-                              {d.title}
-                              {d.suggested && <span className="ml-1 rounded bg-blue-50 px-1 text-xs text-blue-700">their records</span>}
+                              {prettyTitle(d.title ?? '')}
+                              {d.suggested && <span className="ml-1.5 rounded bg-ok-50 px-1.5 py-px text-[10.5px] font-semibold text-ok-700">their records</span>}
                               {d.date && <span className="block text-xs text-slate-400">{fmtDate(d.date)}</span>}
                             </span>
                           </label>
@@ -129,22 +130,22 @@ export default function SharePanel({ matterId, open, onClose }: { matterId: stri
                   </div>
                 )}
 
-                <div className="space-y-2 border-t border-slate-200 pt-4">
+                <div className="space-y-2 border-t border-line pt-4">
                   <button
                     type="button" onClick={copy}
-                    className="w-full rounded-md bg-slate-900 px-3 py-2 text-sm font-medium text-white hover:bg-slate-700"
+                    className="w-full cursor-pointer rounded-lg bg-brand-700 px-3 py-2.5 text-[13px] font-semibold text-white shadow-sm hover:bg-brand-800"
                   >
-                    {copied ? 'Link copied' : 'Copy provider link'}
+                    {copied ? 'Link copied ✓' : 'Copy provider link'}
                   </button>
                   {settings.token && (
-                    <a href={shareLink(settings.token)} target="_blank" rel="noreferrer" className="block truncate text-xs text-slate-500 underline">
+                    <a href={shareLink(settings.token)} target="_blank" rel="noreferrer" className="block truncate text-[12px] text-brand-700 underline">
                       {shareLink(settings.token)}
                     </a>
                   )}
                   <p className="text-xs text-slate-500">
                     {saving ? 'Saving…' : settings.token ? 'Changes apply to the link immediately.' : 'Settings save automatically.'}
                   </p>
-                  <p className={`text-xs ${settings.last_viewed_at ? 'font-medium text-emerald-700' : 'text-slate-400'}`}>
+                  <p className={`text-xs ${settings.last_viewed_at ? 'font-semibold text-ok-700' : 'text-slate-400'}`}>
                     {settings.last_viewed_at
                       ? `Opened by ${provider?.name ?? 'provider'} ${new Date(settings.last_viewed_at).toLocaleString('en-US', { month: 'short', day: 'numeric', hour: 'numeric', minute: '2-digit' })}`
                       : settings.token ? 'Not opened yet' : null}
@@ -156,12 +157,12 @@ export default function SharePanel({ matterId, open, onClose }: { matterId: stri
           </div>
 
           {/* Live preview */}
-          <div className="min-h-0 flex-1 overflow-y-auto p-5">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-wide text-slate-500">Preview: what {provider?.name ?? 'the provider'} sees</p>
-            <div className="rounded-xl border border-dashed border-slate-300 bg-slate-50 p-4">
+          <div className="min-h-0 flex-1 overflow-y-auto p-4 sm:p-6">
+            <p className="mb-3 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Preview: what {provider?.name ?? 'the provider'} sees</p>
+            <div className="rounded-2xl border border-dashed border-brand-200 bg-page p-4 sm:p-5">
               {preview
                 ? <ProviderViewBody view={preview} compact onOpenDoc={(id, title, page) => setDoc({ url: api.sourceFileUrl(id), title, page })} />
-                : <div className="space-y-3"><div className="h-6 w-48 animate-pulse rounded bg-slate-200" /><div className="h-24 animate-pulse rounded bg-slate-200" /></div>}
+                : <div className="space-y-3"><div className="h-6 w-48 animate-pulse rounded-md bg-slate-200/70" /><div className="h-24 animate-pulse rounded-md bg-slate-200/70" /></div>}
             </div>
           </div>
         </div>
