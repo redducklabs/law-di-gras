@@ -166,7 +166,7 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
         headline=headline,
         timeline=uniq,
         kpis=Kpis(specials=specials, coverage=facts.get("coverage", []), case_value=case_value,
-                  firm_spent=spent),
+                  firm_spent=spent, liens=facts.get("liens", [])),
         actions=actions,
         last_client_contact=contact,
         injuries=facts.get("injuries", []),
