@@ -49,7 +49,29 @@ function buildScale(events: TimelineEvent[]) {
   return { pts, pinned, x, now, todayX: x(now), t0, sorted }
 }
 
+const KIND_TONE: Record<Kind, string> = {
+  incident: 'text-danger-700', treatment: 'text-ok-700', legal: 'text-brand-700', communication: 'text-slate-600', deadline: 'text-warn-700',
+}
+
+/** Short caption from an event label: the part before ":" or ",", capped. */
+function caption(label: string) {
+  const head = label.split(/[:,(—–]/)[0].trim() || label
+  return head.length > 24 ? `${head.slice(0, 23).trimEnd()}…` : head
+}
+
 function pickMilestones(pts: Pt[], now: number) {
+  // Prefer the digest's own `major` flags; keyword rules below are the fallback.
+  const major = pts.filter(p => p.e.major)
+  if (major.length) {
+    const next = major.find(p => p.t > now)
+    const first = major.find(p => p.e.kind === 'incident') ?? major[0]
+    const rest = major.filter(p => p !== next && p !== first).sort((a, b) => b.t - a.t)
+    return [first, next, ...rest].filter((p): p is Pt => !!p).map(p => ({
+      pt: p,
+      caption: p === next ? `Next: ${caption(p.e.label)}` : caption(p.e.label),
+      tone: p.t > now ? 'text-warn-700' : KIND_TONE[p.e.kind],
+    }))
+  }
   const past = pts.filter(p => p.t <= now)
   const future = pts.filter(p => p.t > now)
   const firstWhere = (arr: Pt[], f: (p: Pt) => boolean) => arr.find(f)
@@ -136,7 +158,7 @@ export function TimelineStrip({ events, onOpenSource }: { events: TimelineEvent[
             <button key={i} type="button" onClick={() => open(p.e)} onMouseEnter={() => setHover(p)} onMouseLeave={() => setHover(null)}
               onFocus={() => setHover(p)} onBlur={() => setHover(null)} aria-label={`${p.e.label}, ${fmtDate(p.e.date, true)}`}
               className="absolute top-[10px] -ml-[7px] grid h-[14px] w-[14px] cursor-pointer place-items-center rounded-full" style={{ left: `${p.x}%` }}>
-              <span className={`block rounded-full transition-transform ${labelled.has(p.e) ? 'h-2.5 w-2.5 ring-2 ring-white' : 'h-[7px] w-[7px] opacity-80'} ${p.t > s.now ? 'bg-white ring-[1.5px] !ring-warn-600' : DOT[p.e.kind]} ${hover === p ? 'scale-150' : ''}`} />
+              <span className={`block rounded-full transition-transform ${labelled.has(p.e) ? 'h-2.5 w-2.5 ring-2 ring-white' : p.e.major ? 'h-2 w-2' : 'h-[6px] w-[6px] opacity-70'} ${p.t > s.now ? 'bg-white ring-[1.5px] !ring-warn-600' : DOT[p.e.kind]} ${hover === p ? 'scale-150' : ''}`} />
             </button>
           ))}
           {/* today */}

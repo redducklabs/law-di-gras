@@ -75,6 +75,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
                 <SourceChips citations={d.last_client_contact.citations} onOpen={onOpenSource} max={1} />
               </div>
             )}
+            {d.recent.length > 0 && <RecentActivity items={d.recent} onOpenSource={onOpenSource} />}
           </Card>
           <div className="order-first lg:order-none lg:col-span-5">
             <NextSteps data={d} onOpenSource={onOpenSource} />
@@ -151,6 +152,36 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
           {onRefresh && <button type="button" onClick={onRefresh} className="cursor-pointer text-brand-700 hover:underline">· re-digest</button>}
         </footer>
       </div>
+    </div>
+  )
+}
+
+const RECENT_VISIBLE = 4
+
+function RecentActivity({ items, onOpenSource }: { items: Fact[]; onOpenSource?: (c: Citation) => void }) {
+  const [all, setAll] = useState(false)
+  const shown = all ? items : items.slice(0, RECENT_VISIBLE)
+  return (
+    <div className="mt-5 border-t border-line-soft pt-4">
+      <div className="mb-2 flex items-baseline justify-between">
+        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Recent activity</h3>
+        {items.length > RECENT_VISIBLE && (
+          <button type="button" onClick={() => setAll(v => !v)} className="cursor-pointer text-[12px] font-semibold text-brand-700 hover:underline">
+            {all ? 'Show fewer' : `All ${items.length}`}
+          </button>
+        )}
+      </div>
+      <ul>
+        {shown.map(f => (
+          <li key={f.id} className="flex gap-3 py-1.5 text-[13px]">
+            <span className="w-12 shrink-0 pt-px text-[12px] tabular-nums text-slate-400">{fmtDate(f.date)}</span>
+            <span className="min-w-0 flex-1">
+              <span className={f.verified ? 'text-slate-800' : 'text-warn-700'} title={f.value}>{f.label}</span>{' '}
+              <SourceChips citations={f.citations} onOpen={onOpenSource} max={1} />
+            </span>
+          </li>
+        ))}
+      </ul>
     </div>
   )
 }
