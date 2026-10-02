@@ -49,6 +49,7 @@ class TimelineEvent(BaseModel):
     label: str
     kind: Literal["incident", "treatment", "legal", "communication", "deadline"]
     is_future: bool = False
+    major: bool = False  # one of the ~12 milestones worth showing on a compact strip
     citations: list[Citation] = Field(default_factory=list)
 
 

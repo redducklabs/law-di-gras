@@ -35,6 +35,7 @@ export interface TimelineEvent {
   label: string
   kind: 'incident' | 'treatment' | 'legal' | 'communication' | 'deadline'
   is_future: boolean
+  major?: boolean // one of the ~12 milestones worth showing on a compact strip
   citations: Citation[]
 }
 
