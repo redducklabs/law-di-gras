@@ -26,7 +26,8 @@ def _main_checkout() -> Path:
 
 
 REPO_ROOT = _main_checkout()
-ENV_PATH = REPO_ROOT / ".env"
+# ENV_FILE: hosted demo keeps Clio tokens on its data volume (deploy/docker-compose.yml).
+ENV_PATH = Path(os.getenv("ENV_FILE") or REPO_ROOT / ".env")
 load_dotenv(ENV_PATH)
 
 DATA_DIR = Path(os.getenv("DATA_DIR") or REPO_ROOT / "backend" / "data")

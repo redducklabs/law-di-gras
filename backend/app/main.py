@@ -26,7 +26,7 @@ init_db()
 
 # Each stream exposes `router` in its module. Missing modules are skipped so
 # streams can land independently.
-for module in ("app.api.sources", "app.api.digest", "app.api.share"):
+for module in ("app.api.sources", "app.api.digest", "app.api.share", "app.clio.web", "app.demo_auth"):
     try:
         app.include_router(importlib.import_module(module).router)
     except ModuleNotFoundError as e:
