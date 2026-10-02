@@ -201,6 +201,11 @@ def build_view(matter_id: str, provider: Provider, s: ShareSettings) -> Provider
         case_active=case_active,
         last_activity_date=last if sec.status else None,
     )
+    # Sections the attorney enabled are always lists (empty before the digest exists).
+    view.coverage = [] if sec.coverage else None
+    view.requests = [] if sec.requests else None
+    view.treatment = [] if sec.treatment else None
+    view.timeline = [] if sec.timeline else None
     if dash:
         if sec.coverage:
             view.coverage = [_fact(f, allowed) for f in dash.kpis.coverage]
