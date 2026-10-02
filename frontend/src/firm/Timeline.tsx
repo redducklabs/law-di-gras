@@ -18,8 +18,8 @@ const KIND_LABEL: Record<Kind, string> = {
 const SUIT_RE = /\b(summons|complaint|lawsuit|suit|petition)\b.*\b(filed|commenced|served|dated)\b|\b(filed|commenced)\b.*\b(suit|lawsuit|complaint)\b/i
 const SOL_RE = /statute of limitations|limitations date|\bSOL\b/i
 
-const MAX_LABELS = 7
-const LABEL_ROWS = 2
+const MAX_LABELS = 5
+const LABEL_ROWS = 1
 const CHAR_PX = 6.2
 /** Share of the strip given to the future (today → last upcoming event), so upcoming items are readable. */
 const FUTURE_FRAC = 0.16

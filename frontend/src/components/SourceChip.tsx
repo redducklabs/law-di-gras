@@ -40,10 +40,11 @@ export function SourceChip({ citation: c, onOpen, compact = false }: {
   )
 }
 
-export function SourceChips({ citations, onOpen, max = 3 }: {
+export function SourceChips({ citations, onOpen, max = 3, showMore = true }: {
   citations: Citation[]
   onOpen?: (c: Citation) => void
   max?: number
+  showMore?: boolean
 }) {
   if (!citations.length) return null
   const shown = citations.slice(0, max)
@@ -51,7 +52,7 @@ export function SourceChips({ citations, onOpen, max = 3 }: {
   return (
     <span className="inline-flex max-w-full min-w-0 flex-wrap items-center gap-1">
       {shown.map((c, i) => <SourceChip key={`${c.source_id}-${i}`} citation={c} onOpen={onOpen} />)}
-      {more > 0 && <span className="text-[11px] text-slate-400">+{more}</span>}
+      {showMore && more > 0 && <span className="text-[11px] text-slate-400">+{more}</span>}
     </span>
   )
 }

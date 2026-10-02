@@ -75,7 +75,7 @@ export function Tile({ fact, label, tone = 'neutral', sub, onOpen, compact = fal
             {fact.value}
           </div>
           {sub && <div className="mt-0.5 truncate text-[12px] text-slate-500">{sub}</div>}
-          <div className={`mt-auto ${compact ? 'pt-2' : 'pt-3'}`}><SourceChips citations={fact.citations} onOpen={onOpen} max={compact ? 1 : 2} /></div>
+          <div className={`mt-auto ${compact ? 'pt-2' : 'pt-3'}`}><SourceChips citations={fact.citations} onOpen={onOpen} max={compact ? 1 : 2} showMore={!compact} /></div>
         </>
       ) : (
         <div className="mt-1 text-[14px] text-slate-400">Not found in the record</div>
