@@ -136,3 +136,22 @@ export interface ProviderView {
   timeline?: TimelineEvent[] | null
   documents?: { source_id: string; title: string }[] | null
 }
+
+export interface DraftRequest {
+  action_index?: number | null
+  title?: string | null
+}
+
+export interface DraftSegment {
+  text: string
+  kind: 'fact' | 'ask' | 'courtesy'
+  citations: Citation[]
+  verified: boolean
+}
+
+// AI draft for attorney review; never sent by the app.
+export interface Draft {
+  subject: string
+  segments: DraftSegment[]
+  unverified: string[]
+}

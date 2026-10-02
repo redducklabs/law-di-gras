@@ -189,3 +189,21 @@ class ProviderView(BaseModel):
     updates_since: str | None = None  # this link's previous view, else 30 days ago
     timeline: list[TimelineEvent] | None = None
     documents: list[SharedDocument] | None = None
+
+
+class DraftRequest(BaseModel):
+    action_index: int | None = None  # index into Dashboard.actions
+    title: str | None = None         # or match an action by title
+
+
+class DraftSegment(BaseModel):
+    text: str
+    kind: Literal["fact", "ask", "courtesy"]
+    citations: list[Citation] = Field(default_factory=list)
+    verified: bool = False
+
+
+class Draft(BaseModel):
+    subject: str
+    segments: list[DraftSegment] = Field(default_factory=list)
+    unverified: list[str] = Field(default_factory=list)  # tokens/claims the record does not support
