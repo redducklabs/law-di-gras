@@ -3,10 +3,9 @@
 # with deploy/seed-data.sh and never passes through GitHub (public repo).
 name: demo-deploy
 
+# Manual only: auto-deploying every push to main restarted the API and killed
+# in-flight Clio syncs. Run: gh workflow run demo-deploy.yml
 on:
-  push:
-    branches: [main]
-    paths: ['backend/**', 'frontend/**', 'deploy/**', '.github/workflows/demo-deploy.yml']
   workflow_dispatch:
 
 concurrency: demo-deploy

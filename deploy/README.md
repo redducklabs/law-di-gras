@@ -34,8 +34,8 @@ Repository **variables** (optional): `DEMO_BASIC_AUTH_USER` (default `demo`),
 
 1. Actions → **demo-provision** → Run, type `CREATE`. Creates the Droplet,
    registers the deploy key, and creates/updates only the `demo` A record.
-2. Actions → **demo-deploy** → Run (later pushes to `main` that touch
-   `backend/`, `frontend/`, `deploy/` deploy automatically).
+2. Actions → **demo-deploy** → Run (`gh workflow run demo-deploy.yml`). Manual
+   only: a deploy restarts the API, which kills an in-flight Clio sync.
 3. Seed the case data from the laptop (Git Bash, repo root):
    `deploy/seed-data.sh`. Data never goes through GitHub (the repo is public).
 
