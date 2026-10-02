@@ -19,10 +19,18 @@ The short version:
   Commit to `main` only when the user asks.
 - When a choice forks, pick what gets the demo working sooner and say so.
 
+## Audience: trial attorneys
+
+Users are trial attorneys, not consumers. Use litigation vocabulary, make every
+claim trace to its source (document, page, line or highlighted span), keep
+quotes verbatim and visibly mark anything unverified, favor dense scannable
+screens and paste-ready citation formats, present AI output as a draft for
+attorney review, and use only sample or public case materials in the demo.
+
 ## Challenge
 
-Not known yet. Do not write application code or pick a stack until the user
-says so. Once known, it lives in `docs/challenge.md`.
+Not known yet beyond the audience. Do not write application code or pick a
+stack until the user says so. Once known, it lives in `docs/challenge.md`.
 
 ## Reuse before you build
 
@@ -35,7 +43,8 @@ never modify them.
 
 - No hallucinated law: legal citations come only from retrieved or
   user-supplied material, never model memory.
-- Legal output is information, not advice, unless users are lawyers.
+- No consumer "information, not advice" framing; write direct professional
+  analysis marked as a draft for attorney review.
 - Structured LLM output uses forced tool calling, not text parsing.
 - No secrets in git; use `.env` plus `.env.example`.
 

@@ -8,14 +8,24 @@ These are patterns worth copying from two earlier Red Duck Labs legal projects. 
 - `R:` means `C:\Repos\redducklaw\`.
 - Line numbers were accurate on 2026-10-01 and may drift.
 
-## Lift order if the challenge involves AI over legal text
+## Fit for trial attorneys
+
+The users are trial attorneys, so redducklaw is the closer match: it was built
+for litigators (summary judgment, deposition page:line cites, separate
+statements). Its citation chip, quote finding, citation verification and
+litigation citation parser (R2, R7, R8, R10) are high-value. From aurolegal.ai,
+take the grounding machinery (A1–A4, A6–A8, A12) and skip the consumer-facing
+pieces: UPL judges (A5, except `merge_verdict`), the standing gates, and the
+traffic-specific retrieval scoping (A10).
+
+## Lift order if the challenge involves AI over case materials
 
 1. Grounding prompt block (A1)
 2. Forced tool-call helper (A6)
 3. Ungrounded-citation detector plus regenerate-once-then-scrub (A2, A3)
 4. Findings-only judges with a correction addendum (A4)
 5. Verbatim quote checking and prompt fencing (A7, A8)
-6. Citation chip and viewer, upgraded to real highlights (R1–R3, plus the gaps listed under PDF viewing)
+6. Citation chip and viewer, upgraded to real highlights (R1–R3, plus the gaps listed under PDF viewing). For attorneys, verifiable source highlighting is likely the core of the demo, so consider moving this up.
 
 ---
 
@@ -32,7 +42,7 @@ Background reading:
 | A2 | Deterministic ungrounded-citation detector | Regexes find statutes and case names, normalize each to a canonical key, and flag any that were not in that generation's retrieval. | `A:services/contest_letter/citations.py` L836 (`find_ungrounded_citations`); `citation_patterns.py`; `A:services/citation_keys.py` (`canonical_section_key`) | The logic is portable. The regex patterns cover only CA, TX and FL, so write new ones for your jurisdiction. |
 | A3 | Regenerate once, then scrub | Regenerate once with a correction listing the bad citations. Anything still ungrounded is removed, either the whole paragraph or the reference itself, which becomes "the applicable law". | Cleanest template: `A:services/improvement_chat_grounding.py` L159 (`ground_chat_reply`). Also `citations.py` L1154 (`scrub_hallucinated_citations`) and `A:services/citation_scrub.py` L59 (`scrub_ungrounded_law`) | High. Pure functions over text plus a regenerate callback. |
 | A4 | Findings-only judges | A cheap judge returns typed findings, never rewritten text. The findings become a capped correction addendum for one regeneration. The fact judge looks for fabricated, contradicted or invented details. The substance judge checks that a cited source actually supports the claim it is cited for. | `A:services/contest_letter/fact_grounding_judge.py` L138 (prompt), L259, L344 (addendum); `A:services/contest_letter/citation_substance_judge.py` L116, L187 | High. Needs only the output text, the facts and the source text. |
-| A5 | UPL judge and `merge_verdict` | The UPL judge flags outcome predictions and advice phrasing. Judges run in parallel and fail closed. `merge_verdict` combines them into accept, regenerate or fallback. | `A:services/contest_letter/upl_judge.py` L142; `A:services/upl_llm_judge.py` L256; `A:services/conversational_judge.py` L78 (`merge_verdict`) | Very high. `merge_verdict` is a pure function. Skip UPL if the users are lawyers. |
+| A5 | UPL judge and `merge_verdict` | The UPL judge flags outcome predictions and advice phrasing. Judges run in parallel and fail closed. `merge_verdict` combines them into accept, regenerate or fallback. | `A:services/contest_letter/upl_judge.py` L142; `A:services/upl_llm_judge.py` L256; `A:services/conversational_judge.py` L78 (`merge_verdict`) | Skip the UPL judges (users are attorneys). `merge_verdict` is still a useful pure function. |
 | A6 | Forced `tool_choice` with a validation retry | Uses `tool_choice` with a schema and validates the result with Pydantic. On failure it sends back an error `tool_result` and retries up to 3 times. | `A:services/tool_validation.py` L263 (`invoke_with_tool_validation`) | High. Swap its internal router for the Anthropic SDK. |
 | A7 | Verbatim span verification | A fact the model extracts is accepted only if it is a verbatim slice of the source. Each citation resolves to a highlight range inside its source section. | `A:services/intake/fact_evidence.py` L100 (`find_verbatim_span`); `citations.py` L493 (`_resolve_chunk_span`) and L512 (`_compute_highlight_range`) | Very high. Pure string code. This connects directly to PDF highlighting. |
 | A8 | Prompt-injection fencing | Strips invisible characters, caps length, and wraps user data in `<captured_facts>` / `<intake_transcript>` tags that the prompt says are data, not instructions. | `A:services/intake/prompt_facts.py` L339, L383, L474 | High. |

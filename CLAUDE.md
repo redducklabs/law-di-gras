@@ -25,12 +25,37 @@ working, demoable prototype, fast.** Everything in this file bends toward that.
   which one you picked. Ask only when the answer changes what the user will see
   or cannot be undone.
 
+## Who we are building for: trial attorneys
+
+The users are **trial attorneys** (litigators preparing for and running trials),
+not consumers. Every design, prompt, and copy decision targets them:
+
+- **Speak their language.** Use litigation terms as-is (exhibits, depositions,
+  pin cites, motions in limine, impeachment, witness outlines, separate
+  statements). Do not simplify legal concepts or add consumer hand-holding.
+- **Every claim traces to the record.** An attorney will not trust or use an
+  output they cannot verify in seconds. Each factual or legal assertion links to
+  its source: document, page, and line or highlighted span, opening the source
+  right there (see the PDF patterns in the catalog).
+- **Courtroom-grade accuracy.** A wrong cite or misquoted testimony in front of a
+  judge damages the attorney's credibility. Quotes must be verbatim; anything the
+  app cannot verify is visibly marked, never presented as fact.
+- **Time pressure is the context.** Trial prep happens late at night and between
+  sessions. Favor dense, scannable screens, fast search, keyboard-friendly flows,
+  and outputs they can paste into a brief or outline (proper citation formats).
+- **Draft, not decision.** Outputs are work product the attorney reviews and
+  owns. The AI assists their judgment; it does not replace it.
+- **Treat case materials as confidential and privileged.** Use sample or public
+  documents for the demo; never send real client files anywhere the user did not
+  approve.
+
 ## The challenge
 
-**Not known yet.** It will be announced at the hackathon. Until then, do not
-write application code or pick a stack beyond what the user asks for. When the
-challenge is known, record it in `docs/challenge.md` and update this section with
-a one-sentence product goal.
+**Not known yet** beyond the audience above. It will be announced at the
+hackathon. Until then, do not write application code or pick a stack beyond what
+the user asks for. When the challenge is known, record it in
+`docs/challenge.md` and update this section with a one-sentence product goal for
+trial attorneys.
 
 ## Reuse before you build
 
@@ -57,9 +82,9 @@ in a legal demo.
   user supplied, never from model memory. Prefer the simplest grounding pattern
   in the catalog that works; a clearly labeled "unverified" state is acceptable
   for a demo, a confidently invented citation is not.
-- **Information, not advice.** User-facing legal output is framed as general
-  information, with a short disclaimer, unless the challenge says the users are
-  lawyers.
+- **No consumer UPL framing.** The users are attorneys, so skip "information,
+  not advice" disclaimers and hedged consumer copy. Write direct, professional
+  analysis, and mark AI output as a draft for attorney review.
 - **Structured LLM output uses forced tool calling** (`tool_choice` +
   `input_schema`), not regex or `json.loads` on free text. It is also the
   fastest path to reliable output.
