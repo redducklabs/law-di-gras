@@ -248,6 +248,25 @@ sources, timeline dates, share targets).
 
 Done well: the trick question ("our summary judgment motion") correctly says there is none in the record and distinguishes the prior cross-motion dismissal. The Pullano answer is hedged correctly ("no record it happened"). Last client contact matches the record.
 
+## Check 8: S7 Blind spots (cached review 19:37 UTC, 5 findings)
+
+What I checked:
+- All **27/27 citation quotes are verbatim** and on the cited page (span check).
+- Each claim is read against its full source page: the Metro-North IR-1 and
+  cover sheet (doc-40 pp3–4), notes, emails, and the Hostin and Tsao reports.
+- The review is firm-only; nothing in `share/` references it, so providers never
+  see this strategy content.
+
+| Finding | Verdict | Why |
+|---|---|---|
+| bs1: IR-1 says Ferrara "was heading to the jobsite", On-Duty, while the 9/5/2026 email says the incident report was not produced | **KEEP** | Verified. IR-1 (doc-40 p3, filed on NYSCEF 09/30/2025) reads "Mr.Ferrara was heading to the jobsite", with On-Duty marked. Doc-40 p1 says "Annexed hereto is the Metro-North Railroad Incident Report". The firm's own 9/5/2026 email to CSB says "neither of which appears in your response". The finding is real and strong. Optional: note that the dispatch records may still genuinely be missing. |
+| bs2: Travelers auto policy on Metro-North's cover sheet vs self-insured vs $100k/$300k | **KEEP (small fix)** | Verified. Metro-North's own Accident Report Cover Sheet (doc-40 p4) lists "Automobile Policy # HC2ECAP477M0330TCT19-Travelers Indemnity". The "Policy Limits Confirmed" flag (custom field = True) and the valuation note's "Recovery is capped… The defendant carries $100,000" both exist. **Fix:** cite them; they are claimed in why-it-matters but not in the citations. |
+| bs3: No record of Pullano being deposed; EBT subpoena 12/8/2025 | **KEEP (fix wording)** | It is hedged correctly ("No record found…", "nothing on file showing it was held"), and the 3/6/2026 note (2996972423) lists the Pullano deposition as still outstanding, so add that cite. **Fix two overreaches:** (1) "the **only** non-party eyewitness": plaintiff's discovery response refers to witnesses "listed on the Police Accident Report", so say "a non-party eyewitness". (2) "raise non-compliance at the **upcoming compliance conference**": no compliance conference is scheduled. The only calendar entries are a past one (4/15/2025) and a 10/21 internal file review, so drop "upcoming" or say "request a compliance conference". |
+| bs4: Police report conflict, plus "Metro-North's report places the crash on an Exit# 16 ramp" (location conflict) | **FIX: cut the location half** | The police-report half is verified: plaintiff's doc-08 says "Annexed is a copy of the Police Accident Report", Hostin lists one dated 4/23/2023, and the firm's 9/15 note says "There is no police accident report in the file". **The location conflict is overreach.** The **same** Metro-North document's cover sheet (doc-40 p4) gives "Accident Loc/Town/St: **Cedar St & Garden St, New Rochelle**", matching our bill of particulars, and the IR-1 says he was "getting off the Exit#16 in NewRochelle". The record doesn't show two different locations. The suggestion that "the defense will use it to impeach him" is not supported. Retitle it as the police-report conflict only. |
+| bs5: Two mechanisms told to the two defense examiners; prior-injury denial vs 2011 ankle/foot X-rays; discovery response "Not applicable" | **KEEP** | Verified. Hostin p4: "his vehicle struck another vehicle as both were merging". Tsao p3: "sideswiped by a truck and struck the sidewalk" and "no reported… unrelated injuries". Tsao p4 records list "X-ray report of the left ankle, dated 10/5/11". Plaintiff's doc-08 p4 says "PRIOR AND/OR SUBSEQUENT INJURIES Not applicable". The next step (supplement the response, deposition prep) is sound practice. |
+
+Net: **3 keep (bs1, bs5, bs2 with cites added), 2 fix (bs3 wording, bs4 cut the location claim).** None needs to be cut entirely. bs1 is the strongest demo moment.
+
 ## Status
 
 - [x] Checks 1–6 run on the current cached dashboard.
