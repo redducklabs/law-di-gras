@@ -13,6 +13,7 @@ from rapidfuzz import fuzz
 from app.config import CASE_VALUE_MULTIPLIER_HIGH, CASE_VALUE_MULTIPLIER_LOW
 from app.db import connect
 from app.digest import structured as st
+from app.digest.spans import locate
 from app.digest.brief import write_brief
 from app.digest.curate import mark_milestones, recent_activity
 from app.digest.conflicts import check_statements
@@ -25,7 +26,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 20
+PIPELINE_REV = 21
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -99,6 +100,34 @@ def _suit_filed_before(ex: dict[str, list[Extracted]], deadline: str) -> Extract
     return min(hits, key=lambda x: x.date) if hits else None
 
 
+_FILED_STAMP = re.compile(r"FILED:?[^\n]{0,40}?(\d{1,2}/\d{1,2}/\d{4})")
+_PERSON = re.compile(r"(?:Dr\.?\s+)?([A-Z][a-z]+(?:\s+[A-Z]\.)?\s+([A-Z][a-z]{2,}))")
+
+
+def _filed_before(matter_id: str, e: TimelineEvent):
+    """(filed date, citation of the stamp) for a filed document naming this event's person, stamped
+    before the event's calendar date; None otherwise."""
+    from app.retrieval.search import search_hits
+    m = _PERSON.search(e.label.removeprefix("Calendar: ").split(",", 1)[-1])
+    if not m:
+        return None
+    surname = m.group(2)
+    with connect() as conn:
+        for h in search_hits(matter_id, e.label.removeprefix("Calendar: "), top_k=6):
+            if h.kind != "document" or surname.lower() not in (h.title + " " + h.text).lower():
+                continue
+            s = _FILED_STAMP.search(h.text)
+            if not s:
+                continue
+            mm, dd, yy = s.group(1).split("/")
+            filed = f"{yy}-{int(mm):02d}-{int(dd):02d}"
+            if filed < e.date:
+                c = locate(conn, h.source_id, s.group(0), h.page_no)
+                if c and c.verified:
+                    return filed, c
+    return None
+
+
 def _apply_finding(f: Fact, v, cit, injury: bool = False, bullet: bool = False) -> None:
     """Make a whole-record conflict or caveat visible on the fact, citing the other source too."""
     if cit is None or v.verdict not in ("contradicted", "qualified"):
@@ -166,14 +195,15 @@ def _future(d: str, today: date) -> bool:
     return date.fromisoformat(d) > today
 
 
-def build(matter_id: str, force: bool = False) -> Dashboard:
+def build(matter_id: str, force: bool = False, store: bool = True) -> Dashboard:
+    """store=False builds a preview without touching the cached dashboard (e.g. while it is audited)."""
     ih = input_hash(matter_id)
     row = _cached_row(matter_id)
-    if row and _rev_of(row["input_hash"]) > PIPELINE_REV:
+    if store and row and _rev_of(row["input_hash"]) > PIPELINE_REV:
         print(f"dashboard cached by pipeline r{_rev_of(row['input_hash'])} > this server's r{PIPELINE_REV}:"
               " serving it as-is; restart this server to pick up the newer code")
         return Dashboard.model_validate_json(row["payload_json"])
-    if not force and row and row["input_hash"] == ih:
+    if store and not force and row and row["input_hash"] == ih:
         return Dashboard.model_validate_json(row["payload_json"])
 
     matter = matter_summary(matter_id)
@@ -188,7 +218,8 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     ex = extract_all(matter_id)
     vstats = verify_values(matter_id, ex)
     print(f"fact values verified: {vstats}")
-    save_facts(matter_id, ex, ih)
+    if store:
+        save_facts(matter_id, ex, ih)
 
     facts: dict[str, list[Fact]] = {cat: [_fact(x, f"{cat}-{i}") for i, x in enumerate(items)]
                                     for cat, items in ex.items()}
@@ -316,8 +347,16 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     cal_events, cal_actions = st.calendar(matter_id, today)
     # Past calendar entries are only the firm's plan: surface records that put the event on another date.
     past_cal = [e for e in cal_events if not e.is_future and e.kind in ("legal", "deadline")]
-    for e, (v, cit) in zip(past_cal, check_statements(
-            matter_id, [(f"{e.label.removeprefix('Calendar: ')} took place on {e.date}", e.citations) for e in past_cal],
+    for e in past_cal:  # deterministic first: a filed report about the same person stamped BEFORE the date
+        stamp = _filed_before(matter_id, e)
+        if stamp:
+            filed, cit = stamp
+            e.label = f"{e.label} (Conflict: report filed {filed}, before this calendar date)"
+            e.citations = list(e.citations) + [cit]
+            unconfirmed.add(id(e))
+    rest_cal = [e for e in past_cal if "Conflict" not in e.label]
+    for e, (v, cit) in zip(rest_cal, check_statements(
+            matter_id, [(f"{e.label.removeprefix('Calendar: ')} took place on {e.date}", e.citations) for e in rest_cal],
             purpose="record_check_calendar")):
         if v.verdict == "contradicted" and cit is not None:
             e.label = f"{e.label} (Conflict: {v.note.strip().rstrip('.')})"
@@ -371,16 +410,30 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
 
     pool: list[Fact] = [f for cat in ("incident", "injuries", "coverage", "liens", "key_dates", "stage")
                         for f in facts.get(cat, [])]
-    pool += billed + [f for f in (specials, spent, contact) if f]
+    adverse = st.adverse_parties(matter_id)
+    pool += billed + [f for f in (specials, spent, contact, adverse) if f]
     pool = [f for f in pool if f.verified]
     stage = st.clio_stage(matter_id)
     status = matter.status + (f"; Clio matter stage: {stage}" if stage else "")
     headline = write_brief(matter_id, pool, actions, status, today)
+    if adverse and len(headline.status_line.split()) < 4:  # verifier stripped it: grounded fallback
+        names = [p.split(" (")[0] for p in adverse.value.split("; ")]
+        headline.status_line = f"{headline.stage or 'Open'}: case against {' and '.join(names)}."
+        headline.status_citations = list(headline.status_citations) + adverse.citations
     status_fact = Fact(id="status", label="Status", value=headline.status_line, citations=headline.status_citations)
     hl = [status_fact] + headline.bullets
     for f, (v, cit) in zip(hl, check_statements(matter_id, [(f.value, f.citations) for f in hl],
                                                 purpose="record_check_headline")):
         _apply_finding(f, v, cit, bullet=True)
+    if adverse:  # a status line naming one adverse party must name all of them
+        names = [p.split(" (")[0] for p in adverse.value.split("; ")]
+        def _named(n: str) -> bool:
+            keys = [w for w in re.findall(r"[A-Za-z][A-Za-z-]{3,}", n) if w.lower() not in ("commuter", "railroad", "company")]
+            return any(k.lower() in status_fact.value.lower() for k in keys[-1:] + keys[:1])
+        named = [n for n in names if _named(n)]
+        if named and len(named) < len(names):
+            status_fact.value = f"{status_fact.value.rstrip('.')} (adverse parties: {'; '.join(names)})."
+            status_fact.citations = list(status_fact.citations) + adverse.citations
     headline.status_line, headline.status_citations = status_fact.value, status_fact.citations
     case_value = value_range(specials, facts.get("coverage", []), facts.get("liens", []))
 
@@ -405,6 +458,8 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
         treatment=treatment,
         recent=recent_activity(matter_id, today),
     )
+    if not store:
+        return dash
     with connect() as conn:
         cur = conn.execute("SELECT input_hash, payload_json FROM digests WHERE matter_id = ? AND kind = 'dashboard'",
                            (matter_id,)).fetchone()

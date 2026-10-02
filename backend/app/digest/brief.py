@@ -21,7 +21,7 @@ from app.llm import MODEL_OPUS, structured
 from app.retrieval.fence import FENCE_RULE
 from app.schemas import ActionItem, Citation, Fact, Headline
 
-VERSION = "b5"
+VERSION = "b6"
 
 
 class Bullet(BaseModel):
@@ -69,7 +69,7 @@ Write:
 - Do not state a settlement value or range; the dashboard computes it by a fixed rule.{retry}"""
 
 # Facts computed in code from cited Clio rows: their value is itself evidence.
-DERIVED = ("specials", "firm_spent", "last_client_contact", "charge-", "billed-")
+DERIVED = ("specials", "firm_spent", "last_client_contact", "charge-", "billed-", "adverse_parties")
 
 
 def _quotes(f: Fact) -> list[str]:

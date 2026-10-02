@@ -256,3 +256,23 @@ def clio_stage(matter_id: str) -> str | None:
         m = conn.execute("SELECT raw_json FROM matters WHERE id = ?", (matter_id,)).fetchone()
     stage = (_raw(m).get("matter_stage") or {}) if m else {}
     return stage.get("name") if isinstance(stage, dict) else None
+
+
+_ADVERSE = re.compile(r"(?<![a-z])(adverse|defendant)", re.I)
+
+
+def adverse_parties(matter_id: str) -> Fact | None:
+    """Every contact whose Clio role marks them adverse (defendant, adverse driver/party), cited to the
+    contact row. Used so the status line names everyone the case is against."""
+    out, cits = [], []
+    with connect() as conn:
+        for row in conn.execute("SELECT * FROM sources WHERE matter_id = ? AND kind = 'contact' ORDER BY id",
+                                (matter_id,)).fetchall():
+            role = _raw(row).get("role") or ""
+            if _ADVERSE.search(role) and not re.search(r"administrator|adjuster|counsel|attorney", role, re.I):
+                out.append(f"{row['title']} ({role})")
+                cits.append(row_citation(conn, row, row["title"]))
+    if not out:
+        return None
+    return Fact(id="adverse_parties", label="Adverse parties (Clio contacts)", value="; ".join(out),
+                citations=cits, verified=True)

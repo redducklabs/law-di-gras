@@ -10,6 +10,7 @@ generic PI vocabulary.
 """
 
 import hashlib
+import re
 import json
 from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, field
@@ -317,20 +318,49 @@ def verify_values(matter_id: str, extracted: dict[str, list[Extracted]]) -> dict
             todo.append(x)
     if not todo:
         return {"checked": 0}
-    judged = judge_claims(matter_id, [(x.value, [c.quote for c in x.citations if c.verified]) for x in todo],
-                          purpose="verify_facts")
+    from app.digest.spans import find_span
+
+    def split(v: str) -> tuple[str, str]:
+        """Client-side text vs the attributed defense opinion, which is verified on its own."""
+        i = v.find("Defense ")
+        return (v[:i].rstrip(), v[i:]) if i > 0 else (v, "")
+
+    def defense_ok(dpart: str, x: Extracted, quotes: "Corpus") -> bool:
+        quoted = re.findall(r'["“]([^"”]{6,})["”]', dpart)
+        with connect() as conn:  # match against the cited sources' full text, not just the short span
+            cited = [c.quote for c in x.citations if c.verified] + [
+                (conn.execute("SELECT text FROM pages WHERE source_id = ? AND page_no = ?", (c.source_id, c.page)).fetchone()
+                 or conn.execute("SELECT text FROM sources WHERE id = ?", (c.source_id,)).fetchone() or [""])[0] or ""
+                for c in x.citations if c.verified]
+        if not quoted or not all(any(find_span(q.strip(" .,"), t) for t in cited) for q in quoted):
+            return False  # the defense opinion must be quoted verbatim from a cited source
+        rest = re.sub(r'["“][^"”]*["”]', "", dpart)
+        # the attribution (reviewer's name) must appear in the cited sources themselves
+        return not check_tokens(rest, Corpus("\n".join(cited)), names)
+
+    # the source title travels with each quote so attributions ("Defense review (Dr. X)") stay supported
+    parts = [split(x.value) for x in todo]
+    judged = judge_claims(matter_id, [(m, [f"[{c.source_title}] {c.quote}" for c in x.citations if c.verified])
+                                      for x, (m, _) in zip(todo, parts)], purpose="verify_facts")
     stripped = flagged = 0
-    for x, j in zip(todo, judged):
+    for x, (main, dpart), j in zip(todo, parts, judged):
         quotes = Corpus("\n".join(f"{c.source_title}\n{c.quote}" for c in x.citations if c.verified))
-        bad = check_tokens(x.value, quotes, names) + list(j.unsupported)
-        if not bad:
-            continue
-        safe = j.supported_text.strip()
-        lost_attribution = "Defense" in x.value and "Defense" not in safe
-        if safe and not lost_attribution and not check_tokens(safe, quotes, names):
-            x.value = safe
-            stripped += 1
-        else:
+        ok = True
+        bad = check_tokens(main, quotes, names) + list(j.unsupported)
+        if bad:
+            safe = j.supported_text.strip()
+            if safe and not check_tokens(safe, quotes, names):
+                main = safe
+                stripped += 1
+            else:
+                ok = False
+        if dpart and not defense_ok(dpart, x, quotes):
+            ok = False
+            print(f"verify: defense part not verbatim for {x.label!r}")
+        if not ok and bad:
+            print(f"verify: unsupported in {x.label!r}: {bad[:4]}")
+        x.value = f"{main} {dpart}".strip() if dpart else main
+        if not ok:
             x.value_ok = False
             flagged += 1
     return {"checked": len(todo), "stripped": stripped, "flagged": flagged}

@@ -21,7 +21,7 @@ from app.retrieval.fence import FENCE_RULE
 from app.retrieval.search import search_hits
 from app.schemas import Citation
 
-VERSION = "k4"
+VERSION = "k5"
 
 
 class Verdict(BaseModel):
@@ -45,7 +45,10 @@ SYSTEM = (
     "CANNOT be true at the same time as the statement (a different amount or limit for the same thing, a "
     "document the statement says does not exist, an event the statement says did not happen). Extra detail, "
     "a fuller list, or the same fact in other words is NOT a contradiction. When a real contradiction exists "
-    "anywhere, report it even if other passages support the statement. Give the source_id of "
+    "anywhere, report it even if other passages support the statement. "
+    "Dates matter: a report, record or filing about an event that is itself dated or filed BEFORE the "
+    "statement's date for that event contradicts that date (e.g. a filed examination report dated months "
+    "before the calendar date of the examination). Give the source_id of "
     "the deciding passage and a short VERBATIM quote copied exactly from it. Tense matters (scheduled or "
     "recommended is not done). note: max 12 words, ONLY what that passage itself states, keeping its "
     "amounts and figures exactly, then its party and date in parentheses, e.g. '$100,000 per person / "
