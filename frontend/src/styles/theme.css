@@ -122,6 +122,8 @@ h1, h2 { font-family: var(--font-display); }
 [data-skin="pinstripe"] .uppercase.tracking-wider:not([class*="text-warn"]):not([class*="text-danger"]):not([class*="text-ok"]) {
   color: var(--brass-ink);
 }
+/* The one headline sentence reads like a brief, not a UI label. */
+[data-skin="pinstripe"] p.text-\[18px\].font-medium { font-family: var(--font-display); font-size: 20px; font-weight: 500; line-height: 1.4; }
 /* Dates and numbers read like a docket. */
 [data-skin="pinstripe"] .tabular-nums { font-variant-numeric: tabular-nums lining-nums; }
 /* Pinstripe band on top-level headers. */
