@@ -25,7 +25,7 @@ from app.retrieval.fence import FENCE_RULE, fence
 from app.retrieval.search import search_hits
 from app.schemas import ActionItem, Citation, Draft, DraftRequest, DraftSegment
 
-VERSION = "dr3"
+VERSION = "dr4"
 
 
 class Ev(BaseModel):
@@ -49,7 +49,8 @@ SYSTEM = (
     "before anything is sent. Write as the firm. Split the message into segments: 'fact' segments "
     "state something from the record and MUST carry evidence quotes copied character-for-character "
     "from the numbered passages; 'ask' segments make the request; 'courtesy' segments are greetings "
-    "and sign-off without any facts. Use only names, dates, amounts and reference numbers that appear "
+    "and sign-off without any facts. The greeting and the sign-off are each their OWN courtesy segment, "
+    "never appended to a fact or ask. Use only names, dates, amounts and reference numbers that appear "
     "in the passages. Never invent a date, deadline, amount, claim number or name. "
     + FENCE_RULE
 )
@@ -230,11 +231,32 @@ def _match_action(matter_id: str, req: DraftRequest) -> ActionItem | None:
     return None
 
 
-def _join_ready(segs: list[DraftSegment]) -> None:
-    """Segments are concatenated verbatim by the UI; make sure each carries its own separator."""
-    for i, sg in enumerate(segs[:-1]):
-        if sg.text and not sg.text[-1].isspace() and not segs[i + 1].text[:1].isspace():
-            sg.text += "\n\n" if sg.kind == "courtesy" or sg.text.endswith(",") else " "
+_SIGNOFF = re.compile(r"\s*\b((?:Sincerely|Kind regards|Best regards|Warm regards|Regards|Yours (?:truly|sincerely)"
+                      r"|Respectfully|Thank you|Many thanks)[,.!]?(?:\s*\n.*|\s+[^\n]{0,40})?)$", re.S)
+
+
+def _join_ready(segs: list[DraftSegment]) -> list[DraftSegment]:
+    """The UI concatenates segments verbatim: split a sign-off glued onto a fact/ask into its own
+    courtesy segment, and make sure every segment carries its own trailing separator."""
+    out: list[DraftSegment] = []
+    for sg in segs:
+        m = _SIGNOFF.search(sg.text) if sg.kind != "courtesy" else None
+        if m and m.start(1) > 0 and sg.text[:m.start(1)].rstrip()[-1:] in (".", "!", "?", ":"):
+            body = sg.text[:m.start()]
+            out.append(sg.model_copy(update={"text": body}))
+            out.append(DraftSegment(text=m.group(1).strip(), kind="courtesy", verified=True))
+        else:
+            out.append(sg)
+    for i, sg in enumerate(out):
+        t = sg.text.rstrip(" ")
+        if i == len(out) - 1:
+            sg.text = t.rstrip()
+        elif not t.endswith("\n"):
+            starts_block = out[i + 1].kind == "courtesy" or sg.kind == "courtesy"
+            sg.text = t.rstrip() + ("\n\n" if starts_block or t.endswith(",") else " ")
+        else:
+            sg.text = t
+    return out
 
 
 # --- main -------------------------------------------------------------------
@@ -326,7 +348,7 @@ def draft(matter_id: str, req: DraftRequest) -> Draft:
                 seg.text = seg.text.replace(tok, f"[verify: {tok}]")
                 unverified.append(tok)
         seg.verified = False
-    _join_ready(segs)
+    segs = _join_ready(segs)
     subject = out.subject.strip()
     for tok in check_tokens(subject, Corpus("\n".join(e["text"] for e in ev) + "\n" + contacts)):
         subject = subject.replace(tok, f"[verify: {tok}]")

@@ -20,7 +20,21 @@ from app.retrieval.hyde import hyde_matter
 from app.retrieval.search import warm
 from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, TimelineEvent, TreatmentLine)
 
-PIPELINE_VERSION = f"d5-{PROMPT_VERSION}"
+# Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
+# cached by a newer rev (a stale server that missed a pull serves it as-is instead).
+PIPELINE_REV = 6
+PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
+
+
+def _rev_of(input_hash: str | None) -> int:
+    m = re.match(r"r(\d+):", input_hash or "")
+    return int(m.group(1)) if m else 0
+
+
+def _cached_row(matter_id: str):
+    with connect() as conn:
+        return conn.execute("SELECT input_hash, payload_json FROM digests WHERE matter_id = ? AND kind = 'dashboard'",
+                            (matter_id,)).fetchone()
 
 
 def input_hash(matter_id: str) -> str:
@@ -30,7 +44,7 @@ def input_hash(matter_id: str) -> str:
     h = hashlib.sha256(PIPELINE_VERSION.encode())
     for r in rows:
         h.update(f"{r[0]}={r[1]};".encode())
-    return h.hexdigest()
+    return f"r{PIPELINE_REV}:{h.hexdigest()}"
 
 
 def matter_summary(matter_id: str) -> MatterSummary | None:
@@ -102,12 +116,13 @@ def _future(d: str, today: date) -> bool:
 
 def build(matter_id: str, force: bool = False) -> Dashboard:
     ih = input_hash(matter_id)
-    if not force:
-        with connect() as conn:
-            row = conn.execute("SELECT input_hash, payload_json FROM digests WHERE matter_id = ? AND kind = 'dashboard'",
-                               (matter_id,)).fetchone()
-        if row and row["input_hash"] == ih:
-            return Dashboard.model_validate_json(row["payload_json"])
+    row = _cached_row(matter_id)
+    if row and _rev_of(row["input_hash"]) > PIPELINE_REV:
+        print(f"dashboard cached by pipeline r{_rev_of(row['input_hash'])} > this server's r{PIPELINE_REV}:"
+              " serving it as-is; restart this server to pick up the newer code")
+        return Dashboard.model_validate_json(row["payload_json"])
+    if not force and row and row["input_hash"] == ih:
+        return Dashboard.model_validate_json(row["payload_json"])
 
     matter = matter_summary(matter_id)
     if matter is None:
@@ -249,6 +264,10 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
         recent=recent_activity(matter_id, today),
     )
     with connect() as conn:
+        cur = conn.execute("SELECT input_hash, payload_json FROM digests WHERE matter_id = ? AND kind = 'dashboard'",
+                           (matter_id,)).fetchone()
+        if cur and _rev_of(cur["input_hash"]) > PIPELINE_REV:  # a newer server wrote while we were building
+            return Dashboard.model_validate_json(cur["payload_json"])
         conn.execute("INSERT OR REPLACE INTO digests (matter_id, kind, input_hash, payload_json, model, created_at)"
                      " VALUES (?, 'dashboard', ?, ?, ?, datetime('now'))",
                      (matter_id, ih, dash.model_dump_json(), ",".join(models)))
