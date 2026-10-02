@@ -40,3 +40,11 @@ documents) and show where the case stands: stage, key dates and next steps,
 medical treatment and bills/liens, insurer negotiation status, and open
 risks. Every dashboard fact links to its source page (catalog: A1, A7, R2, R7
 plus PDF highlighting). Likely two views: the firm, and the medical providers.
+
+## Organizer pain point (live, 2026-10-02)
+
+Existing case dashboards are awful: you **cannot see what is required, or the
+state of things, at a glance**. Design implication: the first screen answers
+"where does this case stand and what needs doing now?" in seconds. One headline
+status, the few items that need action, then detail on demand (with source
+links). Fewer widgets, not more.
