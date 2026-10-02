@@ -28,6 +28,10 @@ freeze 3:00 PM; video recorded 3:00–3:30; submit by 3:45.
 
 ## Risks / watch list
 
+- **KPI accuracy (S2 fixing):** Clio medical-bill expense entries were counted as firm costs ($119,810) and specials showed $1,450 (should be ~$118,400 specials, ~$1,410 firm costs). Headline bullet repeats the wrong numbers; re-digest after fix.
+- KPI row below the fold and coverage tile overflows with prose (S3 fixing).
+- Provider requests miss items addressed to the provider (S4 fixing).
+
 - Timeline strip is cluttered on real data (44 events); S3 + S2 fixing.
 - Re-sync by S1 code changes doc hashes → next digest rebuilds (2–5 min). Digest once before recording.
 - App is Windows-only (winocr); fine for localhost demo, note for judges.
@@ -36,3 +40,4 @@ freeze 3:00 PM; video recorded 3:00–3:30; submit by 3:45.
 
 - 09:55 Contracts + skeleton pushed (3cb53f1). Four stream sessions started in worktrees.
 - 10:25 All four streams landed core work. App wired and verified live on Sapini at :5175. Sent S2/S3/S4 follow-ups; S5 (source pane) queued.
+- 10:55 Full review on live Sapini: timeline, recent activity, provider restyle good. Found KPI misclassification, KPI placement, provider-request gap; dispatched to S2/S3/S4. AI drafts (grounded, verified) approved: S2 route + S3 UI after fixes. S5 building source pane.
