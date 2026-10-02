@@ -48,3 +48,9 @@ state of things, at a glance**. Design implication: the first screen answers
 "where does this case stand and what needs doing now?" in seconds. One headline
 status, the few items that need action, then detail on demand (with source
 links). Fewer widgets, not more.
+
+## Data access (live, 2026-10-02)
+
+We expect API access to the firm's case-management system, probably **Clio**
+(to be confirmed). **Read-only, always. We never write to it.** See the rule in
+`CLAUDE.md` → *Limits that still apply*.

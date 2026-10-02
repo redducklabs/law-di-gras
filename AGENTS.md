@@ -45,6 +45,10 @@ never modify them.
 
 ## Limits that still apply
 
+- **The case-management API (likely Clio) is READ-ONLY. NEVER write to it.**
+  Only `GET` requests, through one read-only client module that refuses any
+  other method. Persist our own data locally. If a feature needs a write, stop
+  and ask the user.
 - No hallucinated law: legal citations come only from retrieved or
   user-supplied material, never model memory.
 - No consumer "information, not advice" framing; write direct professional

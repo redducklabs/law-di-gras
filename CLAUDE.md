@@ -110,6 +110,15 @@ source repos** — they are read-only references.
 Speed does not license these. They are cheap to keep and embarrassing to break
 in a legal demo.
 
+- **🚨 The case-management API (likely Clio) is READ-ONLY. NEVER write to it. 🚨**
+  The organizers will provide API access to a live practice-management system.
+  Only ever issue read requests (HTTP `GET`). Never call `POST`, `PUT`, `PATCH`
+  or `DELETE`, never call any endpoint that creates, updates, deletes, uploads,
+  sends or triggers anything, and never run a script that might. Wrap the API in
+  one client module that exposes only read methods and refuses any non-`GET`
+  request. Anything the app needs to persist (notes, flags, AI output) goes in
+  our own local storage, never back into that system. If a feature seems to need
+  a write, stop and ask the user.
 - **No hallucinated law.** If the prototype emits legal citations (statutes,
   rules, cases), they must come from material the app actually retrieved or the
   user supplied, never from model memory. Prefer the simplest grounding pattern
