@@ -17,14 +17,14 @@ Any critical finding blocks recording until fixed or the item is cut from the vi
 
 | Time | On screen | Say |
 |---|---|---|
-| 0:00–0:08 | Firm Case Brief loads | "A PI file is thousands of pages. Clio captures it; nobody digests it. This is Sapini, live from Clio." |
-| 0:08–0:22 | Header, timeline strip, KPI row | "In ten seconds: litigation stage, the milestones that matter, what the case is worth and the coverage behind it. $118,400 in specials across nine providers, the value range with the firm's rule shown." |
-| 0:22–0:38 | Click an injury chip → PDF opens, quote highlighted | "Every fact is a link. Click the injury and the scanned medical record opens at the exact line. Nothing on this screen is unsourced; anything we can't verify verbatim is marked." |
-| 0:38–0:50 | Next steps → overdue item → Draft → Improve with AI | "What's overdue and who we're waiting on. One click drafts the follow-up; the AI version cites every fact and can't put a date or dollar in an email that the record doesn't contain." |
-| 0:50–0:58 | Find in case: type a question, click a cited [n] | "Drill down on demand: search and cited answers over the whole file." |
-| 0:58–1:15 | Share with provider → pick the chiropractor → toggle coverage → copy link | "Providers treating on a lien want two things: is the case alive, and is there coverage. The attorney picks exactly what this provider sees: no strategy, no notes." |
-| 1:15–1:27 | Provider page: case active, coverage, what the firm needs, visits and bills, updates since | "The doctor sees status, coverage, what the firm needs from their office, and their own visits and bills, without the file and without an email." |
-| 1:27–1:30 | Back to brief | "Ninety seconds to the whole case, every fact traceable. About $1.50 per case to digest." |
+| 0:00–0:07 | Sign-in page (Red Duck Lawyer) → Cases | "A PI file is thousands of pages. Clio captures it; nobody digests it." |
+| 0:07–0:17 | Cases page: Sapini on top with "2 overdue · 6 waiting · deadline in 19 days", specials, coverage, draft value | "Every matter, sorted by what needs you first, with what it's worth and the coverage behind it. Sapini is live from Clio; the greyed rows are labeled samples." |
+| 0:17–0:30 | Open Sapini → lane timeline; hover a milestone, zoom once | "The timeline lawyers asked for: medical, legal and deadlines at a glance. Scheduled things say scheduled, not done." |
+| 0:30–0:42 | Click an injury or timeline chip → scanned PDF with the quote highlighted | "Every fact is a link. Click it and the record opens at the exact line. Anything we can't verify verbatim is marked." |
+| 0:42–0:54 | Next steps: overdue McCulloch item → Draft → Improve with AI | "What's overdue and who we're waiting on. The AI follow-up cites every fact and can't invent a date or a dollar." |
+| 0:54–1:07 | Ask the case: "When is the Pullano deposition?" → answer with chips → click "Show on timeline" | "Ask anything. Answers come only from the record, with sources, and they take you to the right place on the page." |
+| 1:07–1:20 | Share with provider → chiropractor → toggle coverage → open the provider link | "Providers on a lien see status, coverage, what we need from them, and their own bills. No strategy, no notes; the attorney decides." |
+| 1:20–1:30 | Back to Cases | "Ninety seconds to the whole case, every fact traceable, about $1.50 per case to digest." |
 
 ## Pitch notes (say these; not built)
 
