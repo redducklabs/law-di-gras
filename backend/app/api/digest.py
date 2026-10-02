@@ -49,6 +49,6 @@ def ask(matter_id: str, body: AskRequest) -> Answer:
 def draft(matter_id: str, body: DraftRequest) -> Draft:
     """Grounded draft for one next step. Returned for review only; nothing is sent."""
     try:
-        return make_draft(matter_id, body.action_index, body.title)
+        return make_draft(matter_id, body)
     except LookupError as e:
         raise HTTPException(404, str(e))

@@ -10,6 +10,7 @@ One regenerate with the failures listed; anything still failing is replaced by
 """
 
 import hashlib
+import json
 import re
 from datetime import date, datetime
 
@@ -22,9 +23,9 @@ from app.digest.spans import fold, locate
 from app.llm import MODEL_SONNET, structured
 from app.retrieval.fence import FENCE_RULE, fence
 from app.retrieval.search import search_hits
-from app.schemas import ActionItem, Citation, Draft, DraftSegment
+from app.schemas import ActionItem, Citation, Draft, DraftRequest, DraftSegment
 
-VERSION = "dr2"
+VERSION = "dr3"
 
 
 class Ev(BaseModel):
@@ -62,8 +63,19 @@ Passages (the only record you may rely on):
 
 {passages}
 
-Write a concise message (subject + 3-7 segments) addressed to {recipient} that moves this step
-forward. Plain, courteous, specific. Sign off as "the firm" (no invented staff names).{retry}"""
+{template}Write a concise message (subject + 3-7 segments) addressed to {recipient} that moves this step
+forward. Plain, courteous, specific. Sign off as "the firm" (no invented staff names).
+The segments are concatenated verbatim, so each segment's text must carry its own trailing
+space or newlines (e.g. a greeting ends with "\\n\\n", sentences end with " ").{retry}"""
+
+TEMPLATE_BLOCK = """The firm's template for this kind of message, for STRUCTURE AND TONE ONLY. It is not part
+of the record: never take a fact, name, date or amount from it.
+<template>
+Subject: {subject}
+{body}
+</template>
+
+"""
 
 
 # --- token checks ------------------------------------------------------------
@@ -176,23 +188,24 @@ def _source_text(conn, source_id: str, page: int | None) -> str:
     return (r["text"] or "") if r else ""
 
 
-def _evidence(matter_id: str, action: ActionItem) -> list[dict]:
+def _evidence(matter_id: str, cited: list[tuple[str, int | None]], query: str) -> list[dict]:
+    """The step's own sources first (whole source, or the cited page), then top retrieved passages."""
     ev: list[dict] = []
     seen = set()
     with connect() as conn:
-        for c in action.citations:
-            key = (c.source_id, c.page)
-            if key in seen:
+        for source_id, page in cited:
+            if (source_id, page) in seen:
                 continue
-            seen.add(key)
-            ev.append({"source_id": c.source_id, "page": c.page, "title": c.source_title, "date": c.date,
-                       "text": _source_text(conn, c.source_id, c.page)[:5000]})
-    q = f"{action.title} {action.waiting_on or ''}".strip()
-    for h in search_hits(matter_id, q, top_k=6):
-        key = (h.source_id, h.page_no)
-        if key in seen:
+            seen.add((source_id, page))
+            meta = conn.execute("SELECT title, date FROM sources WHERE id = ?", (source_id,)).fetchone()
+            if meta is None:
+                continue
+            ev.append({"source_id": source_id, "page": page, "title": meta["title"] or source_id,
+                       "date": meta["date"], "text": _source_text(conn, source_id, page)[:5000]})
+    for h in search_hits(matter_id, query, top_k=6):
+        if (h.source_id, h.page_no) in seen:
             continue
-        seen.add(key)
+        seen.add((h.source_id, h.page_no))
         ev.append({"source_id": h.source_id, "page": h.page_no, "title": h.title, "date": None, "text": h.text})
     return ev
 
@@ -204,17 +217,24 @@ def _contacts(matter_id: str) -> str:
     return "\n".join([r[0] or "" for r in rows] + [m[0] if m and m[0] else ""])
 
 
-def _pick_action(matter_id: str, action_index: int | None, title: str | None) -> ActionItem:
+def _match_action(matter_id: str, req: DraftRequest) -> ActionItem | None:
     d = dash.cached(matter_id)
     if d is None:
-        raise LookupError("no dashboard yet; POST /digest first")
-    if action_index is not None and 0 <= action_index < len(d.actions):
-        return d.actions[action_index]
-    if title:
-        best = max(d.actions, key=lambda a: fuzz.token_set_ratio(title, a.title), default=None)
-        if best and fuzz.token_set_ratio(title, best.title) >= 70:
+        return None
+    if req.action_index is not None and 0 <= req.action_index < len(d.actions):
+        return d.actions[req.action_index]
+    if req.title:
+        best = max(d.actions, key=lambda a: fuzz.token_set_ratio(req.title, a.title), default=None)
+        if best and fuzz.token_set_ratio(req.title, best.title) >= 80:
             return best
-    raise LookupError("action not found")
+    return None
+
+
+def _join_ready(segs: list[DraftSegment]) -> None:
+    """Segments are concatenated verbatim by the UI; make sure each carries its own separator."""
+    for i, sg in enumerate(segs[:-1]):
+        if sg.text and not sg.text[-1].isspace() and not segs[i + 1].text[:1].isspace():
+            sg.text += "\n\n" if sg.kind == "courtesy" or sg.text.endswith(",") else " "
 
 
 # --- main -------------------------------------------------------------------
@@ -242,27 +262,47 @@ def _verify(out: DraftOut, ev: list[dict], contacts: str, conn) -> tuple[list[Dr
         fails += check_tokens(s.text, corpus)
         if fails:
             failures[i] = fails
-        segs.append(DraftSegment(text=s.text.strip(), kind=kind, citations=[c for c in cits if c.verified],
+        segs.append(DraftSegment(text=s.text, kind=kind, citations=[c for c in cits if c.verified],
                                  verified=not fails))
     return segs, failures
 
 
-def draft(matter_id: str, action_index: int | None = None, title: str | None = None) -> Draft:
-    action = _pick_action(matter_id, action_index, title)
-    ev = _evidence(matter_id, action)
+def draft(matter_id: str, req: DraftRequest) -> Draft:
+    action = _match_action(matter_id, req)
+    if action is None and not req.title:
+        raise LookupError("give a step title or a valid action_index")
+    title = req.title or action.title
+    step = {
+        "kind": req.kind or (action.status if action else None),
+        "title": title,
+        "why": req.why,
+        "owner": req.owner or (action.owner if action else None),
+        "waiting_on": req.waiting_on or (action.waiting_on if action else None),
+        "date": req.date or (action.due_date if action else None),
+    }
+    step = {k: v for k, v in step.items() if v}
+    cited = [(sid, None) for sid in req.source_ids]
+    if action:
+        cited += [(c.source_id, c.page) for c in action.citations]
+    ev = _evidence(matter_id, cited, f"{title} {step.get('waiting_on', '')} {req.why or ''}".strip())
+    if not ev:
+        raise LookupError("no record found for this step")
     contacts = _contacts(matter_id)
-    step = action.model_dump_json(include={"title", "due_date", "owner", "status", "waiting_on"})
+    step_json = json.dumps(step)
+    template = (TEMPLATE_BLOCK.format(subject=req.template_subject or "", body=req.template_body or "")
+                if (req.template_subject or req.template_body) else "")
     passages = "\n\n".join(fence(i, f'title="{(e["title"] or "")[:120]}" date="{e["date"] or ""}"', e["text"], cap=5000)
                            for i, e in enumerate(ev))
-    ih = hashlib.sha256((VERSION + step + passages + contacts).encode()).hexdigest()
+    recipient = req.audience or step.get("waiting_on") or "the appropriate party named in the record"
+    ih = hashlib.sha256((VERSION + step_json + recipient + template + passages + contacts).encode()).hexdigest()
     key = f"draft:{ih[:24]}"
     with connect() as conn:
         row = conn.execute("SELECT payload_json FROM digests WHERE matter_id = ? AND kind = ?", (matter_id, key)).fetchone()
     if row:
         return Draft.model_validate_json(row["payload_json"])
 
-    recipient = action.waiting_on or "the appropriate party named in the record"
-    base = dict(today=date.today().isoformat(), step=step, passages=passages, recipient=recipient)
+    base = dict(today=date.today().isoformat(), step=step_json, passages=passages, recipient=recipient,
+                template=template)
     out = structured(MODEL_SONNET, DraftOut, SYSTEM, PROMPT.format(**base, retry=""), purpose="draft",
                      matter_id=matter_id, effort="medium", max_tokens=4000)
     with connect() as conn:
@@ -281,11 +321,12 @@ def draft(matter_id: str, action_index: int | None = None, title: str | None = N
         seg = segs[i]
         for tok in f:
             if tok.startswith("fact segment"):
-                unverified.append(f"Unsupported statement: {seg.text[:120]}")
+                unverified.append(f"Unsupported statement: {seg.text.strip()[:120]}")
             elif tok in seg.text:
                 seg.text = seg.text.replace(tok, f"[verify: {tok}]")
                 unverified.append(tok)
         seg.verified = False
+    _join_ready(segs)
     subject = out.subject.strip()
     for tok in check_tokens(subject, Corpus("\n".join(e["text"] for e in ev) + "\n" + contacts)):
         subject = subject.replace(tok, f"[verify: {tok}]")
