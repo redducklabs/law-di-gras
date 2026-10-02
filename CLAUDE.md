@@ -99,7 +99,26 @@ these overrides:
    path, in `docs/plans/YYYY-MM-DD-<topic>.md`. No Codex review and no separate
    spec unless the user asks; skip the skill's default
    `docs/superpowers/` paths.
-5. **Start building as soon as the user approves the plan.**
+5. **Split the plan into parallel workstreams and hand the user one prompt per
+   stream.** Once the concept is approved, the user runs several Claude Code
+   sessions at once to go faster. In the plan:
+   - Define the **shared contracts first** (data shapes, API routes, DB schema,
+     folder layout) and commit them to `main` before any stream starts, so streams
+     build against the same interfaces.
+   - Cut the work into **2–4 independent streams** with disjoint file ownership
+     (for example: Clio read client and ingestion; AI digestion and cache; firm
+     dashboard UI; provider view and sharing). Name the directories each stream
+     owns and the ones it must not touch.
+   - Write a **self-contained, copy-paste prompt per stream** in the plan file and
+     in your reply: goal, owned paths, contracts to build against, what "done"
+     looks like on Sapini, and the rules that always apply (read CLAUDE.md, Clio
+     read-only, no hardcoded case content, no tests, commit small and often to
+     `main` with `git pull --rebase` before each push, touch only owned paths).
+   - Say which stream is the critical path for the demo and which to drop first
+     if time runs short.
+6. **Start building as soon as the user approves the plan.** This session
+   usually takes the integration stream: wiring streams together and keeping the
+   demo path working.
 
 Working direction so far: **turn a PI case into a dashboard** of where the case
 stands, for the firm and the medical providers, with every fact linked to its

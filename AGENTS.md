@@ -35,6 +35,9 @@ attorney review, and use only sample or public case materials in the demo.
 A dashboard that digests one live Clio Manage PI matter ("Sapini") for (1) the
 firm's team and (2) the treating medical providers. Full brief:
 `docs/challenge.md`. Follow *Brainstorming workflow* in `CLAUDE.md`.
+Work is split into parallel streams with their own prompts. Touch only the
+paths your stream owns, build against the shared contracts on `main`, and
+`git pull --rebase` before each push.
 
 ## Reuse before you build
 
