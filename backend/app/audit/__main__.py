@@ -10,7 +10,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 
 from app import config
-from app.audit import checks, ingest_check
+from app.audit import checks, ingest_check, record_check
 from app.audit.items import flatten, load_dashboard
 from app.db import connect
 
@@ -19,6 +19,7 @@ SEV_ORDER = {"critical": 0, "major": 1, "minor": 2, "info": 3}
 TITLES = {
     "1-code": "Check 1a. Fact support: code checks (quote spans, dates, amounts)",
     "1-judge": "Check 1b/2. Fact support + headline: Sonnet judge (findings only)",
+    "2-record": "Check 2b. Headline, injury and recent claims vs the whole record (retrieval + Sonnet)",
     "3-kpi": "Check 3. KPI reconciliation",
     "4-ingest": "Check 4. Ingestion vs Clio and documents",
     "4-ocr": "Check 4b. OCR quality on scanned pages",
@@ -56,7 +57,7 @@ def cost_since(start: str) -> float:
 
 def main() -> None:
     ap = argparse.ArgumentParser()
-    ap.add_argument("--checks", default="1,3,4,5,6")
+    ap.add_argument("--checks", default="1,2,3,4,5,6")
     ap.add_argument("--no-llm", action="store_true")
     ap.add_argument("--no-clio", action="store_true")
     ap.add_argument("--ocr", action="store_true", help="vision-transcribe the OCR pages (~$0.15)")
@@ -74,6 +75,11 @@ def main() -> None:
         if not a.no_llm:
             findings += checks.fact_support_judge(items, mid)
         print("check 1 done")
+    if "2" in want and not a.no_llm:
+        f, rows = record_check.record_support(items, mid)
+        findings += f
+        extras["2-record"] = "Every claim checked against the whole record:" + chr(10) + chr(10) + table(rows)
+        print("check 2 done")
     if "3" in want:
         f, t = checks.kpi_reconcile(dash, mid)
         findings += f

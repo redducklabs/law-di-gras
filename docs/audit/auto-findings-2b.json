@@ -1,0 +1,262 @@
+[
+ {
+  "check": "2-record",
+  "severity": "critical",
+  "item": "headline.bullets[0]",
+  "on_screen": "There is no police report for the accident.",
+  "quote": "document:21121930883: Police accident report dated 4/23/23",
+  "problem": "Record contradicts this claim. The file notes say no police report was obtained. But the neuro expert exchange lists a police accident report dated 4/23/23 among available records, and plaintiff's discovery response refers to one, so a report appears to exist.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[0]",
+  "on_screen": "Liability is contested on mechanism of the accident and scope of employment.",
+  "quote": "note:2996972633: Liability is contested on two independent levels and neither has been investigated.",
+  "problem": "Supported in the record but not by the cited sources; cite note:2996972633.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[0]",
+  "on_screen": "The client gave three inconsistent accounts of the accident.",
+  "quote": "note:2996972633: The client has given three inconsistent accounts:",
+  "problem": "Supported in the record but not by the cited sources; cite note:2996972633.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[0]",
+  "on_screen": "The accident was a sideswipe, which carries no fault presumption.",
+  "quote": "note:2996972633: A sideswipe between two vehicles in adjacent merging lanes carries no presumption of fault in either direction, unlike a rear-ender.",
+  "problem": "Supported in the record but not by the cited sources; cite note:2996972633.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[1]",
+  "on_screen": "Left shoulder labral repair was done in July 2023.",
+  "quote": "document:21121916438: Left shoulder examination under anesthesia and arthroscopy. Surgeon: David Capiola, M.D.",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121916438.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[1]",
+  "on_screen": "The spine, knee, and TBI claims are disputed by defense IMEs.",
+  "quote": "document:21121931768: Bilateral\nknee sprain\n- resolved",
+  "problem": "Record only partly supports it. The IMEs in the file support a dispute over the spine, knee and brain findings, e.g. the orthopedic IME diagnoses neck/back/knee sprains as resolved and the brain MRI/DTI reads as normal. The neurology IME excerpt is only a header. No passage says outright that these claims are disputed.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[2]",
+  "on_screen": "Medical specials billed total $118,400.",
+  "quote": "note:2996972063: The running figure of $118,400.00 stands",
+  "problem": "Record only partly supports it. The $118,400 figure is supported, but it is an interim number; the chiropractic and PT ledgers are unreconciled, and the 2025-12-08 note says it should not be quoted as final.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[2]",
+  "on_screen": "Metro-North Commuter Railroad is a defendant under claim SIR068120 and is self-insured with no stated limit.",
+  "quote": "communication:5029421393: This file is administered by Claims Service Bureau on behalf of Metro-North Commuter Railroad under claim SIR068120.",
+  "problem": "Record only partly supports it. Self-insured with no stated ceiling is supported by the early notes, but the 2026-09-08 adjuster email states $100k/$300k limits, which undercuts 'no stated limit'. The passages never state outright that Metro-North is a defendant, though the underlying claim concerns its vehicle.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[2]",
+  "on_screen": "Ferrara's personal auto policy has $100k/$300k BI liability limits and Ferrara is a defendant.",
+  "quote": "note:2996970398: Ferrara personally carries auto coverage identified at $100,000 / $300,000.",
+  "problem": "Record only partly supports it. The limits are supported, but no passage says Ferrara is a defendant; the note only speaks of Metro-North coming out of the case, implying a second defendant.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[2]",
+  "on_screen": "There is $25k in UM coverage.",
+  "quote": "note:2996972483: The client's own UM/UIM is $25,000 / $50,000, below the defendant's limits, so it does not add anything here.",
+  "problem": "Record only partly supports it. The $25,000 UM/UIM limit is supported, but it is the client's own coverage and is said not to add anything.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[4]",
+  "on_screen": "McCulloch records and the right shoulder surgery date are overdue, due 08/25.",
+  "quote": "task:1417160243: Updated office notes since the last production, and a confirmed date for the recommended right shoulder arthroscopy.",
+  "problem": "Supported in the record but not by the cited sources; cite task:1417160243.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.status_line",
+  "on_screen": "The case is in the litigation stage, with discovery ongoing against Metro-North and Ferrara.",
+  "quote": "document:21121907483: ",
+  "problem": "Record only partly supports it. Passages show litigation in NY Supreme Court with discovery demands and responses exchanged, and notes say discovery is slow and a compliance conference was requested. No passage says discovery is 'ongoing' in those words, but it is implied. Partly supported.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.status_line",
+  "on_screen": "The right shoulder arthroscopy date is not locked down and is holding up the client's deposition.",
+  "quote": "note:2996971508: Until this is scheduled and performed, treatment cannot be said to be complete and the specials figure keeps moving.",
+  "problem": "Record only partly supports it. The surgery date is clearly unscheduled. A note says it is 'the single item holding the case where it is', but no passage says it holds up the client's deposition.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[0]",
+  "on_screen": "MRI showed a partial tear of the left shoulder posterior inferior labrum at 8-9 o'clock.",
+  "quote": "document:21121911503: Partial tear of the posterior inferior labrum at 8-9 o'clock.",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[0]",
+  "on_screen": "The left shoulder MRI showed an infraspinatus interstitial tear.",
+  "quote": "document:21121911503: Low-grade interstitial tear of the posterior infraspinatus",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[0]",
+  "on_screen": "Arthroscopic repair of the left shoulder was performed on 07/26/2023.",
+  "quote": "document:21121916438: Left shoulder arthroscopy with the procedures documented in the operative report.",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121916438.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[0]",
+  "on_screen": "Post-op diagnoses included synovitis, adhesions, impingement, partial biceps/rotator cuff tear, and cartilage defect.",
+  "quote": "document:21121916438: Significant posterior labral tear, synovitis, adhesions, impingement, biceps tendon partial tear, partial rotator cuff tear,",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121916438.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[0]",
+  "on_screen": "The left shoulder MRI is dated 2023-05-24.",
+  "quote": "document:21121911503: MRI left shoulder",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[1]",
+  "on_screen": "Right shoulder MRI showed an intermediate-grade interstitial tear of the anterior half of the infraspinatus.",
+  "quote": "document:21121911503: Intermediate-grade interstitial tear of the anterior half of the infraspinatus. Partial tear of the posterior inferior",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[1]",
+  "on_screen": "Right shoulder MRI showed a partial tear of the posterior inferior labrum at 8 o'clock.",
+  "quote": "document:21121911503: Partial tear of the posterior inferior\nlabrum at 8 o'clock.",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[4]",
+  "on_screen": "Knee MRI showed a horizontal undersurface tear of the posterior horn of the medial meniscus in both knees.",
+  "quote": "document:21121911503: Horizontal undersurface tear of the posterior horn of the medial meniscus.",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[4]",
+  "on_screen": "The knee MRI is dated 2023-07-03.",
+  "quote": "document:21121911503: MRI left knee\nPatient: Justin W. Sapini\nDOB: 12/21/1995\nAccident date: 04/23/2023\nVisit date: 07/03/2023",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "injuries[5]",
+  "on_screen": "The defense radiologist and IME dispute the TBI as objectively resolved with no traumatic injury.",
+  "quote": "document:21121930883: Status Post Traumatic\nBrain\nInjury,\nobjectively\nresolved",
+  "problem": "Record only partly supports it. The IME neurologist (Tsao) calls the TBI objectively resolved, which is not the same as no traumatic injury. The defense radiologist (Katzman) found no evidence of traumatic injury to the brain, per the quoted report in the orthopedic IME (Hostin). The orthopedic IME's own diagnoses are sprains only, so it does not speak to the TBI.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "recent[1]",
+  "on_screen": "The client confirmed he is attending PT and will maintain records.",
+  "quote": "note:2996971763: Advised yes, keep going, and to keep his own record of every visit",
+  "problem": "Record only partly supports it. The client was advised to keep going and to keep records. The 2026-09-27 note does not say he confirmed attending or agreed to maintain records. The 2026-09-25 call says he is still going to PT twice a week.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "recent[3]",
+  "on_screen": "The attorney explained the surgeon requires an initial consultation before scheduling right shoulder surgery.",
+  "quote": "communication:5029427603: the surgeon wants to see him first and that we have asked five times",
+  "problem": "Record only partly supports it. The surgeon wants to see the patient first before scheduling, but the passages do not describe an 'initial' consultation; Dr. Capiola has already seen him, so it is a repeat visit.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "recent[4]",
+  "on_screen": "Unreconciled ledgers prevent settlement valuation.",
+  "quote": "note:2996972063: any number we give the authority is a number we may have to correct, which is the worst position to negotiate from.",
+  "problem": "Record only partly supports it. Unreconciled ledgers undermine the negotiating position and settlement should wait, but the passages do not say valuation is outright prevented.",
+  "owner": "S2",
+  "extra": {}
+ }
+]

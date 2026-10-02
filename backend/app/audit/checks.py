@@ -324,13 +324,13 @@ STRATEGY = re.compile(r"case value|multiplier|settle|strategy|inconsistent|liabi
 
 def provider_views(matter_id: str) -> tuple[list[Finding], list[dict]]:
     from app.schemas import ShareSections
-    from app.share.providers import list_providers
+    from app.share.providers import list_providers, matches_provider
     from app.share.view import build_view, get_settings, matter_documents
 
     out: list[Finding] = []
     table: list[dict] = []
     providers = list_providers(matter_id)
-    all_docs = [d["id"] for d in matter_documents(matter_id)]
+    med = [e for e in expenses(matter_id) if e["medical"]]
     for p in providers:
         saved = get_settings(matter_id, p.contact_id)
         for mode, s in [("saved", saved),
@@ -380,6 +380,31 @@ def provider_views(matter_id: str) -> tuple[list[Finding], list[dict]]:
                 out.append(Finding("6-provider", "minor", f"{p.name} ({mode})", "; ".join(ime), "",
                                    "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; "
                                    "attorney did not opt in to the timeline).", "S4"))
+            if mode == "saved":
+                # each line the provider sees must be their own, with their own billed figure
+                for t in v.treatment or []:
+                    own = [e for e in med if _same(e["provider"], t.provider)]
+                    if not (_same(t.provider, p.name) or matches_provider(p, t.provider)):
+                        out.append(Finding("6-provider", "critical", f"{p.name} ({mode})", t.provider, "",
+                                           "Treatment line for a different provider is shown in this link.", "S4"))
+                    if t.billed and own and abs((t.billed.amount or 0) - sum(e["total"] for e in own)) > 0.5:
+                        out.append(Finding("6-provider", "critical", f"{p.name} ({mode})", t.billed.value, "",
+                                           f"Billed differs from this provider's Clio charges ({sum(e['total'] for e in own):,.2f}).", "S4"))
+                for a in v.requests or []:
+                    if not (matches_provider(p, a.waiting_on) or matches_provider(p, a.title)):
+                        out.append(Finding("6-provider", "major", f"{p.name} ({mode})", a.title, "",
+                                           f"Request shown to this provider is owed by someone else (waiting on {a.waiting_on}).", "S4"))
+                for f in v.liens or []:
+                    if not matches_provider(p, f.label):
+                        out.append(Finding("6-provider", "major", f"{p.name} ({mode})", f"{f.label}: {f.value}", "",
+                                           "Another party's lien is shown to this provider.", "S4"))
+                if STRATEGY.search(v.status_line or ""):
+                    out.append(Finding("6-provider", "major", f"{p.name} ({mode})", v.status_line, "",
+                                       "Status line carries strategy wording.", "S4"))
+                mine = [e for e in med if _same(e["provider"], p.name) or matches_provider(p, e["provider"])]
+                if mine and not v.treatment and v.treatment is not None:
+                    out.append(Finding("6-provider", "major", f"{p.name} ({mode})", "(no treatment lines)", "",
+                                       f"Provider has ${sum(e['total'] for e in mine):,.2f} of charges in Clio but sees no billing line.", "S4"))
             if mode == "saved" and not v.treatment and v.treatment is not None:
                 out.append(Finding("6-provider", "minor", f"{p.name} ({mode})", "(no treatment lines)", "",
                                    "Provider sees no treatment/billing lines for themselves.", "S4"))

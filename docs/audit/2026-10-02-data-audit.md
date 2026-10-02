@@ -51,6 +51,30 @@ Severity: **critical** means a wrong number, date, party or tense on screen.
 | major | Treatment SportsCare "last visit 2023-12-14", Advanced Rockland "last visit 2024-08-15" | "This is the latest physical therapy date" (2023 records) | This is misleading next to ongoing treatment. The calendar shows PT on 10/10 and 10/17/2026 and chiro on 10/09/2026, and the 2025-04 note says "still treating". The line reads as if treatment ended in 2023 or 2024. Label it "last billed" or show "ongoing". | S2 |
 | minor | Recent "attorney explained surgeon requires initial consultation" | "the surgeon wants to see him first" | "Initial" is wrong; Capiola has treated him since 2023. | S2 |
 
+## Check 2b: headline, injury and recent claims vs the whole record
+
+How this check works:
+- Sonnet splits each item into atomic claims; there were 40 claims across the
+  headline, injuries and recent activity.
+- Each claim is retrieved against the whole case file with the app's own hybrid
+  search, plus the item's own cited spans.
+- Sonnet then judges each claim. This tells S2 whether to **re-cite** a claim
+  (the record supports it) or **drop** it (the record does not support it, or
+  contradicts it).
+- The per-claim table is in [auto-report-2b.md](auto-report-2b.md).
+
+| Sev | On screen | Record evidence | What's wrong | Owner |
+|---|---|---|---|---|
+| **critical** | Headline bullet 0: "there is no police report" | Plaintiff's own discovery response (doc-08): "Annexed is a copy of the Police Accident Report". Tsao IME records list: "Police accident report dated 4/23/23" | The record **contradicts** the claim. The source is the firm's 2026-09-15 note "There is no police accident report in the file", but the file's own discovery response says one was annexed. Do not state it as fact; show it as a conflict, or drop it. | S2 |
+| major | Coverage: Metro-North "Self-insured; no stated limit"; case value "not capped"; Ferrara "$100,000 / $300,000" cites the 2026-09-08 email | communication 5029426433, **from Claims Service Bureau** (Metro-North's administrator, claim SIR068120): "The bodily injury liability limits are $100,000 per person and $300,000 per occurrence. No excess or umbrella coverage is disclosed." | Metro-North's own claims administrator confirms $100k/$300k on this file. The dashboard silently attributes that email to Ferrara and still says Metro-North is uncapped. This is a record conflict that bears on the "not capped" case-value note; surface it rather than resolve it silently. | S2 |
+| major | Headline bullet 2: "$25k UM" listed as available coverage | note 2996972483: "The client's own UM/UIM is $25,000 / $50,000, below the defendant's limits, so it does not add anything here." | It is shown as a recovery source; the firm's note says it adds nothing. | S2 |
+| major | Specials KPI "$118,400.00 billed" shown as a settled figure | note 2996972063: "The running figure of $118,400.00 stands… [chiro and PT ledgers] never been reconciled". The judge also cites a 2025-12-08 note saying not to quote it as final | It should be labeled "running / unreconciled" (the recent-activity item already says so). | S2 |
+| major | Injury "Bilateral wrist injury with carpal tunnel syndrome… positive Tinel's" | Hostin ortho IME: "Tinel's sign at the carpal tunnel [is] negative", diagnosis wrist sprain, resolved | The two defense IMEs conflict, and the screen shows one as the diagnosis. Combined with the wrong-party issue (item 6 above), this item should be removed from the client's injury list or marked as disputed defense findings. | S2 |
+| fix-cite | Headline bullet 0: "three inconsistent accounts", "liability contested on mechanism and scope", "sideswipe carries no presumption" | note 2996972633 (Case posture, 2026-09-15) states each verbatim | These are **supported, just not cited**. Cite note 2996972633 (and 2996970518 "three different accounts"). This downgrades finding 2 above from unsupported to mis-cited. | S2 |
+| fix-cite | Bullet 4: "McCulloch… overdue (due 08/25)"; bullet 1: "repair done 07/2023" | task 1417160243; New Horizon op record doc 21121916438 | These are supported; cite these sources. | S2 |
+| minor | Status line "…holding up the client's deposition" | note: surgery is "the single item holding the case where it is" | The record supports "holding up the case", not specifically the deposition. | S2 |
+| info | Case value draft $180k–$355k | note 2996971448 "Case evaluation… Valuation: $375,000" (2026-06-04) | The firm's own valuation note is above the rule's top end. This is not an error, but an attorney may ask; consider showing it next to the rule. | S2 |
+
 ## Check 3: KPI reconciliation
 
 | Sev | On screen | Cited quote | What's wrong | Owner |
@@ -84,6 +108,16 @@ Severity: **critical** means a wrong number, date, party or tense on screen.
 | Sev | On screen | Cited quote | What's wrong | Owner |
 |---|---|---|---|---|
 | minor | All 10 provider links: "Updates" shows "Neurological IME, Dr. Jack W. Tsao" and "Orthopedic IME attended" | n/a | Defense IMEs are litigation detail, shown to treating providers who did not opt in to the timeline (they come through `updates`). The timeline toggle is off for every saved link. | S4 |
+
+Deeper per-provider checks on each saved link found no problems:
+- every treatment line belongs to that provider, and its billed figure equals
+  that provider's own Clio charges;
+- every request is owed by that provider;
+- no other party's lien is shown;
+- no strategy wording appears in the status line;
+- every provider with Clio charges sees their billing line.
+
+David Capiola sees no lines because he bills under McCulloch (minor).
 
 Saved links: 10 providers, 0 leaked citations, 0 cross-provider names, and no
 strategy terms (case value, settlement, liability, deposition) in any saved view.
