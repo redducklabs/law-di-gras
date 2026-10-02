@@ -153,7 +153,7 @@ function Segment({ s, onOpenSource }: { s: AiDraftSegment; onOpenSource?: (c: Ci
           : <Fragment key={i}>{p}</Fragment>)}
       </span>
       {s.kind === 'fact' && s.citations.length > 0 && (
-        <span className="mx-1 inline-flex gap-1 align-middle whitespace-normal">
+        <span className="mx-1 inline-flex max-w-full flex-wrap gap-1 align-middle whitespace-normal">
           {s.citations.filter((c, i, all) => all.findIndex(o => o.source_id === c.source_id && o.page === c.page) === i).slice(0, 2).map((c, i) => <SourceChip key={i} citation={c} onOpen={onOpenSource} compact />)}
         </span>
       )}

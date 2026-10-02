@@ -70,12 +70,13 @@ function buildScale(events: TimelineEvent[]) {
 type Scale = ReturnType<typeof buildScale>
 
 /** Short caption from an event label: the part before ":" or ",", capped. */
-function caption(label: string) {
+function caption(label: string, max = 24) {
   const head = label.split(/[:,(—–]/)[0].trim() || label
-  return head.length > 24 ? `${head.slice(0, 23).trimEnd()}…` : head
+  return head.length > max ? `${head.slice(0, max - 1).trimEnd()}…` : head
 }
 
-function pickMilestones(pts: Pt[], now: number, zoomed: boolean): Cand[] {
+function pickMilestones(pts: Pt[], now: number, zoomed: boolean, max = 24): Cand[] {
+  const cap = (l: string) => caption(l, max)
   const out: Cand[] = []
   const major = pts.filter(p => p.e.major)
   if (major.length) {
@@ -83,7 +84,7 @@ function pickMilestones(pts: Pt[], now: number, zoomed: boolean): Cand[] {
     const first = major.find(p => p.e.kind === 'incident') ?? major[0]
     const rest = major.filter(p => p !== next && p !== first).sort((a, b) => b.t - a.t)
     for (const p of [first, next, ...rest]) if (p) out.push({
-      pt: p, caption: p === next ? `Next: ${caption(p.e.label)}` : caption(p.e.label),
+      pt: p, caption: p === next ? `Next: ${cap(p.e.label)}` : cap(p.e.label),
       tone: p.t > now ? 'text-warn-700' : KIND_TONE[p.e.kind],
     })
   } else {
@@ -102,7 +103,7 @@ function pickMilestones(pts: Pt[], now: number, zoomed: boolean): Cand[] {
     for (const [p, c, tone] of cands) if (p) out.push({ pt: p, caption: c, tone })
   }
   // Zoomed in: every other event in view becomes a label candidate too.
-  if (zoomed) for (const p of pts) out.push({ pt: p, caption: caption(p.e.label), tone: p.t > now ? 'text-warn-700' : KIND_TONE[p.e.kind] })
+  if (zoomed) for (const p of pts) out.push({ pt: p, caption: cap(p.e.label), tone: p.t > now ? 'text-warn-700' : KIND_TONE[p.e.kind] })
   const seen = new Set<TimelineEvent>()
   return out.filter(c => !seen.has(c.pt.e) && seen.add(c.pt.e))
 }
@@ -176,7 +177,7 @@ export function TimelineStrip({ events, onOpenSource, zoomUi = 'none' }: {
   const pts: Pt[] = useMemo(() => s.pts.map(p => ({ ...p, x: ((p.u - v0) / span) * 100 })), [s, v0, span])
   const inView = pts.filter(p => p.x >= -0.5 && p.x <= 100.5)
   const cfg = zoomed ? ZOOMED : FULL
-  const labels = useMemo(() => packLabels(pickMilestones(inView, s.now, zoomed), w, cfg.rows, cfg.max),
+  const labels = useMemo(() => packLabels(pickMilestones(inView, s.now, zoomed, w < 520 ? 13 : 24), w, cfg.rows, cfg.max),
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [pts, w, zoomed])
   const labelled = new Set(labels.map(l => l.pt.e))
