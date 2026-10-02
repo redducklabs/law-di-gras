@@ -57,7 +57,8 @@ never modify them.
 - No consumer "information, not advice" framing; write direct professional
   analysis marked as a draft for attorney review.
 - Structured LLM output uses forced tool calling, not text parsing.
-- No secrets in git; use `.env` plus `.env.example`.
+- Credentials (Clio OAuth app, tokens, Anthropic key) live in the gitignored
+  `.env`; see `.env.example`. Never print, log, or commit them.
 
 ## Environment and reporting
 

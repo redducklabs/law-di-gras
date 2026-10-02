@@ -153,6 +153,14 @@ in a legal demo.
   request. Anything the app needs to persist (notes, flags, AI output) goes in
   our own local storage, never back into that system. If a feature seems to need
   a write, stop and ask the user.
+- **Credentials live in `.env` at the repo root (gitignored).** `.env.example`
+  lists every variable (Clio OAuth app ID/secret, redirect URI, tokens, Anthropic
+  key). Read config from `.env`; never print, log, or commit its values, and
+  never ask the user to paste them into chat output or code. Clio uses OAuth 2.0
+  (`https://app.clio.com/oauth/authorize` and `/oauth/token`, US region): a
+  one-time local login script captures the tokens into `.env`, and the app
+  refreshes the access token as needed. The user's Clio login password is never
+  needed by the app and must not be stored.
 - **No hallucinated law.** If the prototype emits legal citations (statutes,
   rules, cases), they must come from material the app actually retrieved or the
   user supplied, never from model memory. Prefer the simplest grounding pattern
