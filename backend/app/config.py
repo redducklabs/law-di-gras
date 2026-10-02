@@ -45,3 +45,7 @@ MATTER_QUERY = os.getenv("MATTER_QUERY", "Sapini")
 ANTHROPIC_API_KEY = os.getenv("ANTHROPIC_API_KEY", "")
 OPENAI_API_KEY = os.getenv("OPENAI_API_KEY", "")
 COHERE_API_KEY = os.getenv("COHERE_API_KEY", "")
+
+# Firm setting: draft case-value rule = these multipliers x billed specials (admin-editable via .env).
+CASE_VALUE_MULTIPLIER_LOW = float(os.getenv("CASE_VALUE_MULTIPLIER_LOW") or 1.5)
+CASE_VALUE_MULTIPLIER_HIGH = float(os.getenv("CASE_VALUE_MULTIPLIER_HIGH") or 3.0)
