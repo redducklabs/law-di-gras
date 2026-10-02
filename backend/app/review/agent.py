@@ -20,7 +20,7 @@ from app.retrieval.fence import FENCE_RULE, clean, fence
 from app.retrieval.search import search_hits
 from app.schemas import CaseReview, Citation, Dashboard, ReviewFinding
 
-MAX_TURNS = 30
+MAX_TURNS = 40
 MAX_COST = 3.00
 MAX_FINDINGS = 10
 SEVERITY = {"high": 0, "medium": 1, "low": 2}
@@ -50,7 +50,7 @@ Rules:
   the closest evidence (for example the document that names the witness).
 - `facts`: 1-4 short factual statements, each fully supported by your quotes. They are checked one by one
   by a strict judge that sees only your quotes. The title must be a plain summary of these facts.
-- `title`: one plain-language line, supported by the quotes (or a "No record found of ..." line). The
+- `title`: one plain-language line of at most 16 words, supported by the quotes (or a "No record found of ..." line). The
   title and facts are checked strictly against the quotes: state what the quotes say, and put the
   connection or inference ("yet", "but the file still ...", "which means ...") in why_it_matters.
 - Attribute a quote only as its source identifies itself (the checker sees each quote's source title).
@@ -58,7 +58,10 @@ Rules:
   names that are not in your quotes.
 - `suggested_next_step`: one concrete action the team can take this week.
 - Do not repeat what the dashboard already says unless you add the connection the dashboard misses.
-- Quality over count: 5 to 10 findings a trial attorney would actually act on. Severity "high" only for
+- Cover the spread: aim for a mix of categories (including stale threads, lien/coverage/deadline risk and
+  unused damages or leverage) and severities, not only the top conflicts.
+- Submit findings in parallel (several submit_finding calls in one turn) to save rounds.
+- Quality over count: 6 to 10 findings a trial attorney would actually act on. Severity "high" only for
   things that can change the case outcome or value.
 - submit_finding tells you if a finding failed verification and why. Fix it and resubmit (up to twice), or drop it.
 - Work efficiently: you have about {MAX_TURNS - 5} tool rounds. You may call several tools in parallel.
@@ -262,6 +265,9 @@ class Session:
                 bad = [b for b in bad if _DATE_OR_MONEY.search(b)]
             if bad:
                 problems.append(f"{label} has tokens not in your quotes: {bad}")
+        legal = unsourced_legal_cites([f["title"], f["why_it_matters"], f["suggested_next_step"], *f["facts"]], cits)
+        if legal:
+            problems.append(f"legal citations not on any cited page (quote the page that states them, or remove): {legal}")
         if not problems:
             claims = list(f["facts"])  # title/analysis are token-checked; every fact is judged
             judged = judge_claims(self.matter_id, [(c, quotes) for c in claims], "review_verify")
@@ -287,7 +293,7 @@ class Session:
                  if w.lower().strip(".,") not in ("mr", "ms", "mrs", "dr", "the")]
         return bool(words) and all(corpus.has(w) or self.names.has(w) for w in words)
 
-    def run_tool(self, name: str, inp: dict) -> str:
+    def run_tool(self, name: str, inp: dict) -> str:  # noqa: D102
         if name == "search_record":
             return self.search_record(inp["query"], inp.get("k") or 6)
         if name == "read_source":
@@ -301,6 +307,30 @@ def _pretty(t: str) -> str:
     """'03-discovery__doc-40__defendants-response-demand.pdf' -> 'defendants response demand (03 discovery)'."""
     m = re.match(r"^(\d+-[a-z-]+)__(?:doc-\d+__|created__)?(.+?)\.\w+$", t or "")
     return f"{m.group(2).replace('-', ' ')} ({m.group(1).replace('-', ' ')})" if m else t
+
+
+_LEGAL = re.compile(r"(?:§+|\bCPLR\b|\bsection\b|\bRule\b)\s*(\d+[\w.()-]*)|\b\w+ v\.? \w+", re.I)
+
+
+def unsourced_legal_cites(texts: list[str], cits: list[Citation]) -> list[str]:
+    """Statute/rule/case cites in the text whose number (or name) is not in a cited page or source.
+    No legal citations from model memory: they must be on a page the chips open."""
+    with connect() as conn:
+        record = []
+        for c in cits:
+            if c.page is not None:
+                row = conn.execute("SELECT text FROM pages WHERE source_id = ? AND page_no = ?", (c.source_id, c.page)).fetchone()
+            else:
+                row = conn.execute("SELECT text FROM sources WHERE id = ?", (c.source_id,)).fetchone()
+            record.append((row[0] if row else "") or "")
+    blob = "\n".join(record)
+    bad = []
+    for t in texts:
+        for m in _LEGAL.finditer(t):
+            key = m.group(1) or m.group(0)
+            if key not in blob:
+                bad.append(m.group(0))
+    return list(dict.fromkeys(bad))
 
 
 _DATE_OR_MONEY = re.compile(r"\$|\d{1,4}[-/]\d{1,2}|\b(19|20)\d{2}\b")
