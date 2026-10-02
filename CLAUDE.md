@@ -51,8 +51,12 @@ not consumers. Every design, prompt, and copy decision targets them:
 
 ## The challenge
 
-**Not known yet** beyond the audience above. It will be announced at the
-hackathon. Until then, do not write application code or pick a stack beyond what
+**Not announced yet**, but the organizers' slides point at **personal-injury
+law**: a years-long, document-heavy case where both the PI firm and the
+lien-holding medical providers need to see where the case stands. Read
+`docs/challenge.md` for the context gathered so far. The final challenge may
+widen the users beyond trial attorneys to firm staff and provider billing
+teams. Until then, do not write application code or pick a stack beyond what
 the user asks for. When the challenge is known, record it in
 `docs/challenge.md` and update this section with a one-sentence product goal for
 trial attorneys.
