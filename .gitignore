@@ -1,0 +1,22 @@
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Dependencies and builds
+node_modules/
+.next/
+dist/
+build/
+__pycache__/
+*.pyc
+.venv/
+venv/
+
+# Tooling
+.claude/.context-health/
+.claude/settings.local.json
+temp/
+*.log
+.DS_Store
+Thumbs.db
