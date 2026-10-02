@@ -16,7 +16,7 @@ from app.db import connect
 from app.schemas import AuditFlag, AuditReport, Citation, Dashboard, RunProgress
 
 KINDS = {"dashboard": "audit:dashboard", "review": "audit:review"}
-VERSION = "a3"  # bump to re-audit everything when the checks change
+VERSION = "a4"  # bump to re-audit everything when the checks change
 _lock = threading.Lock()
 _jobs: dict[tuple[str, str, str], AuditReport] = {}  # (matter, target, hash) -> in-flight/failed report
 
@@ -60,18 +60,20 @@ def _cost_since(matter_id: str, since: str, purposes: tuple[str, ...]) -> float:
     return round(float(row[0]), 4)
 
 
-def get_report(matter_id: str, target: str) -> AuditReport | None:
-    """Stored report for the current payload, else the in-flight one (starting it if needed). None = nothing to audit."""
+def get_report(matter_id: str, target: str, rerun: bool = False) -> AuditReport | None:
+    """Stored report for the current payload, else the in-flight one (starting it if needed). None = nothing to audit.
+    rerun=True recomputes even when a report for this payload is stored (one run at a time)."""
     h = target_hash(matter_id, target)
     if h is None:
         return None
     rep = _stored(matter_id, target)
-    if rep and rep.target_hash == h:
-        return rep
     key = (matter_id, target, h)
+    if rep and rep.target_hash == h and not (rerun and key not in _jobs):
+        return rep
     with _lock:
-        if key in _jobs:
-            return _jobs[key]
+        if key in _jobs and (_jobs[key].run.status in ("queued", "running") or
+                             (_jobs[key].run.status == "done" and not rerun)):
+            return _jobs[key]  # a failed job falls through and is retried
         job = AuditReport(matter_id=matter_id, target=target, target_hash=h,
                           run=RunProgress(status="queued", stage="Waiting to start", pct=0, started_at=_now()))
         _jobs[key] = job
@@ -185,6 +187,9 @@ def audit_dashboard(matter_id: str, step) -> tuple[list[AuditFlag], int]:
     rec, _ = record_check.record_support(items, matter_id,
                                          progress=lambda x: step(f"Checking claims against the whole record ({int(x * 100)}%)", 62 + 35 * x))
     for f in rec:
+        shown = by_path.get(f.item)
+        if shown and "conflict" in shown.text.lower() and f.problem.startswith("Record contradicts"):
+            continue  # the item already displays the conflict; that is the feature, not a flaw
         if f.problem.startswith("Supported in the record but not by the cited sources"):
             f.severity = "minor"
         elif f.severity == "critical":
@@ -192,7 +197,7 @@ def audit_dashboard(matter_id: str, step) -> tuple[list[AuditFlag], int]:
         found.append(f)
 
     flags: list[AuditFlag] = []
-    seen: set[tuple] = set()
+    seen: dict[tuple, int] = {}  # (item_id, check) -> index in flags; keep the most severe
     for f in found:
         if f.severity not in SEV_RANK:
             continue
@@ -204,16 +209,19 @@ def audit_dashboard(matter_id: str, step) -> tuple[list[AuditFlag], int]:
         else:
             item_id, section = f.item, ("kpis" if f.check == "3-kpi" else "")
         note = _plain(f.problem)
-        sig = (item_id, f.check, note[:80])
+        sig = (item_id, CHECK_NAME.get(f.check, f.check))
         if sig in seen:
+            j = seen[sig]
+            if SEV_RANK[f.severity] < SEV_RANK[flags[j].severity]:
+                flags[j] = flags[j].model_copy(update={"severity": f.severity, "note": note})
             continue
-        seen.add(sig)
         cits: list[Citation] = []
         it = by_path.get(path or "")
         if f.check == "2-record" and ":" in f.quote:
             cits = _evidence(f.quote)
         elif it:
             cits = it.citations[:3]
+        seen[sig] = len(flags)
         flags.append(AuditFlag(target="dashboard", item_id=item_id, section=section, severity=f.severity,
                                check=CHECK_NAME.get(f.check, f.check), note=note, citations=cits))
     flags.sort(key=lambda a: (SEV_RANK[a.severity], a.section, a.item_id))
@@ -255,10 +263,19 @@ def audit_review(matter_id: str, step) -> tuple[list[AuditFlag], int]:
             ok, how = span_check(c)
             if not ok:
                 add("critical", "fact-support", f"Quote not found in the cited source ({how}): \"{c.quote[:100]}\"", [c])
+        blob = " ".join(texts)
+        quoted = " ".join(a or b for a, b in re.findall(r'"([^"]{3,})"|“([^”]{3,})”', blob)).lower()
+        words_seen: set[str] = set()
         for p in overreach(texts, quotes, f.citations):
-            # "never"/"planned" are mostly hypotheticals or paraphrase here; exclusivity and certainty words are real overreach
-            soft = re.match(r'"(never|planned|plans to|intends?|intended|decided)"', p, re.I)
-            add("minor" if soft else "major", "overreach", f"Overstates the record: {p}")
+            m = re.match(r'"([^"]+)"', p)
+            word = (m.group(1) if m else p).lower()
+            if word in words_seen or (word and word in quoted):
+                continue  # one flag per word; a word inside a quoted string is the record's, not ours
+            words_seen.add(word)
+            # Major only where the word changes the claim: exclusivity about witnesses, absolutes, certainty.
+            strong = (word == "only" and re.search(r"\bonly\b(?:\s+\S+){0,3}?\s+(?:non-party\s+)?(?:eye)?witness", blob, re.I)) \
+                or word == "neither" or word.startswith(("without", "will", "has ", "not a", "no "))
+            add("major" if strong else "minor", "overreach", f"Overstates the record: {p}")
         for cite in unsourced_legal_cites(texts, f.citations):
             add("major", "legal-cite", f"Legal citation \"{cite}\" is not inside any cited quote, so the highlight does not show it.")
         if f.category in ("conflict", "inconsistency"):
@@ -266,10 +283,11 @@ def audit_review(matter_id: str, step) -> tuple[list[AuditFlag], int]:
             p = same_source(matter_id, f"{f.title}. {f.why_it_matters}", f.citations)
             if p:
                 add("major", "same-source", p)
+        if f.category in ("conflict", "inconsistency"):
+            continue  # contradicting evidence IS the finding; same-source above covers false conflicts
         step(f"Checking finding {i + 1} against the whole record", base + 6)
         extra, problems = record_cites(matter_id, [f.title, f.why_it_matters], f.citations)
         for p in problems:
-            # a conflict finding is expected to have contradicting evidence; only flag it as advisory there
-            add("minor" if f.category in ("conflict", "inconsistency") else "major", "whole-record", p, extra[:1])
+            add("major", "whole-record", p, extra[:1])
     flags.sort(key=lambda a: (SEV_RANK[a.severity], a.item_id))
     return flags, len(fs)

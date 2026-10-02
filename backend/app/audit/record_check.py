@@ -76,8 +76,11 @@ def record_support(items: list[Item], matter_id: str, sections=("headline", "inj
                 hit_text.setdefault(h.source_id, []).append(h.text)
                 ps.append(f"  <passage source_id=\"{h.source_id}\" title=\"{h.title[:80]}\">{h.text[:1200]}</passage>")
             blocks.append(f"<claim n=\"{n}\" item=\"{c.item_id}\">{c.claim}\n" + "\n".join(ps) + "\n</claim>")
-        res = llm.structured(llm.MODEL_SONNET, ClaimVerdicts, JUDGE, "\n\n".join(blocks),
-                             purpose="audit:claim_record", matter_id=matter_id, effort="medium", max_tokens=8000)
+        try:
+            res = llm.structured(llm.MODEL_SONNET, ClaimVerdicts, JUDGE, "\n\n".join(blocks),
+                                 purpose="audit:claim_record", matter_id=matter_id, effort="medium", max_tokens=8000)
+        except Exception:  # a refusal or API error skips this batch; the audit itself goes on
+            continue
         for v in res.verdicts:
             if not 0 <= v.n < len(group):
                 continue
