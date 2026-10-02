@@ -11,6 +11,8 @@ draft once beforehand so PDFs and drafts are warm.
 
 **Restart both servers after the last pull:** uvicorn `:8000` (fully, not --reload) and Vite with `npm run dev -- --force`; a stale Vite serves old modules (e.g. "api.chat is not a function").
 
+**Chat questions safe to demo (S6 audited):** Pullano deposition, overdue / waiting on, last client contact, coverage (after conflict B is fixed). Avoid the injuries/defense-IME question until S6 confirms the fix.
+
 **Warm the chat:** ask the exact demo questions once before recording (cold answers take 20–28 s; cached repeats take about 1 s). Example: "When is the Pullano deposition?" and "What's overdue and who are we waiting on?".
 
 **Accuracy gate (blocker):** after the final re-digest, run
