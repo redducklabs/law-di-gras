@@ -49,3 +49,103 @@ body {
   to { opacity: 1; transform: none; }
 }
 .tl-fade { animation: tl-fade-in 260ms ease-out both; }
+
+/* ---------- Skins ----------
+   "Classic" is the @theme above. Each skin redefines the same tokens on <html data-skin="…">,
+   so every utility (bg-brand-700, text-slate-500, …) follows without touching components.
+   The live selector lives in index.html. Semantic meaning is fixed across skins:
+   danger = conflict/overdue, warn = unverified, ok = verified. */
+:root { --font-display: var(--font-sans); }
+h1, h2 { font-family: var(--font-display); }
+
+/* A · Pinstripe: the duck's suit (navy-charcoal), his glasses (brass), ivory paper. */
+[data-skin="pinstripe"] {
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-display: "Source Serif 4", Georgia, serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+  --brass: #b8955a;
+  --brass-ink: #7a5c2e;
+
+  --color-page: #f6f3ec;
+  --color-surface: #fffdf8;
+  --color-line: #e3ddcf;
+  --color-line-soft: #efe9dc;
+
+  --color-brand-50: #eef1f6;
+  --color-brand-100: #dfe4ee;
+  --color-brand-200: #c3cbdb;
+  --color-brand-500: #3d5275;
+  --color-brand-600: #26395a;
+  --color-brand-700: #1c2b47;
+  --color-brand-800: #141f35;
+
+  --color-slate-50: #faf8f3;
+  --color-slate-100: #f1ede4;
+  --color-slate-200: #e3ddcf;
+  --color-slate-300: #cbc4b4;
+  --color-slate-400: #8f8879;
+  --color-slate-500: #6b6556;
+  --color-slate-600: #545060;
+  --color-slate-700: #3c3f4c;
+  --color-slate-800: #2a2f3c;
+  --color-slate-900: #1c2230;
+
+  --color-danger-50: #f8e9e7;
+  --color-danger-200: #ecc5c0;
+  --color-danger-600: #a3231b;
+  --color-danger-700: #861c15;
+
+  --color-warn-50: #fbf2dc;
+  --color-warn-200: #edd59a;
+  --color-warn-600: #b07812;
+  --color-warn-700: #8a5a00;
+
+  --color-ok-50: #e9f2ec;
+  --color-ok-600: #2b7a52;
+  --color-ok-700: #1f6a46;
+
+  --radius-md: 3px;
+  --radius-lg: 4px;
+  --radius-xl: 5px;
+  --radius-2xl: 6px;
+  --shadow-card: 0 1px 0 rgba(28, 34, 48, 0.04);
+  --shadow-pop: 0 14px 34px -10px rgba(28, 34, 48, 0.28);
+}
+[data-skin="pinstripe"] body { font-feature-settings: normal; }
+[data-skin="pinstripe"] h1 { font-weight: 600; letter-spacing: -0.005em; }
+[data-skin="pinstripe"] h2 { font-weight: 600; }
+/* Card titles: brass rule underneath, like a ruled legal pad. */
+[data-skin="pinstripe"] section > div > h2 {
+  font-size: 15.5px; padding-bottom: 4px; border-bottom: 1.5px solid var(--brass);
+}
+/* Small-caps section labels go brass. */
+[data-skin="pinstripe"] .uppercase.tracking-wider:not([class*="text-warn"]):not([class*="text-danger"]):not([class*="text-ok"]) {
+  color: var(--brass-ink);
+}
+/* Dates and numbers read like a docket. */
+[data-skin="pinstripe"] .tabular-nums { font-variant-numeric: tabular-nums lining-nums; }
+/* Pinstripe band on top-level headers. */
+[data-skin="pinstripe"] header.border-b.bg-surface {
+  background: #1c2433 repeating-linear-gradient(90deg, transparent 0 11px, rgba(255,255,255,.045) 11px 12px);
+  border-color: var(--brass);
+}
+[data-skin="pinstripe"] header.border-b.bg-surface :is(.text-slate-900, .text-slate-500, .text-slate-600, h2) { color: #f6f3ec; }
+[data-skin="pinstripe"] header.border-b.bg-surface .text-slate-500 { color: #c9c2b2; }
+[data-skin="pinstripe"] header.border-b.bg-surface .tracking-tight { font-family: var(--font-display); font-size: 17px; }
+[data-skin="pinstripe"] header.border-b.bg-surface button {
+  background: transparent; border-color: var(--brass); color: #f6f3ec;
+}
+[data-skin="pinstripe"] header.border-b.bg-surface button:hover { background: rgba(184,149,90,.18); color: #fff; }
+[data-skin="pinstripe"] body::before {
+  content: ""; position: fixed; inset: 0 0 auto 0; height: 4px; z-index: 60; pointer-events: none;
+  background: #1c2433 repeating-linear-gradient(90deg, transparent 0 11px, rgba(184,149,90,.55) 11px 12px);
+}
+
+/* Skin selector (rendered by index.html). */
+#skin-picker {
+  position: fixed; left: 12px; bottom: 12px; z-index: 9999;
+  font: 500 11.5px/1 system-ui, sans-serif; color: #333;
+  background: rgba(255,255,255,.92); border: 1px solid rgba(0,0,0,.15); border-radius: 6px;
+  padding: 4px 6px; display: flex; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(0,0,0,.08);
+}
+#skin-picker select { font: inherit; border: 0; background: transparent; cursor: pointer; }

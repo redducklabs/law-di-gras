@@ -5,7 +5,40 @@
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="apple-touch-icon" href="/apple-touch-icon.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Case Brief</title>
+    <title>Red Duck Lawyer · Case Brief</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Source+Serif+4:opsz,wght@8..60,500;8..60,600;8..60,700&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500&display=swap" />
+    <script>
+      // Skins: set data-skin before first paint. ?skin=<name> sets it (and remembers it);
+      // ?picker=0 hides the selector (for recording).
+      (function () {
+        var SKINS = { classic: 'Classic', pinstripe: 'Pinstripe' }
+        var DEFAULT = 'pinstripe'
+        var q = new URLSearchParams(location.search)
+        var get = function (k) { try { return localStorage.getItem(k) } catch (e) { return null } }
+        var set = function (k, v) { try { localStorage.setItem(k, v) } catch (e) {} }
+        if (q.get('skin') && SKINS[q.get('skin')]) set('skin', q.get('skin'))
+        if (q.get('picker')) set('skin-picker', q.get('picker'))
+        var skin = SKINS[get('skin')] ? get('skin') : DEFAULT
+        var apply = function (s) { if (s === 'classic') document.documentElement.removeAttribute('data-skin'); else document.documentElement.setAttribute('data-skin', s) }
+        apply(skin)
+        if (get('skin-picker') === '0') return
+        document.addEventListener('DOMContentLoaded', function () {
+          var box = document.createElement('label')
+          box.id = 'skin-picker'
+          box.textContent = 'Style'
+          var sel = document.createElement('select')
+          Object.keys(SKINS).forEach(function (k) {
+            var o = document.createElement('option'); o.value = k; o.textContent = SKINS[k]; if (k === skin) o.selected = true; sel.appendChild(o)
+          })
+          sel.onchange = function () { set('skin', sel.value); apply(sel.value) }
+          box.appendChild(sel)
+          document.body.appendChild(box)
+        })
+      })()
+    </script>
   </head>
   <body>
     <div id="root"></div>
