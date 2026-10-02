@@ -21,3 +21,11 @@ cd frontend; npm install; $env:PORT=5175; $env:API_PORT=8000; npm run dev
 
 Parallel build sessions run in git worktrees with their own ports; see
 `docs/plans/2026-10-02-case-brief-dashboard.md` ("Worktrees, ports, syncing").
+
+## Accuracy first
+
+Every number, date and claim on screen traces to a verbatim quote in the Clio
+record, and the app flags conflicts in the record instead of guessing. How:
+[`docs/submission.md`](docs/submission.md#how-we-keep-it-honest-anti-hallucination).
+Independent audit, re-runnable with `cd backend; uv run python -m app.audit`:
+[`docs/audit/2026-10-02-data-audit.md`](docs/audit/2026-10-02-data-audit.md).
