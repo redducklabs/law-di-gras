@@ -9,6 +9,7 @@ import {
 import { StageStepper } from './CaseProgress'
 import { TimelineStrip } from './Timeline'
 import { NextSteps } from './NextSteps'
+import { BlindSpots, useReview } from '../review'
 
 export interface CaseBriefProps {
   data: Dashboard
@@ -22,6 +23,7 @@ export interface CaseBriefProps {
 
 export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh, focusDate }: CaseBriefProps) {
   const contactAge = daysFromToday(d.last_client_contact?.date)
+  const review = useReview(d.matter.id)
   const billedTotal = d.treatment.reduce((s, t) => s + (t.billed?.amount ?? 0), 0)
 
   return (
@@ -98,6 +100,11 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
             </Card>
           </section>
         </div>
+
+        {/* Blind spots: S7's whole-case review, under Next steps. */}
+        <section id="blind-spots" className="mt-5 scroll-mt-4">
+          <BlindSpots review={review.review} loading={review.loading} onRun={review.run} onOpenSource={onOpenSource} />
+        </section>
 
         {/* Money: compact here; the Cases page carries these across matters. */}
         <section id="kpis" className="mt-5 grid scroll-mt-4 grid-cols-2 gap-3 lg:grid-cols-4">
