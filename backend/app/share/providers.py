@@ -123,5 +123,19 @@ def list_providers(matter_id: str) -> list[Provider]:
     return sorted(out, key=rank)
 
 
+def aliases(p: Provider) -> list[str]:
+    """Provider name plus people/practices named in its Clio role, e.g. '(Jane Roe, D.C.)'."""
+    out = [p.name]
+    for inner in re.findall(r"\(([^)]+)\)", p.role or ""):
+        inner = re.sub(r"^\s*(also|surgeon|dr\.?)\s+", "", inner, flags=re.I)
+        if len(norm_name(inner)) > 3:
+            out.append(inner)
+    return out
+
+
+def matches_provider(p: Provider, text: str | None) -> bool:
+    return bool(text) and any(names_match(a, text) for a in aliases(p))
+
+
 def provider_by_id(matter_id: str, contact_id: str) -> Provider | None:
     return next((p for p in list_providers(matter_id) if p.contact_id == contact_id), None)

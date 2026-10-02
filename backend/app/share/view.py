@@ -19,7 +19,7 @@ from app.schemas import (
     ActionItem, Citation, Dashboard, Fact, Provider, ProviderView, SharedDocument,
     ShareSections, ShareSettings, TimelineEvent, TreatmentLine,
 )
-from app.share.providers import contact_key, load_dashboard, names_match
+from app.share.providers import contact_key, list_providers, load_dashboard, matches_provider, names_match
 
 ACTIVE_STATUSES = {"open", "pending"}
 # Timeline kinds a provider may see (communications can carry strategy).
@@ -108,7 +108,7 @@ def documents_for_panel(matter_id: str, provider: Provider | None, dash: Dashboa
                 cited |= {c.source_id for c in t.billed.citations}
     docs = []
     for d in matter_documents(matter_id):
-        suggested = d["id"] in cited or bool(provider and names_match(provider.name, d["title"] or ""))
+        suggested = d["id"] in cited or bool(provider and matches_provider(provider, d["title"]))
         docs.append({**d, "suggested": suggested})
     return sorted(docs, key=lambda d: (not d["suggested"], d["title"] or ""))
 
@@ -124,15 +124,27 @@ def _fact(f: Fact, allowed: set[str]) -> Fact:
 
 
 def _provider_treatment(dash: Dashboard, provider: Provider) -> list[TreatmentLine]:
+    """Treatment lines for this provider: contact id, then own name, then a role alias
+    (an alias match loses to any other provider whose own name matches)."""
     key = contact_key(provider.contact_id)
-    return [t for t in dash.treatment
-            if (t.contact_id and contact_key(t.contact_id) == key) or names_match(t.provider, provider.name)]
+    others = [p for p in list_providers(dash.matter.id) if p.contact_id != provider.contact_id]
+    out = []
+    for t in dash.treatment:
+        if t.contact_id:
+            if contact_key(t.contact_id) == key:
+                out.append(t)
+            continue
+        if names_match(provider.name, t.provider):
+            out.append(t)
+        elif matches_provider(provider, t.provider) and not any(names_match(o.name, t.provider) for o in others):
+            out.append(t)
+    return out
 
 
 def _provider_requests(dash: Dashboard, provider: Provider) -> list[ActionItem]:
     """Open items waiting on this provider, or naming them in the title."""
     return [a for a in dash.actions
-            if (a.waiting_on and names_match(a.waiting_on, provider.name)) or names_match(provider.name, a.title)]
+            if matches_provider(provider, a.waiting_on) or matches_provider(provider, a.title)]
 
 
 def _last_activity(matter_id: str) -> str | None:
