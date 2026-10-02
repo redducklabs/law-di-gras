@@ -67,6 +67,8 @@ class TreatmentLine(BaseModel):
     contact_id: str | None = None
     first_visit: str | None = None
     last_visit: str | None = None
+    last_visit_basis: Literal["billed_through", "records"] | None = None  # billed_through: from billing service dates
+    next_visit: str | None = None  # next scheduled appointment from the firm's calendar (treatment ongoing)
     visit_count: int | None = None
     billed: Fact | None = None
     citations: list[Citation] = Field(default_factory=list)
@@ -86,6 +88,7 @@ class Headline(BaseModel):
     status_line: str
     stage: str
     bullets: list[Fact] = Field(default_factory=list)
+    status_citations: list[Citation] = Field(default_factory=list)  # union of the facts the status line uses
 
 
 class Kpis(BaseModel):

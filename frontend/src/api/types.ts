@@ -53,6 +53,8 @@ export interface TreatmentLine {
   contact_id?: string | null
   first_visit?: string | null
   last_visit?: string | null
+  last_visit_basis?: 'billed_through' | 'records' | null // billed_through: label it "Billed through"
+  next_visit?: string | null // next scheduled appointment (treatment ongoing)
   visit_count?: number | null
   billed?: Fact | null
   citations: Citation[]
@@ -73,7 +75,7 @@ export interface Dashboard {
   generated_at: string
   cost_usd: number
   models: string[]
-  headline: { status_line: string; stage: string; bullets: Fact[] }
+  headline: { status_line: string; stage: string; bullets: Fact[]; status_citations?: Citation[] }
   timeline: TimelineEvent[]
   kpis: { specials?: Fact | null; coverage: Fact[]; case_value?: Fact | null; firm_spent?: Fact | null; liens?: Fact[] }
   actions: ActionItem[]
