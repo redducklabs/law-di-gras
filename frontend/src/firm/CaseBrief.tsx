@@ -51,7 +51,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
         {/* Where it stands */}
         <Card className="p-5 sm:p-6" pad={false}>
           <StageStepper stage={d.headline.stage} />
-          <TimelineStrip events={d.timeline} onOpenSource={onOpenSource} />
+          <TimelineStrip events={d.timeline} onOpenSource={onOpenSource} zoomUi="direct" />
         </Card>
 
         {/* Money: the attorney's first two questions (worth, coverage) above the fold. */}

@@ -1,14 +1,14 @@
 // Subtle timeline: a thin strip with phase shading and one dot per event. Only a handful of key
 // milestones get labels at full view; zooming in (animated) reveals more labels for the period in
 // view. Everything else is on hover, and "All events" opens the full list. Click any dot to open
-// its source. `zoomUi` picks the zoom controls: brush (overview mini-map), eras (period chips),
-// direct (double-click / ⌘-scroll / drag), or none.
+// its source. zoomUi="direct": +/− buttons, double-click (Shift = out), pinch or ⌘/Ctrl-scroll at
+// the pointer, drag to pan.
 import { useCallback, useEffect, useLayoutEffect, useMemo, useRef, useState } from 'react'
 import type { Citation, TimelineEvent } from '../api/types'
 import { DAY, daysFromToday, fmtDate, parseDate } from '../components'
 
 type Kind = TimelineEvent['kind']
-export type ZoomUi = 'none' | 'brush' | 'eras' | 'direct'
+export type ZoomUi = 'none' | 'direct'
 
 const DOT: Record<Kind, string> = {
   incident: 'bg-danger-600', treatment: 'bg-ok-600', legal: 'bg-brand-500', communication: 'bg-slate-400', deadline: 'bg-warn-600',
@@ -238,7 +238,7 @@ export function TimelineStrip({ events, onOpenSource, zoomUi = 'none' }: {
         <div className="relative min-w-0 flex-1">
           <div ref={ref}
             onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp} onDoubleClick={onDoubleClick}
-            className={`relative overflow-x-clip transition-[height] duration-300 ${zoomUi === 'direct' ? (drag.current ? 'cursor-grabbing' : 'cursor-grab') : ''} select-none`}
+            className={`relative overflow-x-clip transition-[height] duration-300 ${zoomUi === 'direct' ? `touch-pan-y ${drag.current ? 'cursor-grabbing' : 'cursor-grab'}` : ''} select-none`}
             style={{ height: rowsH }}>
             <div className="absolute inset-x-0 top-[14px] h-1.5 rounded-full bg-line-soft" />
             {phases.map(p => (
@@ -277,13 +277,6 @@ export function TimelineStrip({ events, onOpenSource, zoomUi = 'none' }: {
               <div className="text-slate-400">{KIND_LABEL[hover.e.kind]} · {fmtDate(hover.e.date, true)}</div>
             </div>
           )}
-          {zoomUi === 'direct' && (
-            <div className="absolute -top-1 right-0 z-10 flex items-center gap-0.5 rounded-lg border border-line bg-surface/90 p-0.5 shadow-card backdrop-blur">
-              <IconBtn label="Zoom out" onClick={() => zoomAt((v0 + v1) / 2, 1 / 2)}>−</IconBtn>
-              <IconBtn label="Zoom in" onClick={() => zoomAt((v0 + v1) / 2, 2)}>+</IconBtn>
-              {zoomed && <IconBtn label="Show all" onClick={() => animateTo([0, 100])}>⤢</IconBtn>}
-            </div>
-          )}
         </div>
         {s.pinned.length > 0 && (
           <div className="mt-2 flex shrink-0 flex-col items-end gap-1">
@@ -297,9 +290,6 @@ export function TimelineStrip({ events, onOpenSource, zoomUi = 'none' }: {
         )}
       </div>
 
-      {zoomUi === 'brush' && <Brush s={s} view={view} phases={phases} onSet={setNow} onAnimate={animateTo} />}
-      {zoomUi === 'eras' && <Eras s={s} view={view} phases={phases} onAnimate={animateTo} zoomAt={zoomAt} />}
-
       {/* legend + range + all events toggle */}
       <div className="mt-1.5 flex flex-wrap items-center gap-x-4 gap-y-1 text-[11px] text-slate-500">
         {phases.map(p => <span key={p.name} className="inline-flex items-center gap-1.5"><span className={`h-1.5 w-4 rounded-full ${p.cls}`} />{p.name}</span>)}
@@ -311,8 +301,14 @@ export function TimelineStrip({ events, onOpenSource, zoomUi = 'none' }: {
             <button type="button" onClick={() => animateTo([0, 100])} className="cursor-pointer font-semibold underline">Reset</button>
           </span>
         )}
-        {zoomUi === 'direct' && !zoomed && <span className="text-slate-400">Double-click or ⌘/Ctrl-scroll to zoom · drag to pan</span>}
-        <button type="button" onClick={() => setShowAll(v => !v)} className="ml-auto cursor-pointer font-semibold text-brand-700 hover:underline">
+        {zoomUi === 'direct' && !zoomed && <span className="hidden text-slate-400 md:inline">Double-click or pinch to zoom · drag to pan</span>}
+        {zoomUi === 'direct' && (
+          <span className="ml-auto flex items-center gap-0.5 rounded-lg border border-line bg-surface p-0.5">
+            <IconBtn label="Zoom out" onClick={() => zoomAt((v0 + v1) / 2, 1 / 2)}>−</IconBtn>
+            <IconBtn label="Zoom in" onClick={() => zoomAt((v0 + v1) / 2, 2)}>+</IconBtn>
+          </span>
+        )}
+        <button type="button" onClick={() => setShowAll(v => !v)} className={`${zoomUi === 'direct' ? '' : 'ml-auto '}cursor-pointer font-semibold text-brand-700 hover:underline`}>
           {showAll ? 'Hide events' : `All ${s.sorted.length} events`}
         </button>
       </div>
@@ -348,100 +344,6 @@ function timeTicks(s: Scale, v0: number, v1: number, w: number) {
     out.push({ key: `${t}`, x, major: isYear, text: isYear ? `${d.getFullYear()}` : d.toLocaleDateString('en-US', { month: 'short' }) })
   }
   return out
-}
-
-/** A · Overview mini-map: drag a window to zoom, drag the window to pan, edges to resize. */
-function Brush({ s, view, phases, onSet, onAnimate }: {
-  s: Scale; view: View; phases: { from: number; to: number; cls: string }[]
-  onSet: (v: View) => void; onAnimate: (v: View) => void
-}) {
-  const ref = useRef<HTMLDivElement>(null)
-  const drag = useRef<{ mode: 'pan' | 'l' | 'r' | 'new'; x0: number; view: View } | null>(null)
-  const uAt = (clientX: number) => {
-    const r = ref.current!.getBoundingClientRect()
-    return ((clientX - r.left) / r.width) * 100
-  }
-  const down = (e: React.PointerEvent, mode: 'pan' | 'l' | 'r' | 'new') => {
-    e.stopPropagation()
-    drag.current = { mode, x0: uAt(e.clientX), view }
-    ref.current!.setPointerCapture(e.pointerId)
-  }
-  const move = (e: React.PointerEvent) => {
-    const d = drag.current
-    if (!d) return
-    const u = uAt(e.clientX), du = u - d.x0
-    if (d.mode === 'pan') onSet([d.view[0] + du, d.view[1] + du])
-    else if (d.mode === 'l') onSet([Math.min(d.view[0] + du, d.view[1] - MIN_SPAN), d.view[1]])
-    else if (d.mode === 'r') onSet([d.view[0], Math.max(d.view[1] + du, d.view[0] + MIN_SPAN)])
-    else onSet([Math.min(d.x0, u), Math.max(d.x0, u)])
-  }
-  const up = (e: React.PointerEvent) => {
-    const d = drag.current
-    drag.current = null
-    if (d?.mode === 'new' && Math.abs(uAt(e.clientX) - d.x0) < 1.5) onAnimate([d.x0 - 10, d.x0 + 10])
-  }
-  const yearAgo = s.u(s.now - 365 * DAY), sixMo = s.u(s.now - 182 * DAY)
-  const presets: [string, View][] = [['All', [0, 100]], ['Last year', [yearAgo, 100]], ['Last 6 mo', [sixMo, 100]], ['Upcoming', [s.nowU - 2, 100]]]
-  const active = (v: View) => Math.abs(v[0] - view[0]) < 0.5 && Math.abs(clampView(v)[1] - view[1]) < 0.5
-  return (
-    <div className="mt-2 flex items-center gap-3">
-      <div ref={ref} onPointerDown={e => down(e, 'new')} onPointerMove={move} onPointerUp={up}
-        className="relative h-7 flex-1 cursor-crosshair touch-none select-none overflow-hidden rounded-md bg-page">
-        {phases.map((p, i) => <div key={i} className={`absolute top-3 h-1 ${p.cls}`} style={{ left: `${p.from}%`, width: `${p.to - p.from}%` }} />)}
-        {s.pts.map((p, i) => <span key={i} className={`absolute top-[11px] h-[5px] w-[5px] -ml-[2.5px] rounded-full ${p.t > s.now ? 'bg-warn-600' : DOT[p.e.kind]} opacity-70`} style={{ left: `${p.u}%` }} />)}
-        <div onPointerDown={e => down(e, 'pan')}
-          className="absolute inset-y-0 cursor-grab rounded-md border-2 border-brand-500 bg-brand-500/10 shadow-[0_0_0_9999px_rgba(248,250,252,0.55)] active:cursor-grabbing"
-          style={{ left: `${view[0]}%`, width: `${view[1] - view[0]}%` }}>
-          <span onPointerDown={e => down(e, 'l')} className="absolute inset-y-1 left-0 w-1.5 cursor-ew-resize rounded-sm bg-brand-500" />
-          <span onPointerDown={e => down(e, 'r')} className="absolute inset-y-1 right-0 w-1.5 cursor-ew-resize rounded-sm bg-brand-500" />
-        </div>
-      </div>
-      <div className="flex shrink-0 gap-1">
-        {presets.map(([name, v]) => (
-          <button key={name} type="button" onClick={() => onAnimate(v)}
-            className={`cursor-pointer rounded-md px-2 py-1 text-[11px] font-semibold ${active(v) ? 'bg-brand-700 text-white' : 'text-slate-500 hover:bg-brand-50 hover:text-brand-700'}`}>
-            {name}
-          </button>
-        ))}
-      </div>
-    </div>
-  )
-}
-
-/** B · Period chips: one click glides the strip to a phase or a year; +/− for finer control. */
-function Eras({ s, view, phases, onAnimate, zoomAt }: {
-  s: Scale; view: View; phases: { from: number; to: number; name: string }[]
-  onAnimate: (v: View) => void; zoomAt: (u: number, f: number) => void
-}) {
-  const pad = (a: number, b: number): View => { const p = Math.max((b - a) * 0.06, 1); return [a - p, b + p] }
-  const years: [string, View][] = []
-  for (let y = new Date(s.t0).getFullYear(); y <= new Date(s.now).getFullYear(); y++) {
-    const a = Math.max(s.t0, new Date(y, 0, 1).getTime()), b = Math.min(s.now, new Date(y + 1, 0, 1).getTime())
-    if (b > a) years.push([String(y), pad(s.u(a), s.u(b))])
-  }
-  const chips: [string, View][] = [
-    ['All', [0, 100]],
-    ...phases.map(p => [p.name, pad(p.from, p.to)] as [string, View]),
-    ...(s.nowU < 99 ? [['Upcoming', [s.nowU - 1.5, 100]] as [string, View]] : []),
-  ]
-  const isActive = (v: View) => { const c = clampView(v); return Math.abs(c[0] - view[0]) < 0.5 && Math.abs(c[1] - view[1]) < 0.5 }
-  const chip = (name: string, v: View) => (
-    <button key={name} type="button" onClick={() => onAnimate(v)}
-      className={`cursor-pointer rounded-full px-2.5 py-1 text-[11.5px] font-medium transition-colors ${isActive(v) ? 'bg-brand-700 text-white' : 'bg-page text-slate-600 hover:bg-brand-50 hover:text-brand-700'}`}>
-      {name}
-    </button>
-  )
-  return (
-    <div className="mt-2 flex flex-wrap items-center gap-1.5">
-      {chips.map(([n, v]) => chip(n, v))}
-      <span className="mx-1 h-4 w-px bg-line" />
-      {years.map(([n, v]) => chip(n, v))}
-      <span className="ml-auto flex items-center gap-0.5 rounded-lg border border-line p-0.5">
-        <IconBtn label="Zoom out" onClick={() => zoomAt((view[0] + view[1]) / 2, 1 / 2)}>−</IconBtn>
-        <IconBtn label="Zoom in" onClick={() => zoomAt((view[0] + view[1]) / 2, 2)}>+</IconBtn>
-      </span>
-    </div>
-  )
 }
 
 function EventList({ events, onOpen }: { events: TimelineEvent[]; onOpen: (e: TimelineEvent) => void }) {
