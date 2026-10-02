@@ -38,7 +38,7 @@ freeze 3:00 PM; video recorded 3:00–3:30; submit by 3:45.
 ## Risks / watch list
 
 - Stale backends can overwrite the shared dashboard cache; restart after every pull (S2 adding version guard). Re-digest once before recording.
-- App is Windows-only (winocr); fine for localhost demo, note for judges.
+- OCR: winocr on Windows, RapidOCR fallback on Linux (hosted demo works).
 
 ## Log
 

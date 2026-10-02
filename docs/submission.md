@@ -13,7 +13,7 @@ it came from, with the quote highlighted.
 
 - **Built with:** Python 3.13 + FastAPI, React + Vite + TypeScript + Tailwind v4,
   react-pdf; PyMuPDF and Windows OCR (RapidOCR fallback) for PDFs and scans.
-- **Running on:** localhost (Windows). `README.md` has the run commands.
+- **Running on:** localhost (Windows) and hosted at demo.redducklaw.com (Linux, RapidOCR). `README.md` has the run commands.
 - **Data outside Clio:** local SQLite (`backend/data/app.db`): synced sources,
   pages with line boxes, chunks, embeddings, cached digests, share settings and
   view log, LLM usage. Clio is read-only: one GET-only client; the only POST is
@@ -107,7 +107,7 @@ audit report.
   unshared documents never reach the provider endpoint.
 - **Not built / limits:** real-time sync (on-demand today; Clio webhooks in
   production, not built because creating a subscription writes to Clio);
-  outbound notifications to providers; Windows-only OCR; search results
+  outbound notifications to providers; OCR is Windows OCR locally, RapidOCR (slower) on Linux; search results
   highlight the whole passage, not the exact sentence.
 - **Nothing about the case is hardcoded.** The only Sapini reference in code is
   the default matter name to look up (`MATTER_QUERY`, env-overridable).
