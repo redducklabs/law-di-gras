@@ -72,10 +72,8 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
           {!!d.headline.status_citations?.length && <SourceChips citations={d.headline.status_citations} onOpen={onOpenSource} max={2} compact />}
         </p>
 
-        {/* Money: one quiet strip. Section ids match PageSection (chat deeplinks). */}
-        <section id="kpis" className="scroll-mt-4"><KpiStrip data={d} onOpenSource={onOpenSource} /></section>
-
-        <section id="timeline" className="mt-4 scroll-mt-4">
+        {/* Section ids match PageSection (chat deeplinks). */}
+        <section id="timeline" className="scroll-mt-4">
           <Card className="p-5 sm:p-6" pad={false}>
             <StageStepper stage={d.headline.stage} />
             <TimelineStrip events={d.timeline} onOpenSource={onOpenSource} zoomUi="direct" lanes focusDate={focusDate} />
@@ -98,6 +96,10 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
 
         {/* Detail on demand: one card, three collapsed rows. Deeplinks open them. */}
         <div className="mt-4 overflow-hidden rounded-xl border border-line bg-surface shadow-card">
+          <Disclosure id="kpis" title="Money" summary={moneySummary(d)}
+            extra={<Unverified facts={[d.kpis.case_value, d.kpis.specials, d.kpis.firm_spent, ...d.kpis.coverage].filter((f): f is Fact => !!f)} />}>
+            <KpiStrip data={d} onOpenSource={onOpenSource} />
+          </Disclosure>
           <Disclosure id="injuries" title="Injuries" extra={<Unverified facts={d.injuries} />}
             summary={d.injuries.length ? `${d.injuries.length} documented · ${d.injuries.map(f => f.label).join(', ')}` : 'None found in the record yet'}>
             {d.injuries.length ? (
@@ -175,6 +177,20 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
       </div>
     </div>
   )
+}
+
+/** One line for the collapsed Money row: short amounts, not the full fact text. */
+function moneySummary(d: Dashboard) {
+  const k = d.kpis
+  const amt = (f?: Fact | null) => f ? (f.amount != null ? money(f.amount) : f.value.split(/\s(?:billed|across)\s/)[0]) : null
+  const parts = [
+    k.case_value && `Draft value ${k.case_value.value}`,
+    amt(k.specials) && `specials ${amt(k.specials)}`,
+    k.liens?.length && `${k.liens.length} lien${k.liens.length === 1 ? '' : 's'}`,
+    amt(k.firm_spent) && `costs ${amt(k.firm_spent)}`,
+    k.coverage.length && `${k.coverage.length} coverage source${k.coverage.length === 1 ? '' : 's'}`,
+  ].filter(Boolean)
+  return parts.length ? parts.join(' · ') : 'No amounts found in the record yet'
 }
 
 const FACTS_VISIBLE = 3
