@@ -21,7 +21,7 @@ from app.llm import MODEL_OPUS, structured
 from app.retrieval.fence import FENCE_RULE
 from app.schemas import ActionItem, Citation, Fact, Headline
 
-VERSION = "b4"
+VERSION = "b5"
 
 
 class Bullet(BaseModel):
@@ -43,6 +43,7 @@ SYSTEM = (
     "dates, amounts or names that those quotes do not state. Prefer fewer, safer words. Attribute every "
     "defense IME / defense expert opinion explicitly (e.g. 'defense radiology review says ...'); never blend "
     "it into the client's findings. Where a fact is marked Conflict or carries a caveat, keep that visible. "
+    "When the status line names who the case is against, name every defendant the facts name. "
     + FENCE_RULE
 )
 

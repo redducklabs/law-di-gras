@@ -75,7 +75,9 @@ CATEGORIES = [
        "injuries as documented by treating providers, imaging or hospital records. Do NOT list findings or "
        "opinions from a defense / independent medical examination (IME) or defense expert as the client's "
        "injuries; if such an opinion disputes an injury, put it in that injury's value as 'Defense IME "
-       "(<doctor>): <what they said, in their words>'. Never call something 'no injury' unless a quote says "
+       "(<doctor>): <what they said, in their words>', scoped to the exact side and body part that opinion "
+       "addresses (e.g. 'left knee'); never attach a one-sided opinion to a bilateral finding without saying "
+       "which side. Never call something 'no injury' unless a quote says "
        "exactly that. The value must not add procedures, dates or findings that its quotes do not state.",
        top_k=10),
     Category("treatment", [

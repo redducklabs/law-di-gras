@@ -25,7 +25,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 16
+PIPELINE_REV = 17
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -230,7 +230,9 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             cits = (line.billed.citations if prev else []) + ch["citations"]
             line.billed = Fact(id=f"charge-{len(billed)}", label=f"Billed: {line.provider}", value=f"${amt:,.2f}",
                                amount=amt, citations=cits, verified=all(c.verified for c in cits))
-            line.first_visit = line.first_visit or ch["first"]
+            if not line.first_visit and ch["first"]:  # the date now comes from this entry: cite it
+                line.first_visit = ch["first"]
+                line.citations = [c for c in ch["citations"] if ch["first"] in c.quote] + list(line.citations)
             if not line.last_visit and ch["last"]:
                 line.last_visit, line.last_visit_basis = ch["last"], "billed_through"
         for t in treatment:  # LLM-read amounts give way to the Clio entries
@@ -289,6 +291,15 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             timeline.append(TimelineEvent(date=t.first_visit, label=f"Treatment starts: {t.provider}",
                                           kind="treatment", is_future=False, citations=t.citations))
     cal_events, cal_actions = st.calendar(matter_id, today)
+    # Past calendar entries are only the firm's plan: surface records that put the event on another date.
+    past_cal = [e for e in cal_events if not e.is_future and e.kind in ("legal", "deadline")]
+    for e, (v, cit) in zip(past_cal, check_statements(
+            matter_id, [(f"{e.label.removeprefix('Calendar: ')} took place on {e.date}", e.citations) for e in past_cal],
+            purpose="record_check_calendar")):
+        if v.verdict == "contradicted" and cit is not None:
+            e.label = f"{e.label} (Conflict: {v.note.strip().rstrip('.')})"
+            e.citations = list(e.citations) + [cit]
+            unconfirmed.add(id(e))  # conflicting date: keep it off the compact strip
     timeline.extend(cal_events)
     for t in treatment:  # treatment still scheduled with this provider → treatment is ongoing
         nxt = [e.date for e in cal_events if e.is_future and e.kind == "treatment"

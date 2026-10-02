@@ -197,7 +197,8 @@ def medical_charges(matter_id: str) -> list[dict]:
         out.append({"provider": provider, "amount": amt,
                     "first": iso(m.group(1)) if m else iso(raw.get("date")),
                     "last": iso(m.group(2) or m.group(1)) if m else None,
-                    "citations": _amount_citation(conn, row, amt, provider)})
+                    "citations": _amount_citation(conn, row, amt, provider) + (
+                        [c for c in [locate(conn, row["id"], m.group(0))] if c and c.verified] if m else [])})
     return out
 
 

@@ -19,7 +19,7 @@ from app.llm import MODEL_HAIKU, MODEL_SONNET, structured
 from app.retrieval.fence import FENCE_RULE, fence
 from app.schemas import Fact, TimelineEvent
 
-VERSION = "c5"
+VERSION = "c6"
 RECENT_DAYS = 14
 RECENT_MIN = 5
 RECENT_MAX = 10
@@ -70,7 +70,8 @@ RECENT_PROMPT = """For EACH record below, write one item:
 - record_id: the record's id.
 Attribute precisely: if the client asked and the attorney advised, say exactly that; never upgrade a
 question, request or plan into a confirmation, and never add words the record does not support
-(e.g. "initial", "confirmed", "agreed").
+(e.g. "initial", "confirmed", "agreed"). Use the record's own verb for court papers: a stamp such as
+"NYSCEF ... RECEIVED" or "FILED" means "filed", not "notice dated".
 
 {records}"""
 
@@ -126,8 +127,10 @@ def recent_activity(matter_id: str, today: date) -> list[Fact]:
                 continue
             seen.add(it.record_id)
             r = picked[it.record_id]
-            if any(f.date == iso(r["date"]) and fuzz.token_set_ratio(f.label, it.headline) >= 70 for f in facts):
-                continue  # same event logged twice (e.g. call note + communication)
+            ev0 = iso(it.event_date)
+            if any((f.date in (iso(r["date"]), ev0) and fuzz.token_set_ratio(f.label, it.headline) >= 70)
+                   or fuzz.token_set_ratio(f.label, it.headline) >= 85 for f in facts):
+                continue  # same event logged twice (call note + email, or one report sent in two transmittals)
             c = locate(conn, r["id"], it.quote)
             if c is None or not c.verified:
                 c = row_citation(conn, r)  # still links to the record; quote = its title

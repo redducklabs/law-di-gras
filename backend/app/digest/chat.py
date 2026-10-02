@@ -24,7 +24,7 @@ from app.retrieval.fence import FENCE_RULE, fence
 from app.retrieval.search import search
 from app.schemas import ChatRequest, ChatResponse, Citation, Dashboard, DeepLink
 
-VERSION = "ch2"
+VERSION = "ch3"
 SECTIONS = {"timeline", "next-steps", "status", "kpis", "injuries", "treatment", "recent"}
 ROUTES = {"/cases"}
 MAX_LINKS = 3
@@ -49,9 +49,13 @@ SYSTEM = (
     "You answer questions about one personal-injury case for the firm's attorneys, paralegals and case "
     "managers. Answer ONLY from the numbered evidence. Put [n] after every sentence that states a fact, "
     "citing the evidence that says it. Never add dates, amounts, names, counts, causes or attributions the "
-    "cited evidence does not state; if the evidence does not answer, say so plainly. A date that was only "
-    "scheduled, noticed or subpoenaed is not an event that happened: say 'scheduled for'. Direct, concise, "
-    "professional; markdown lists allowed. "
+    "cited evidence does not state. Never claim the record lacks something: if the evidence does not answer, "
+    "say \"I couldn't find <X> in the retrieved record\". A date that was only scheduled, noticed or subpoenaed "
+    "is not an event that happened: say 'scheduled for'. A 'Calendar:' entry is only the firm's calendar; if "
+    "other evidence shows the event was performed (operative record, bill), say it was performed. For "
+    "coverage, limits and case value, state them exactly as the 'Dashboard KPI' evidence does, including any "
+    "Conflict wording. Every sentence must stand alone: name its source instead of 'the same note'. Present "
+    "an older note's status as of its date. Direct, concise, professional; markdown lists allowed. "
     + FENCE_RULE
 )
 
@@ -78,10 +82,15 @@ def _dash_evidence(d: Dashboard) -> list[tuple[str, Citation]]:
     """Dashboard items as citable evidence: (text, first verified citation)."""
     out: list[tuple[str, Citation]] = []
 
-    def add(text: str, cits: list[Citation]):
-        c = next((c for c in cits if c.verified), None)
-        if c:
+    def add(text: str, cits: list[Citation], every: bool = False):
+        vs = [c for c in cits if c.verified]
+        for c in (vs if every else vs[:1]):  # every: a fact citing both sides (e.g. defense IME) keeps both
             out.append((text, c))
+
+    h = d.headline
+    add(f"Case status ({h.stage}): {h.status_line}", h.status_citations)
+    for f in d.injuries:
+        add(f"Injury: {f.label}: {f.value}", f.citations, every=True)
 
     for a in d.actions:
         parts = [f"Open action: {a.title}", f"status {a.status}"]
@@ -95,7 +104,7 @@ def _dash_evidence(d: Dashboard) -> list[tuple[str, Citation]]:
     k = d.kpis
     for f in [k.specials, k.firm_spent, k.case_value, *k.coverage, *k.liens, d.last_client_contact]:
         if f and f.verified:
-            add(f"{f.label}: {f.value}", f.citations)
+            add(f"Dashboard KPI: {f.label}: {f.value}", f.citations, every=f in k.coverage)
     for t in d.treatment:
         bits = [f"Treatment: {t.provider}"]
         if t.first_visit:
@@ -240,8 +249,16 @@ def chat(matter_id: str, req: ChatRequest) -> ChatResponse:
         n = int(m)
         if 1 <= n <= len(evidence) and n not in used:
             used.append(n)
+    canon: dict[tuple, int] = {}  # identical citations collapse to one chip
+    alias: dict[int, int] = {}
+    for n in used:
+        c = evidence[n - 1][1]
+        alias[n] = canon.setdefault((c.source_id, c.page, c.char_start, c.char_end, c.quote[:200]), n)
+    used = list(dict.fromkeys(alias[n] for n in used))
     remap = {old: new for new, old in enumerate(used, 1)}
+    remap.update({n: remap[a] for n, a in alias.items()})
     answer = _MARK.sub(lambda m: f"[{remap[int(m.group(1))]}]" if int(m.group(1)) in remap else "", answer)
+    answer = re.sub(r"(\[\d+\])(?:\1)+", r"\1", answer)  # [1][1] -> [1]
     citations = [evidence[n - 1][1] for n in used]
 
     # Validate every proposed link against what actually exists.
@@ -252,7 +269,7 @@ def chat(matter_id: str, req: ChatRequest) -> ChatResponse:
         k = l.kind
         if k == "section" and l.section in SECTIONS:
             links.append(DeepLink(label=l.label, kind="section", section=l.section))
-        elif k == "source" and l.evidence in remap:
+        elif k == "source" and l.evidence in remap and l.evidence in alias:
             links.append(DeepLink(label=l.label, kind="source", citation=evidence[l.evidence - 1][1]))
         elif k == "timeline" and l.date in tl_dates:
             links.append(DeepLink(label=l.label, kind="timeline", date=l.date))
