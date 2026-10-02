@@ -24,15 +24,15 @@ it came from, with the quote highlighted.
 | Step | Model |
 |---|---|
 | Retrieval questions per chunk (HyDE), recent-activity headlines, milestone flags | Claude Haiku 4.5 |
-| Fact extraction (8 categories, verbatim quotes), grounded drafts | Claude Sonnet 5.5 |
-| Headline brief, cited Q&A | Claude Opus 5.5 |
+| Fact extraction (8 categories, verbatim quotes), grounded drafts, claim and whole-record conflict judges | Claude Sonnet 5.5 |
+| Headline brief, Ask-the-case chat | Claude Opus 5.5 |
 | Embeddings | OpenAI text-embedding-3-large |
 | Rerank | Cohere rerank-v3.5 |
 
-- **First full digest of Sapini:** about $1.50 (most of it one-time indexing).
-- **Refresh after Clio changes:** about $0.07–0.25 (only changed sources re-processed).
-- **Per AI draft:** about $0.01–0.02. Per cited Q&A answer: about $0.02.
-- **Total spend today including all development runs:** about $5.
+- **First full digest of Sapini:** about $2.50 (≈$1.20 one-time indexing: Haiku retrieval questions + embeddings; ≈$0.80 extraction and reranking; ≈$0.50 brief plus verification and whole-record conflict checks).
+- **Refresh after Clio changes:** about $0.55–0.75 with all verification passes (only changed sources re-indexed).
+- **Per AI draft:** about $0.01–0.02. Per cited chat answer: about $0.12–0.14 (Opus + verification); repeats are cached.
+- **Total spend today including all development and audit runs:** about $12.
 
 ## Notes for judges
 
