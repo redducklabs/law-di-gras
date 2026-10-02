@@ -1,6 +1,6 @@
 // Fetch wrappers for every route in the plan's API table. Vite proxies /api.
 import type {
-  Answer, Dashboard, Draft, DraftRequest, MatterSummary, Passage, Provider, ProviderView,
+  Answer, ChatRequest, ChatResponse, Dashboard, Draft, DraftRequest, MatterSummary, Passage, Provider, ProviderView,
   ShareSettings, SourceDetail,
 } from './types'
 
@@ -40,6 +40,8 @@ export const api = {
     req<Draft>(`/api/matters/${enc(matterId)}/draft`, { method: 'POST', body: JSON.stringify(body) }),
   ask: (matterId: string, question: string) =>
     req<Answer>(`/api/matters/${enc(matterId)}/ask`, { method: 'POST', body: JSON.stringify({ question }) }),
+  chat: (matterId: string, body: ChatRequest) =>
+    req<ChatResponse>(`/api/matters/${enc(matterId)}/chat`, { method: 'POST', body: JSON.stringify(body) }),
 
   providers: (matterId: string) => req<Provider[]>(`/api/matters/${enc(matterId)}/providers`),
   shareSettings: (matterId: string, contactId: string) =>
