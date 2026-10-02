@@ -283,7 +283,7 @@ def main():
         t0 = time.monotonic()
         T0[0] = t0
         s = Stage(page)
-        s.goto(f"{BASE}/cases?skin=pinstripe&picker=0")  # current skin; hides the Style picker
+        s.goto(f"{BASE}/cases?skin=ledger&picker=0")  # Ledger skin; hides the Style picker
         time.sleep(1.0)
         lead = time.monotonic() - t0  # trimmed from the video
         for key, text in SEGMENTS:
