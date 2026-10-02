@@ -33,12 +33,19 @@ without touching local work or the existing redducklaw marketing site.
 
 ## Steps
 
-- [ ] Read `C:\Repos\redducklaw\docs\deployment-info.md` and
+Update: Aron wants deploys from GitHub Actions. `demo-provision.yml`
+(manual, creates Droplet + `demo` record) and `demo-deploy.yml` (push to main
+or manual) do the outward work; secrets come from GitHub secrets. Case data is
+seeded from the laptop with `deploy/seed-data.sh` (repo is public). Runbook and
+secret list: `deploy/README.md`.
+
+
+- [x] Read `C:\Repos\redducklaw\docs\deployment-info.md` and
       `docs\retirement-and-restore.md` (read-only; never modify that repo)
-- [ ] `deploy/Dockerfile.api` (python:3.13-slim, uv, `uv sync`; winocr is
+- [x] `deploy/Dockerfile.api` (python:3.13-slim, uv, `uv sync`; winocr is
       Windows-only, so make it a platform-conditional dependency in a
       `contract:` commit to `backend/pyproject.toml`; RapidOCR stays)
-- [ ] `deploy/Caddyfile`, `deploy/docker-compose.yml`, `deploy/README.md` (runbook)
+- [x] `deploy/Caddyfile`, `deploy/docker-compose.yml`, `deploy/README.md` (runbook)
 - [ ] Build the frontend locally (`npm run build`), ship `dist/` with the bundle
 - [ ] **Ask Aron** before each outward action: create Droplet (cost), add DNS
       record, copy secrets, upload case data

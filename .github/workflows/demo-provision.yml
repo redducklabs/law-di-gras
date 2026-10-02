@@ -1,0 +1,64 @@
+# One-time (idempotent): create the demo Droplet and the demo.<domain> A record.
+# Costs money (s-1vcpu-2gb, about $12/mo), so it only runs by hand.
+name: demo-provision
+
+on:
+  workflow_dispatch:
+    inputs:
+      confirm:
+        description: 'Type CREATE to create the Droplet (~$12/mo) and the DNS A record'
+        required: true
+
+concurrency: demo-deploy
+
+jobs:
+  provision:
+    if: inputs.confirm == 'CREATE'
+    runs-on: ubuntu-latest
+    env:
+      DROPLET: law-di-gras-demo
+      ZONE: redducklaw.com
+      RECORD: demo
+    steps:
+      - uses: actions/checkout@v4
+      - uses: digitalocean/action-doctl@v2
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Register the deploy SSH key with DigitalOcean
+        id: key
+        env:
+          DEMO_SSH_KEY: ${{ secrets.DEMO_SSH_KEY }}
+        run: |
+          umask 077
+          printf '%s\n' "$DEMO_SSH_KEY" > key
+          ssh-keygen -y -f key > key.pub
+          rm -f key
+          fp=$(ssh-keygen -E md5 -lf key.pub | awk '{print $2}' | sed 's/^MD5://')
+          if ! doctl compute ssh-key list --format FingerPrint --no-header | grep -qx "$fp"; then
+            doctl compute ssh-key import law-di-gras-demo-deploy --public-key-file key.pub
+          fi
+          echo "fp=$fp" >> "$GITHUB_OUTPUT"
+
+      - name: Create the Droplet (skipped if it exists)
+        run: |
+          if doctl compute droplet list --format Name --no-header | grep -qx "$DROPLET"; then
+            echo "Droplet $DROPLET already exists"
+          else
+            doctl compute droplet create "$DROPLET" \
+              --region sfo3 --size s-1vcpu-2gb --image ubuntu-24-04-x64 \
+              --ssh-keys "${{ steps.key.outputs.fp }}" \
+              --user-data-file deploy/cloud-init.yaml \
+              --tag-name law-di-gras-demo --enable-monitoring --wait
+          fi
+
+      - name: Point the demo A record at the Droplet (touches only that record)
+        run: |
+          ip=$(doctl compute droplet list --format Name,PublicIPv4 --no-header | awk -v d="$DROPLET" '$1==d{print $2}')
+          id=$(doctl compute domain records list "$ZONE" --format ID,Type,Name --no-header | awk -v r="$RECORD" '$2=="A" && $3==r{print $1}')
+          if [ -n "$id" ]; then
+            doctl compute domain records update "$ZONE" --record-id "$id" --record-data "$ip" --record-ttl 300
+          else
+            doctl compute domain records create "$ZONE" --record-type A --record-name "$RECORD" --record-data "$ip" --record-ttl 300
+          fi
+          echo "### $RECORD.$ZONE -> $ip" >> "$GITHUB_STEP_SUMMARY"

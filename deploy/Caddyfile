@@ -1,0 +1,25 @@
+# Hosted demo: TLS (Let's Encrypt), static frontend, /api proxy, basic auth.
+# Provider share links (/p/*, /api/share/*) and the static bundle stay public,
+# the way a provider would open them in real use.
+{$DEMO_DOMAIN} {
+	encode zstd gzip
+
+	@protected not path /p/* /api/share/* /assets/* /favicon.svg
+	# auth.caddy is written on the server by the deploy workflow:
+	#   basic_auth @protected { <user> <bcrypt hash> }
+	import /etc/caddy/auth.caddy
+
+	handle /api/* {
+		reverse_proxy api:8000
+	}
+	handle {
+		root * /srv
+		try_files {path} /index.html
+		file_server
+	}
+
+	header {
+		X-Robots-Tag "noindex, nofollow"
+		-Server
+	}
+}

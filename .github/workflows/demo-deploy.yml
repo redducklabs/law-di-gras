@@ -1,0 +1,122 @@
+# Deploys the hosted demo to the Droplet made by demo-provision.
+# Ships code only. Case data (SQLite + files) is seeded from a local machine
+# with deploy/seed-data.sh and never passes through GitHub (public repo).
+name: demo-deploy
+
+on:
+  push:
+    branches: [main]
+    paths: ['backend/**', 'frontend/**', 'deploy/**', '.github/workflows/demo-deploy.yml']
+  workflow_dispatch:
+
+concurrency: demo-deploy
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      DROPLET: law-di-gras-demo
+      DEMO_DOMAIN: ${{ vars.DEMO_DOMAIN || 'demo.redducklaw.com' }}
+      AUTH_USER: ${{ vars.DEMO_BASIC_AUTH_USER || 'demo' }}
+      HAS_TOKEN: ${{ secrets.DO_TOKEN != '' }}
+    steps:
+      - uses: digitalocean/action-doctl@v2
+        if: env.HAS_TOKEN == 'true'
+        with:
+          token: ${{ secrets.DO_TOKEN }}
+
+      - name: Find the Droplet
+        id: host
+        if: env.HAS_TOKEN == 'true'
+        run: |
+          ip=$(doctl compute droplet list --format Name,PublicIPv4 --no-header | awk -v d="$DROPLET" '$1==d{print $2}')
+          if [ -z "$ip" ]; then
+            echo "::notice::No $DROPLET Droplet yet; run demo-provision first. Skipping deploy."
+          fi
+          echo "ip=$ip" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        if: steps.host.outputs.ip != ''
+      - uses: actions/setup-node@v4
+        if: steps.host.outputs.ip != ''
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Build the frontend
+        if: steps.host.outputs.ip != ''
+        working-directory: frontend
+        env:
+          npm_config_os: linux # frontend/.npmrc pins win32 for local dev
+        run: npm ci && npm run build
+
+      - name: Write server config (secrets go only to the Droplet)
+        if: steps.host.outputs.ip != ''
+        env:
+          DEMO_SSH_KEY: ${{ secrets.DEMO_SSH_KEY }}
+          AUTH_PASSWORD: ${{ secrets.DEMO_BASIC_AUTH_PASSWORD }}
+          ANTHROPIC_API_KEY: ${{ secrets.ANTHROPIC_API_KEY }}
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+          COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
+          CLIO_CLIENT_ID: ${{ secrets.CLIO_CLIENT_ID }}
+          CLIO_CLIENT_SECRET: ${{ secrets.CLIO_CLIENT_SECRET }}
+          CLIO_ACCESS_TOKEN: ${{ secrets.CLIO_ACCESS_TOKEN }}
+          CLIO_REFRESH_TOKEN: ${{ secrets.CLIO_REFRESH_TOKEN }}
+          CASE_VALUE_MULTIPLIER_LOW: ${{ vars.CASE_VALUE_MULTIPLIER_LOW }}
+          CASE_VALUE_MULTIPLIER_HIGH: ${{ vars.CASE_VALUE_MULTIPLIER_HIGH }}
+        run: |
+          set -eu
+          if [ -z "$AUTH_PASSWORD" ]; then echo "::error::DEMO_BASIC_AUTH_PASSWORD secret is not set"; exit 1; fi
+          umask 077
+          mkdir -p ~/.ssh "$RUNNER_TEMP/srv"
+          printf '%s\n' "$DEMO_SSH_KEY" > ~/.ssh/id_ed25519
+          ssh-keyscan -T 30 "${{ steps.host.outputs.ip }}" >> ~/.ssh/known_hosts 2>/dev/null
+
+          # app.env: single-quoted so Compose reads values literally. Unset values are left out.
+          env_file="$RUNNER_TEMP/srv/app.env"
+          : > "$env_file"
+          for k in ANTHROPIC_API_KEY OPENAI_API_KEY COHERE_API_KEY CLIO_CLIENT_ID CLIO_CLIENT_SECRET \
+                   CLIO_ACCESS_TOKEN CLIO_REFRESH_TOKEN CASE_VALUE_MULTIPLIER_LOW CASE_VALUE_MULTIPLIER_HIGH; do
+            v=$(printenv "$k" || true)
+            if [ -n "$v" ]; then printf "%s='%s'\n" "$k" "$v" >> "$env_file"; fi
+          done
+
+          hash=$(docker run --rm caddy:2 caddy hash-password --plaintext "$AUTH_PASSWORD")
+          echo "::add-mask::$hash"
+          printf 'basic_auth @protected {\n\t%s %s\n}\n' "$AUTH_USER" "$hash" > "$RUNNER_TEMP/srv/auth.caddy"
+
+      - name: Ship code and config, restart
+        if: steps.host.outputs.ip != ''
+        env:
+          HOST: root@${{ steps.host.outputs.ip }}
+        run: |
+          set -eu
+          ssh "$HOST" 'until [ -f /var/lib/cloud/instance/law-di-gras-ready ]; do sleep 5; done'
+          rsync -az --delete --exclude .venv --exclude data --exclude __pycache__ backend/ "$HOST:/opt/law-di-gras/backend/"
+          rsync -az --delete deploy/ "$HOST:/opt/law-di-gras/deploy/"
+          rsync -az --delete frontend/dist/ "$HOST:/opt/law-di-gras/frontend-dist/"
+          scp -q "$RUNNER_TEMP/srv/app.env" "$RUNNER_TEMP/srv/auth.caddy" "$HOST:/etc/law-di-gras/"
+          rm -rf "$RUNNER_TEMP/srv"
+          ssh "$HOST" "chmod 600 /etc/law-di-gras/* && cd /opt/law-di-gras/deploy \
+            && DEMO_DOMAIN=$DEMO_DOMAIN docker compose up -d --build --remove-orphans \
+            && docker compose restart caddy && docker image prune -f >/dev/null"
+
+      - name: Smoke test
+        if: steps.host.outputs.ip != ''
+        env:
+          AUTH_PASSWORD: ${{ secrets.DEMO_BASIC_AUTH_PASSWORD }}
+        run: |
+          code=000
+          for i in $(seq 1 36); do
+            code=$(curl -s -o /dev/null -w '%{http_code}' "https://$DEMO_DOMAIN/" || true)
+            [ "$code" = "401" ] && break
+            sleep 5
+          done
+          echo "unauthenticated / -> $code (want 401)"
+          [ "$code" = "401" ]
+          curl -sf -u "$AUTH_USER:$AUTH_PASSWORD" "https://$DEMO_DOMAIN/api/health"
+          echo
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://$DEMO_DOMAIN/p/smoke-test")
+          echo "unauthenticated /p/... -> $code (want 200)"
+          [ "$code" = "200" ]

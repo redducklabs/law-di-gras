@@ -1,0 +1,19 @@
+# Backend image for the hosted demo. Build context: backend/.
+FROM python:3.13-slim
+
+# opencv (pulled in by RapidOCR) needs these at import time.
+RUN apt-get update \
+ && apt-get install -y --no-install-recommends libgl1 libglib2.0-0 \
+ && rm -rf /var/lib/apt/lists/*
+COPY --from=ghcr.io/astral-sh/uv:0.11.6 /uv /usr/local/bin/uv
+
+WORKDIR /app
+ENV UV_COMPILE_BYTECODE=1 UV_LINK_MODE=copy UV_PROJECT_ENVIRONMENT=/venv
+COPY pyproject.toml uv.lock ./
+RUN uv sync --frozen --no-dev
+COPY app ./app
+
+# No git and no .env in the image: config falls back to env vars (env_file) and DATA_DIR.
+ENV PATH=/venv/bin:$PATH DATA_DIR=/data PYTHONUNBUFFERED=1
+EXPOSE 8000
+CMD ["uvicorn", "app.main:app", "--host", "0.0.0.0", "--port", "8000", "--proxy-headers", "--forwarded-allow-ips=*"]

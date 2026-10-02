@@ -1,0 +1,16 @@
+#cloud-config
+# First boot of the demo Droplet: Docker, swap for image builds, firewall, dirs.
+package_update: true
+packages:
+  - docker.io
+  - docker-compose-v2
+  - rsync
+  - sqlite3
+runcmd:
+  - fallocate -l 2G /swapfile && chmod 600 /swapfile && mkswap /swapfile && swapon /swapfile
+  - echo '/swapfile none swap sw 0 0' >> /etc/fstab
+  - systemctl enable --now docker
+  - ufw allow 22/tcp && ufw allow 80/tcp && ufw allow 443/tcp && ufw allow 443/udp && ufw --force enable
+  - mkdir -p /opt/law-di-gras /var/lib/law-di-gras/files /etc/law-di-gras
+  - chmod 700 /etc/law-di-gras
+  - touch /var/lib/cloud/instance/law-di-gras-ready

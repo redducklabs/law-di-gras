@@ -1,0 +1,33 @@
+# Runs on the Droplet from /opt/law-di-gras/deploy. Secrets and auth live in
+# /etc/law-di-gras (written by the deploy workflow); data in /var/lib/law-di-gras.
+services:
+  api:
+    build:
+      context: ../backend
+      dockerfile: ../deploy/Dockerfile.api
+    env_file: /etc/law-di-gras/app.env
+    volumes:
+      - /var/lib/law-di-gras:/data
+    restart: unless-stopped
+
+  caddy:
+    image: caddy:2
+    ports:
+      - "80:80"
+      - "443:443"
+      - "443:443/udp"
+    environment:
+      DEMO_DOMAIN: ${DEMO_DOMAIN:-demo.redducklaw.com}
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - /etc/law-di-gras/auth.caddy:/etc/caddy/auth.caddy:ro
+      - ../frontend-dist:/srv:ro
+      - caddy_data:/data
+      - caddy_config:/config
+    depends_on:
+      - api
+    restart: unless-stopped
+
+volumes:
+  caddy_data:
+  caddy_config:
