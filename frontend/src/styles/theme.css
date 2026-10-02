@@ -42,3 +42,10 @@ body {
   font-feature-settings: "cv11", "ss01";
   -webkit-font-smoothing: antialiased;
 }
+
+/* Timeline zoom: labels fade in as they appear. */
+@keyframes tl-fade-in {
+  from { opacity: 0; transform: translateY(-3px); }
+  to { opacity: 1; transform: none; }
+}
+.tl-fade { animation: tl-fade-in 260ms ease-out both; }
