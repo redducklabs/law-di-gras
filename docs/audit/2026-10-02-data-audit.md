@@ -198,6 +198,39 @@ behavior, not an error. KPIs reconcile and provider views are clean.
 | minor | "Treatment starts: New Horizon Surgical Center" | This was a one-day surgery, not the start of a course of treatment. | S2 |
 | minor | SOL "(suit filed 2024, satisfied)" | Cites only the calendar entry; cite the complaint for "suit filed". | S2 |
 
+## Re-run after S2 r20 (dashboard 19:26 UTC)
+
+Dashboard checks 1, 2, 3, 5 and 6 cost $0.63, and the chat check cost $0.28.
+Raw output is in [auto-report.md](auto-report.md) and
+[auto-report-chat.md](auto-report-chat.md).
+
+The judge's "critical" flags on firm costs and specials are false positives again
+(it confirmed both sums). KPIs reconcile and provider views are clean.
+
+| # | Finding | Status |
+|---|---|---|
+| chat critical | "No IME findings" / "evidence does not say what the defense disputes" | **Resolved.** The answer lists Katzman's per-side disputes with citations. One remaining gap is listed as C1 below. |
+| chat coverage | Chat said "capped at $100k" while the tile said uncapped | **Resolved.** Chat now quotes the tile's conflict wording, and the follow-up says plainly that the record doesn't say whose limits they are. |
+| N1 | CSB shown as a defendant | **Resolved**, but see R1. |
+| N2 | Long labels with attribution | **Resolved.** Labels are short; caveats sit in "· Note: per firm note of <date>". |
+| N3 / knee | Katzman shown as an IME; bilateral knee card | **Resolved.** Now "Defense radiology review", scoped per side, and the knees are split. |
+| N4 | Bullet fragment | **Resolved.** |
+| 14 | Hudson Valley start date | **Resolved.** Now cites the expense entry "2023-05-08 to 2023-08-08". |
+| 2 | Bullet 0 cites only pleadings | **Still open.** |
+| 5 | Status line has no own citations | **Still open.** The text now opens "The Presentation of Claim was served on Metro-North…". |
+| 12 | IME dates Sep vs Mar | **Still open** (known). |
+
+**New in r20:**
+
+| Sev | On screen | What's wrong | Owner |
+|---|---|---|---|
+| **major R1** | The coverage tile has three lines (Metro-North conflict, no-fault, UM/UIM). **Ferrara's personal auto policy is gone**, and headline bullet 2 no longer mentions it. | This is a regression. Note 2996970398 ("Ferrara personally carries auto coverage identified at $100,000 / $300,000… if Metro-North comes out… that policy is the entire recovery") is still in the record. Removing the CSB line took the co-defendant's coverage with it. Restore "Ferrara personal auto · $100,000 / $300,000". | S2 |
+| major R2 | Timeline "Statute of limitations: 2026-04-22 (suit filed 2024, **satisfied**)", which now cites the complaint's "on February 1, 2024, Plaintiff started a **prior** lawsuit" | That prior suit was **dismissed** for failure to serve a Presentation of Claim (same page of the complaint). This action was recommenced under CPLR 205 after the 9/10/2024 Presentation of Claim. Citing the dismissed suit as proof the SOL is "satisfied" is wrong on its face, and "satisfied" is a legal conclusion the record does not state. Suggest "Action recommenced under CPLR 205 (complaint p7); SOL 4/22/2026" with that cite. | S2 |
+| major R3 | Headline bullet 2 "Coverage conflict: Metro-North self-insured vs $100,000/$300,000" | The $100k/$300k is not in any cited quote; the bullet cites only expense entries. Cite comm 5029429688 or 5029426433 and note 2996971778. | S2 |
+| major C1 | Chat (injuries): "I couldn't find a defense dispute of the cervical, lumbar, thoracic or left shoulder findings in the retrieved record." | Hostin's orthopedic IME diagnoses the neck, back and other sprains as **resolved**, which disputes the spine claims. Tsao's neuro IME also calls the thoracic strain resolved. The hedge "in the retrieved record" keeps it from being a hard error, but the answer omits both IMEs. Add the Hostin and Tsao IME conclusions to injury evidence. | S2 |
+| minor | UM/UIM note "sits under defendant's $100,000" | $100,000 is not in the cited quote. The note says it, but the cited span doesn't. | S2 |
+| minor | Timeline "Calendar: Post-operative follow-up", "Calendar: Consultation re second surgery" | Hedged with "Calendar:", which is acceptable. The judge still reads them as occurred. | S2 |
+
 ## Check 7: ask-the-case chat (S2 /chat, 7 questions incl. 1 follow-up and 1 trick)
 
 Run: `uv run python -m app.audit --checks 7 --suffix=-chat` ($0.23). Full Q&A

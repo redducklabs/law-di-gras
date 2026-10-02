@@ -2,10 +2,10 @@
  {
   "check": "1-code",
   "severity": "major",
-  "item": "headline.bullets[1]",
-  "on_screen": "Cervical spine disc bulge C5-6 with straightened lordosis, Lumbar spine L5-S1 disc bulge, Left shoulder posterior labral tear \u2014 MRI also shows posterior inferior glenoid hypoplasia, developmental not traumatic; defence expected to use it (Aron Weiler, 2023-07-12): MRI: C5-6 and L5-S1 disc bulges; partial posterior inferior labral tear. Same study also reports developmental, not traumatic, glenoid hypoplasia.",
-  "quote": "Straightening of the lordosis. Shallow disc bulge at C5-6 flattening the left ventral margin of the canal / L5-S1 disc bulge with lateral predominance narrowing the lateral recesses and inferior foramina bilaterally",
-  "problem": "Date(s) 2023-07-12 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "item": "headline.bullets[2]",
+  "on_screen": "Medical specials (billed), Liability \u00b7 Metro-North Commuter Railroad \u00b7 defendant \u00b7 claim SIR068120, No-fault \u00b7 Progressive Insurance Company \u00b7 client's own policy: Specials $118,400 billed (chiro/PT ledgers unreconciled). Coverage conflict: Metro-North self-insured vs $100,000/$300,000. No-fault $50,000 exhausted.",
+  "quote": "$3,475.00 / $1,450.00",
+  "problem": "Amount(s) $300,000.00, $100,000.00 not in any cited quote.",
   "owner": "S2",
   "extra": {}
  },
@@ -13,7 +13,7 @@
   "check": "1-code",
   "severity": "major",
   "item": "headline.status_line",
-  "on_screen": "[stage: Litigation] Action is in discovery; both sides are trying to schedule the client deposition.",
+  "on_screen": "[stage: Litigation] The Presentation of Claim was served on Metro-North and the action is now in discovery; both sides are trying to schedule the client deposition.",
   "quote": "(none)",
   "problem": "Headline status line carries no citations of its own; it cannot be checked on screen.",
   "owner": "S2",
@@ -22,10 +22,60 @@
  {
   "check": "1-code",
   "severity": "major",
-  "item": "timeline[5]",
-  "on_screen": "2023-05-08 | Treatment starts: Hudson Valley Radiology Associates/Mid Rockland Imaging | kind=treatment | placed before today | major",
-  "quote": "Hudson Valley Radiology Associates/Mid Rockland Imaging",
-  "problem": "Date(s) 2023-05-08 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "item": "kpis.coverage[2]",
+  "on_screen": "UM/UIM \u00b7 client's own policy: $25,000 / $50,000 \u00b7 Note: per firm note of 2026-06-04: UM/UIM sits under defendant's $100,000 and adds nothing",
+  "quote": "The client's own UM/UIM is $25,000 / $50,000 / the client's own UM/UIM sits under it and adds nothing",
+  "problem": "Amount(s) $100,000.00 not in any cited quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "injuries[3]",
+  "on_screen": "Right shoulder infraspinatus and labral tear: MRI 05/24/2023: intermediate-grade interstitial tear of the anterior half of the infraspinatus and partial tear of the posterior inferior labrum at 8 o'clock. Defense radiology review (Marc J. Katzman, M.D.), right shoulder: \"no evidence of recent traumatic injury to the right shoulder.\" (date None)",
+  "quote": "Intermediate-grade interstitial tear of the anterior half of the infraspinatus. Partial tear of the posterior inferior labrum at 8 / reveals no evidenceof recent traumatic injury to the",
+  "problem": "Date(s) 2023-05-24 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "injuries[4]",
+  "on_screen": "Left knee medial meniscus tear: MRI 07/03/2023: horizontal undersurface tear of the posterior horn of the medial meniscus; prepatellar soft tissue edema reflecting soft tissue contusion. Defense radiology review (Marc J. Katzman, M.D.), left knee: \"no recent traumatic injury or internal derangement.\" (date None)",
+  "quote": "Horizontal undersurface tear of the posterior horn of the medial meniscus. Prepatellar soft tissue edema reflecting soft tissue contusion / revealsno recent traumatic injury or internal derangement",
+  "problem": "Date(s) 2023-03, 2023-07-03 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "injuries[5]",
+  "on_screen": "Right knee medial meniscus tear: MRI 07/03/2023: horizontal undersurface tear of the posterior horn of the medial meniscus. Defense radiology review (Marc J. Katzman, M.D.), right knee: \"no recent traumatic injury or internal derangement.\" (date None)",
+  "quote": "Horizontal undersurface tear of the posterior horn of the medial meniscus / revealsno recent traumatic injury or internal derangement",
+  "problem": "Date(s) 2023-03, 2023-07-03 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "injuries[6]",
+  "on_screen": "Brain: abnormal DTI / suspected traumatic brain injury: MRI brain with DTI 08/08/2023: 2 of 12 regions of interest and 1 of 6 white matter tracts abnormal; hemosiderin focus in subcortical right parietal lobe. Defense radiology review (Marc J. Katzman, M.D.), brain MRI: \"reveals no evidence of traumatic injury to the brain.\" (date None)",
+  "quote": "Abnormal DTI: 2 of 12 regions of interest and 1 of 6 white matter tracts abnormal / reveals no evidence of traumatic",
+  "problem": "Date(s) 2023-08, 2023-08-08 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "kpis.case_value",
+  "on_screen": "Case value (draft): Firm rule (configurable): 1.5x\u20133x billed specials ($118,400.00); conflicting limits (Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08)); capped at $100,000 per person if those limits apply; before liens ($22,180).: $177,600 \u2013 $355,200",
+  "quote": "$3,475.00 / Metro-North Commuter Railroad is self-insured",
+  "problem": "Date(s) 2026-09-08 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
   "owner": "S2",
   "extra": {}
  },
@@ -33,9 +83,9 @@
   "check": "1-code",
   "severity": "minor",
   "item": "recent[7]",
-  "on_screen": "Defense counsel served Dr. Tsao's neurological exam report: Defense counsel served Dr. Jack W. Tsao's report dated March 4, 2026 on the independent neurological examination, with the notice dated March 24, 2026. (2026-03-24)",
-  "quote": "the report of Dr. Jack W. Tsao, dated March 4, 2026",
-  "problem": "Date(s) 2026-03-24 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "on_screen": "Defense counsel filed Tsao neurological expert exchange: Defendants served Dr. Tsao's March 4, 2026 independent neurological examination report; the exchange was filed on NYSCEF as Doc. No. 55 on 03/24/2026. (2026-03-24)",
+  "quote": "RECEIVED NYSCEF: 03/24/2026",
+  "problem": "Date(s) 2026-03-04 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
   "owner": "S2",
   "extra": {}
  },
@@ -43,139 +93,19 @@
   "check": "1-code",
   "severity": "minor",
   "item": "recent[8]",
-  "on_screen": "Defense counsel served Dr. Katzman's report: Defense counsel served Dr. Marc J. Katzman's report, dated December 8, 2025, on plaintiff's MRIs, chest x-ray and brain MRI under CPLR 3101(d), with the notice dated February 4, 2026. (2026-02-04)",
-  "quote": "the report of Dr. Marc J. Katzman, dated December 8, 2025",
-  "problem": "Date(s) 2026-02-04 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "timeline[10]",
-  "on_screen": "2023-07-26 | Treatment starts: New Horizon Surgical Center, LLC | kind=treatment | placed before today",
-  "quote": "Anesthesia care for the same left shoulder procedure",
-  "problem": "Date(s) 2023-07-26 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "timeline[12]",
-  "on_screen": "2023-08-23 | Treatment starts: Melinda L. Miller, M.D. | kind=treatment | placed before today",
-  "quote": "EMG/NCV: upper extremities / EMG/NCV: lower extremities",
-  "problem": "Date(s) 2023-08-23 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "timeline[2]",
-  "on_screen": "2023-04-26 | Treatment starts: Advanced Rockland Chiropractic Offices, P.C. | kind=treatment | placed before today",
-  "quote": "Initial chiropractic evaluation / Weekly chiropractic treatment visit",
-  "problem": "Date(s) 2023-04-26 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "timeline[6]",
-  "on_screen": "2023-05-17 | Treatment starts: McCulloch Orthopaedic Surgical Services, PLLC | kind=treatment | placed before today",
-  "quote": "Initial orthopaedic examination / Right shoulder treatment-planning consultation",
-  "problem": "Date(s) 2023-05-17 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "timeline[7]",
-  "on_screen": "2023-05-31 | Treatment starts: Peter C. Kwan, M.D. | kind=treatment | placed before today",
-  "quote": "Comprehensive neurological re-examination / Peter C. Kwan, M.D",
-  "problem": "Date(s) 2023-05-31 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "timeline[8]",
-  "on_screen": "2023-06-29 | Treatment starts: SportsCare Physical Therapy of New York | kind=treatment | placed before today",
-  "quote": "Initial physical therapy evaluation / This is the latest physical therapy date",
-  "problem": "Date(s) 2023-06-29 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "treatment[2]",
-  "on_screen": "Peter C. Kwan, M.D.: first visit 2023-05-31, last visit 2023-12-12, visits 4, billed $3,200.00",
-  "quote": "Comprehensive neurological re-examination / Peter C. Kwan, M.D",
-  "problem": "Date(s) 2023-05-31 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "treatment[3]",
-  "on_screen": "Melinda L. Miller, M.D.: first visit 2023-08-23, last visit 2023-09-20, visits 2, billed $4,800.00",
-  "quote": "EMG/NCV: upper extremities / EMG/NCV: lower extremities",
-  "problem": "Date(s) 2023-08-23 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "treatment[4]",
-  "on_screen": "McCulloch Orthopaedic Surgical Services, PLLC: first visit 2023-05-17, last visit 2024-05-27, visits 8, billed $9,530.00",
-  "quote": "Initial orthopaedic examination / Right shoulder treatment-planning consultation",
-  "problem": "Date(s) 2023-05-17 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "treatment[6]",
-  "on_screen": "SportsCare Physical Therapy of New York: first visit 2023-06-29, last visit 2023-12-14, visits None, billed $5,825.00",
-  "quote": "Initial physical therapy evaluation / This is the latest physical therapy date",
-  "problem": "Date(s) 2023-06-29 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "treatment[7]",
-  "on_screen": "Advanced Rockland Chiropractic Offices, P.C.: first visit 2023-04-26, last visit 2024-08-15, visits None, billed $14,220.00",
-  "quote": "Initial chiropractic evaluation / Weekly chiropractic treatment visit",
-  "problem": "Date(s) 2023-04-26 are near but not inside the highlighted quote.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "1-code",
-  "severity": "minor",
-  "item": "treatment[8]",
-  "on_screen": "Hudson Valley Radiology Associates/Mid Rockland Imaging: first visit 2023-05-08, last visit 2023-08-08, visits None, billed $15,900.00",
-  "quote": "Hudson Valley Radiology Associates/Mid Rockland Imaging / $15,900.00",
-  "problem": "Date(s) 2023-05-08 are near but not inside the highlighted quote.",
+  "on_screen": "Defense counsel filed Katzman radiology expert exchange: Defendants' counsel served Dr. Katzman's report dated December 8, 2025 on plaintiff's MRIs and x-ray; the exchange was filed on NYSCEF as Doc. No. 47 on 02/04/2026. (2026-02-04)",
+  "quote": "RECEIVED NYSCEF: 02/04/2026",
+  "problem": "Date(s) 2025-12-08 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
   "owner": "S2",
   "extra": {}
  },
  {
   "check": "1-judge",
   "severity": "critical",
-  "item": "kpis.firm_spent",
-  "on_screen": "Firm costs advanced: $1,410.00 across 5 cost entries",
-  "quote": "Records reproduction: McCulloch Orthopaedic records copy, including the left shoulder operative report / Records reproduction: Montefiore Nyack emergency department chart reproduction",
-  "problem": "wrong_amount: The five entries sum to 65+85+450+210+600 = $1,410. The total is correct and the count is correct. The IME observer entry says 'two completed' exams, and it is dated 2026-09-03, which is past, so this is fine. Everything is supported. [claim: \"$1,410.00 across 5 cost entries\"]",
+  "item": "headline.bullets[2]",
+  "on_screen": "Medical specials (billed), Liability \u00b7 Metro-North Commuter Railroad \u00b7 defendant \u00b7 claim SIR068120, No-fault \u00b7 Progressive Insurance Company \u00b7 client's own policy: Specials $118,400 billed (chiro/PT ledgers unreconciled). Coverage conflict: Metro-North self-insured vs $100,000/$300,000. No-fault $50,000 exhausted.",
+  "quote": "$3,475.00 / $1,450.00",
+  "problem": "wrong_amount: The cited bills sum to $3,475 + $1,450 + $3,200 + $4,800 + $9,530 + $60,000 + $5,825 + $14,220 + $15,900 = $118,400. That total checks out, so the specials figure is right. However, the Montefiore entry ($3,475) matches its bill ($1,650 + $1,825). The 'No-fault $50,000 exhausted' claim has no support in these excerpts, and the $100,000/$300,000 limits are Ferrara's personal coverage, not a conflict with Metro-North's self-insurance. The 'Coverage conflict' framing is therefore misattributed, since the excerpts say Ferrara carries those limits. The screen implies the limits belong to a competing policy for the same party. [claim: \"Specials $118,400 billed\"]",
   "owner": "S2",
   "extra": {
    "verdict": "wrong_amount"
@@ -184,10 +114,22 @@
  {
   "check": "1-judge",
   "severity": "critical",
-  "item": "treatment[0]",
-  "on_screen": "Montefiore Nyack Hospital: first visit 2023-04-24, last visit 2023-04-24, visits 1, billed $3,475.00",
-  "quote": "Discharged home the same day, 04/24/2023, with follow-up instructions / Emergency department assessment",
-  "problem": "wrong_amount: The line items are $1,650 and $1,825, which sum to $3,475, so the total is correct. Dates and the single visit are also supported. The bill states no aggregate and the expense says payment status unknown, but this does not contradict the screen. [claim: \"billed $3,475.00\"]",
+  "item": "headline.status_line",
+  "on_screen": "[stage: Litigation] The Presentation of Claim was served on Metro-North and the action is now in discovery; both sides are trying to schedule the client deposition.",
+  "quote": "Ferrara was in the course of his / was further careless and reckless in the negligent entrustment of said",
+  "problem": "unsupported: The excerpts show a summons/complaint and a bill of particulars, not a Presentation of Claim. Nothing mentions discovery or a client deposition, and there is nothing about both sides trying to schedule one. Several cited excerpts (MRI findings, surgery notes, a hospital charge) have nothing to do with the status claims. [claim: \"The Presentation of Claim was served on Metro-North and the action is now in discovery; both sides are trying to schedule the client deposition.\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "unsupported"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "critical",
+  "item": "kpis.firm_spent",
+  "on_screen": "Firm costs advanced: $1,410.00 across 5 cost entries",
+  "quote": "Records reproduction: McCulloch Orthopaedic records copy, including the left shoulder operative report / Records reproduction: Montefiore Nyack emergency department chart reproduction",
+  "problem": "wrong_amount: The five entries are $65 + $85 + $450 + $210 + $600 = $1,410. The total matches the entries, so this is supported. [claim: \"Firm costs advanced: $1,410.00 across 5 cost entries\"]",
   "owner": "S2",
   "extra": {
    "verdict": "wrong_amount"
@@ -196,10 +138,22 @@
  {
   "check": "1-judge",
   "severity": "major",
+  "item": "actions[13]",
+  "on_screen": "[waiting] Incident report and vehicle assignment/dispatch records for the morning of the collision | due None | owner None | waiting on Claims Service Bureau (Metro-North)",
+  "quote": "Your client has still not produced the incident report or the vehicle assignment and dispatch records",
+  "problem": "wrong_party: The email is addressed to the Claims Service Bureau and says 'Your client' has not produced the records. The defendant is Metro-North, so the Bureau is its representative. Labeling the Bureau as the producing party blurs that distinction, though the substance of the outstanding demand is backed. [claim: \"waiting on Claims Service Bureau (Metro-North)\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "wrong_party"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
   "item": "headline.bullets[0]",
-  "on_screen": "Liability, Mechanism: Liability contested on two independent levels, neither investigated; sideswipe carries no presumption of fault; three versions of the collision on file.",
+  "on_screen": "Liability, Mechanism: Liability contested on two independent levels, neither investigated; sideswipe carries no presumption of fault in either direction. There are three versions of this collision on file.",
   "quote": "Ferrara was in the course of his / was further careless and reckless in the negligent entrustment of said",
-  "problem": "unsupported: The excerpts show only the complaint's employment and facility allegations and the bill of particulars' merging and door-contact allegations. Nothing supports two independent levels of contest, the lack of investigation, the no-presumption-of-fault statement, or three versions of the collision. [claim: \"Liability contested on two independent levels, neither investigated; sideswipe carries no presumption of fault; three versions of the collision on file.\"]",
+  "problem": "unsupported: The excerpts show only the pleaded versions: the complaint says Ferrara was pulling into a facility, and the bill of particulars says the defendant was merging into the plaintiff's lane. Nothing supports 'two independent levels', 'neither investigated', the no-presumption legal statement, or a count of three versions. [claim: \"Liability contested on two independent levels, neither investigated; sideswipe carries no presumption of fault in either direction. There are three versions of this collision on file.\"]",
   "owner": "S2",
   "extra": {
    "verdict": "unsupported"
@@ -209,9 +163,9 @@
   "check": "1-judge",
   "severity": "major",
   "item": "headline.bullets[1]",
-  "on_screen": "Cervical spine disc bulge C5-6 with straightened lordosis, Lumbar spine L5-S1 disc bulge, Left shoulder posterior labral tear \u2014 MRI also shows posterior inferior glenoid hypoplasia, developmental not traumatic; defence expected to use it (Aron Weiler, 2023-07-12): MRI: C5-6 and L5-S1 disc bulges; partial posterior inferior labral tear. Same study also reports developmental, not traumatic, glenoid hypoplasia.",
+  "on_screen": "Cervical spine disc bulge C5-6, Lumbar spine L5-S1 disc bulge, Left shoulder labral tear and infraspinatus tear: MRI: C5-6 and L5-S1 disc bulges; left shoulder partial labral and infraspinatus tears. Treatment ongoing, no MMI; right shoulder arthroscopy recommended, undated.",
   "quote": "Straightening of the lordosis. Shallow disc bulge at C5-6 flattening the left ventral margin of the canal / L5-S1 disc bulge with lateral predominance narrowing the lateral recesses and inferior foramina bilaterally",
-  "problem": "partial: The MRI findings (C5-6 bulge with straightened lordosis, L5-S1 bulge, partial posterior inferior labral tear) and the glenoid hypoplasia are supported. The excerpts do not call the hypoplasia developmental rather than traumatic, do not say the defence is expected to use it, and contain no 2023-07-12 note by Aron Weiler. [claim: \"MRI also shows posterior inferior glenoid hypoplasia, developmental not traumatic; defence expected to use it (Aron Weiler, 2023-07-12)\"]",
+  "problem": "partial: MRI findings for C5-6, L5-S1 and the left shoulder match the excerpts, as do ongoing treatment, no MMI, and the undated right shoulder surgery. But the bill of particulars (excerpt 3 of the previous item) refers to a July 26, 2023 operative procedure on the left shoulder. The screen omits that surgery, which leaves a misleading picture of the treatment history. Also, 'left shoulder partial labral and infraspinatus tears' omits that the infraspinatus tear is low-grade interstitial. [claim: \"Treatment ongoing, no MMI; right shoulder arthroscopy recommended, undated.\"]",
   "owner": "S2",
   "extra": {
    "verdict": "partial"
@@ -220,58 +174,10 @@
  {
   "check": "1-judge",
   "severity": "major",
-  "item": "headline.bullets[3]",
-  "on_screen": "Medical specials (billed) \u2014 $118,400.00 running figure stands; chiropractic and PT ledgers unreconciled, least certain (Aron Weiler, 2026-09-25), Liability \u00b7 Metro-North Commuter Railroad \u00b7 defendant \u00b7 self-insured \u00b7 claim SIR068120: Specials $118,400.00 billed across 9 providers; chiro/PT ledgers unreconciled. Conflict: Metro-North self-insured, no stated ceiling vs. $100,000 per person and $300,000 per occurrence.",
-  "quote": "$3,475.00 / $1,450.00",
-  "problem": "partial: The nine provider charges sum to $118,400.00, the chiropractic and PT ledgers are unreconciled, and Metro-North is self-insured with no stated ceiling. No excerpt contains a $100,000/$300,000 limit, so the claimed conflict is unsupported. Claim number SIR068120 is also not in the excerpts. [claim: \"Conflict: Metro-North self-insured, no stated ceiling vs. $100,000 per person and $300,000 per occurrence.\"]",
-  "owner": "S2",
-  "extra": {
-   "verdict": "partial"
-  }
- },
- {
-  "check": "1-judge",
-  "severity": "major",
-  "item": "headline.status_line",
-  "on_screen": "[stage: Litigation] Action is in discovery; both sides are trying to schedule the client deposition.",
-  "quote": "Ferrara was in the course of his / was further careless and reckless in the negligent entrustment of said",
-  "problem": "unsupported: None of the cited excerpts mention discovery or a client deposition, let alone both sides trying to schedule one. They cover the pleadings, the MRI findings, and the treatment and surgery status. [claim: \"Action is in discovery; both sides are trying to schedule the client deposition.\"]",
-  "owner": "S2",
-  "extra": {
-   "verdict": "unsupported"
-  }
- },
- {
-  "check": "1-judge",
-  "severity": "major",
-  "item": "injuries[3]",
-  "on_screen": "Right shoulder infraspinatus and labral tears: MRI: intermediate-grade interstitial tear of the anterior half of the infraspinatus and partial tear of the posterior inferior labrum at 8 o'clock. Defense IME (Dr. Katzman, radiology review): \"no evidence of recent traumatic injury to the right shoulder.\" (date None)",
-  "quote": "Intermediate-grade interstitial tear of the anterior half of the infraspinatus / reveals no evidenceof recent traumatic injury to the",
-  "problem": "misleading: The MRI findings are supported. The Katzman quote is accurate for the right shoulder, but the radiology review is not an IME. Calling it an IME misdescribes the source. [claim: \"Defense IME (Dr. Katzman, radiology review): \"no evidence of recent traumatic injury to the right shoulder.\"\"]",
-  "owner": "S2",
-  "extra": {
-   "verdict": "misleading"
-  }
- },
- {
-  "check": "1-judge",
-  "severity": "major",
-  "item": "injuries[4]",
-  "on_screen": "Bilateral knee medial meniscus tears: MRI of both knees: horizontal undersurface tear of the posterior horn of the medial meniscus; left knee also prepatellar soft tissue edema reflecting soft tissue contusion. Defense IME (Dr. Katzman): \"no recent traumatic injury or internal derangement.\" (date None)",
-  "quote": "Horizontal undersurface tear of the posterior horn of the medial meniscus / revealsno recent traumatic injury or internal derangement",
-  "problem": "partial: The MRI findings are backed. The Katzman quote covers only the left knee, but the screen presents it as applying to both knees. The review is also labeled an IME when it is a radiology review. [claim: \"Defense IME (Dr. Katzman): \"no recent traumatic injury or internal derangement.\" Bilateral knee medial meniscus tears\"]",
-  "owner": "S2",
-  "extra": {
-   "verdict": "partial"
-  }
- },
- {
-  "check": "1-judge",
-  "severity": "major",
-  "item": "injuries[5]",
-  "on_screen": "Traumatic brain injury (brain MRI/DTI findings): Brain MRI with DTI: abnormal DTI in 2 of 12 regions of interest and 1 of 6 white matter tracts, with hemosiderin focus in the subcortical right parietal lobe. Defense IME (Dr. Katzman): \"no evidence of traumatic\ninjury to the brain.\" (date None)",
-  "quote": "Hemosiderin focus in the subcortical right parietal lobe at the gray-white junction / reveals no evidence of traumatic",
-  "problem": "misleading: The DTI and hemosiderin findings and the Katzman quote are supported. The review is a radiology review, not an IME. The quote is also trimmed from \"no evidence of traumatic injury to the brain\". [claim: \"Defense IME (Dr. Katzman): \"no evidence of traumatic injury to the brain.\"\"]",
+  "item": "injuries[6]",
+  "on_screen": "Brain: abnormal DTI / suspected traumatic brain injury: MRI brain with DTI 08/08/2023: 2 of 12 regions of interest and 1 of 6 white matter tracts abnormal; hemosiderin focus in subcortical right parietal lobe. Defense radiology review (Marc J. Katzman, M.D.), brain MRI: \"reveals no evidence of traumatic injury to the brain.\" (date None)",
+  "quote": "Abnormal DTI: 2 of 12 regions of interest and 1 of 6 white matter tracts abnormal / reveals no evidence of traumatic",
+  "problem": "misleading: The quote drops the word \"recent\"? No: the source reads \"no evidence of traumatic injury to the brain\" and matches. The issue is that the on-screen text omits Katzman's separate DTI conclusion, which found normal fractional anisotropy and white matter tracts. The defense quote therefore reads as only a general MRI statement, while the DTI abnormality (the basis of the injury label) is directly contradicted by the defense review and this is not shown. [claim: \"\"reveals no evidence of traumatic injury to the brain.\"\"]",
   "owner": "S2",
   "extra": {
    "verdict": "misleading"
@@ -281,57 +187,9 @@
   "check": "1-judge",
   "severity": "major",
   "item": "kpis.case_value",
-  "on_screen": "Case value (draft): Firm rule (configurable): 1.5x\u20133x billed specials ($118,400.00); conflicting limits (Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence; no excess disclosed (Claims Service Bureau, 2026-09-08)); capped at $100,000 per person if those limits apply; before liens ($22,180).: $177,600 \u2013 $355,200",
-  "quote": "$3,475.00 / Metro-North Commuter Railroad, SELF-INSURED",
-  "problem": "misleading: The range is 1.5x-3x of $118,400, which is arithmetically right. But the cited excerpts never support the $118,400 billed specials figure; the only charge shown is $3,475. The headline range also exceeds the $100,000 per-person cap the item says may apply, and it also exceeds any recovery if the limits apply. Presenting it as the value misleads. The $22,180 lien is supported. [claim: \"$177,600 \u2013 $355,200\"]",
-  "owner": "S2",
-  "extra": {
-   "verdict": "misleading"
-  }
- },
- {
-  "check": "1-judge",
-  "severity": "major",
-  "item": "kpis.coverage[1]",
-  "on_screen": "BI liability \u00b7 Claims Service Bureau (Metro-North claim administrator) \u00b7 defendant \u00b7 claim SIR068120: $100,000 / $300,000",
-  "quote": "The bodily injury liability limits are $100,000 per person and $300,000 per occurrence / The bodily injury liability limits are $100,000 per person and $300,000 per occurrence",
-  "problem": "misleading: The limits are stated by the claim administrator in email but contradict the file's self-insured, no-stated-limit position. Showing them as a plain coverage line, without a conflict flag and as if the administrator were a defendant, gives a false impression. The administrator is not a defendant. [claim: \"BI liability \u00b7 Claims Service Bureau (Metro-North claim administrator) \u00b7 defendant \u00b7 claim SIR068120: $100,000 / $300,000\"]",
-  "owner": "S2",
-  "extra": {
-   "verdict": "misleading"
-  }
- },
- {
-  "check": "1-judge",
-  "severity": "major",
-  "item": "timeline[10]",
-  "on_screen": "2023-07-26 | Treatment starts: New Horizon Surgical Center, LLC | kind=treatment | placed before today",
-  "quote": "Anesthesia care for the same left shoulder procedure",
-  "problem": "misleading: The cited span is only the anesthesia line of a bill dated 2023-07-26. A bill with a single service date shows a surgery date, not a treatment start, and the excerpt gives no evidence that this was the start of treatment. Treating it as 'Treatment starts' is unsupported, since earlier care may have occurred. [claim: \"Treatment starts: New Horizon Surgical Center, LLC\"]",
-  "owner": "S2",
-  "extra": {
-   "verdict": "misleading"
-  }
- },
- {
-  "check": "1-judge",
-  "severity": "major",
-  "item": "timeline[23]",
-  "on_screen": "2026-04-22 | Statute of limitations: 2026-04-22 (suit filed 2024, satisfied) | kind=legal | placed before today | major",
-  "quote": "Three-year statute of limitations expires",
-  "problem": "misleading: The excerpt only says the three-year limitations period expires on that date. It does not say suit was filed in 2024 or that the limitations requirement was satisfied. The note about the Presentation of Claim preceding suit makes it unclear whether that precondition was met, so 'satisfied' is unsupported. [claim: \"Statute of limitations: 2026-04-22 (suit filed 2024, satisfied)\"]",
-  "owner": "S2",
-  "extra": {
-   "verdict": "misleading"
-  }
- },
- {
-  "check": "1-judge",
-  "severity": "major",
-  "item": "timeline[5]",
-  "on_screen": "2023-05-08 | Treatment starts: Hudson Valley Radiology Associates/Mid Rockland Imaging | kind=treatment | placed before today | major",
-  "quote": "Hudson Valley Radiology Associates/Mid Rockland Imaging",
-  "problem": "unsupported: The cited excerpt is the bill of particulars, which only lists the provider's name and address. It gives no date of service, so it does not support 2023-05-08 as the start of treatment. [claim: \"2023-05-08 | Treatment starts: Hudson Valley Radiology Associates/Mid Rockland Imaging\"]",
+  "on_screen": "Case value (draft): Firm rule (configurable): 1.5x\u20133x billed specials ($118,400.00); conflicting limits (Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08)); capped at $100,000 per person if those limits apply; before liens ($22,180).: $177,600 \u2013 $355,200",
+  "quote": "$3,475.00 / Metro-North Commuter Railroad is self-insured",
+  "problem": "unsupported: The cited excerpts show only a $3,475 charge, the self-insured note and the $22,180 lien. They do not support the $118,400 specials total, the 1.5x\u20133x rule, or the computed range. 1.5x and 3x of $118,400 do equal $177,600 and $355,200, but the base figure and the firm rule are not in the excerpts. The $100,000 cap is also shown as conditional, and the 2026-09-09 note says recovery is capped at $100,000. Showing a range far above the cap is misleading. [claim: \"1.5x\u20133x billed specials ($118,400.00) ... $177,600 \u2013 $355,200\"]",
   "owner": "S2",
   "extra": {
    "verdict": "unsupported"
@@ -339,11 +197,119 @@
  },
  {
   "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[13]",
+  "on_screen": "2023-08-31 | Calendar: Post-operative follow-up, Dr. Capiola | kind=treatment | placed before today",
+  "quote": "Post-operative follow-up, Dr. Capiola",
+  "problem": "tense_wrong: The excerpt is only a calendar entry and has no record that the visit occurred. A past calendar item is read as having happened, so it needs a 'Scheduled ... (no record it occurred)' label. [claim: \"Calendar: Post-operative follow-up, Dr. Capiola\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "tense_wrong"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[16]",
+  "on_screen": "2024-05-27 | Calendar: Consultation re second surgery, right shoulder | kind=treatment | placed before today",
+  "quote": "Consultation re second surgery, right shoulder",
+  "problem": "tense_wrong: The source is only a calendar entry with no record the consultation occurred. A past item is read as having happened unless labeled scheduled, so this is not hedged. [claim: \"Calendar: Consultation re second surgery, right shoulder\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "tense_wrong"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[23]",
+  "on_screen": "2026-04-22 | Statute of limitations: 2026-04-22 (suit filed 2024, satisfied) | kind=legal | placed before today | major",
+  "quote": "Three-year statute of limitations expires / on February 1, 2024, Plaintiff started a prior lawsuit",
+  "problem": "misleading: The calendar entry supports only the limitations date. The excerpts show a prior lawsuit on Feb 1, 2024 and a presentation-of-claim issue with suit timing in dispute, so 'satisfied' is not established and overstates the position. [claim: \"Statute of limitations: 2026-04-22 (suit filed 2024, satisfied)\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "treatment[2]",
+  "on_screen": "Peter C. Kwan, M.D.: first visit 2023-05-31, last visit 2023-12-12, visits 4, billed $3,200.00",
+  "quote": "2023-05-31 to 2023-12-12 / Comprehensive neurological re-examination",
+  "problem": "partial: Dates and total are supported, and the four service lines ($1,050+$1,050+$550+$550) sum to $3,200. However, the bill shows 09/06/2023 and 10/31/2023 services. The 'visits 4' count is derived from line items and is consistent, so the claim is largely backed, but the bill notes it is a selected-records list, not an exhaustive list of visits, so 'visits 4' is not established as a complete count. [claim: \"first visit 2023-05-31, last visit 2023-12-12, visits 4, billed $3,200.00\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "actions[0]",
+  "on_screen": "[overdue] By medical provider: McCulloch Orthopaedic Surgical Services, PLLC - Updated records and right shoulder surgical date | due 2026-08-25 | owner Aron Weiler | waiting on McCulloch Orthopaedic Surgical Services, PLLC",
+  "quote": "By medical provider: McCulloch Orthopaedic Surgical Services, PLLC - Updated records and right shoulder surgical date",
+  "problem": "partial: The task title, due date and owner are supported, and it is overdue as of 2026-10-02. The task excerpt does not state who is being waited on, although the description implies the provider. The title says 'right shoulder surgical date' and the description says 'right shoulder arthroscopy', while other records mention a second shoulder surgery, so the side is not corroborated in the excerpts. [claim: \"waiting on McCulloch Orthopaedic Surgical Services, PLLC\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "actions[12]",
+  "on_screen": "[waiting] Confirmation whether further records or charges exist beyond 24 April 2023 attendance | due None | owner None | waiting on Montefiore Nyack Hospital",
+  "quote": "please confirm whether any further records or charges exist for this patient beyond the 24 April 2023 attendance",
+  "problem": "partial: The Dec 2025 email does request confirmation, but the excerpt shows no reply and no later status. The item is still open, so the 'waiting' status is not verified as of today (2026-10-02). The request itself is backed. [claim: \"waiting on Montefiore Nyack Hospital\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "headline.bullets[3]",
+  "on_screen": "New York State Medicaid: New York State Medicaid lien asserted at $22,180.00, unchanged.",
+  "quote": "New York State Medicaid lien, $22,180.00 asserted / New York State Medicaid has asserted a lien against any recovery in this case in the amount of $22,180.00",
+  "problem": "partial: The $22,180.00 lien is supported by the custom field and the 2025-03-01 email. 'Unchanged' is not supported, as no excerpt after March 2025 confirms the amount is current. [claim: \"lien asserted at $22,180.00, unchanged.\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "kpis.coverage[2]",
+  "on_screen": "UM/UIM \u00b7 client's own policy: $25,000 / $50,000 \u00b7 Note: per firm note of 2026-06-04: UM/UIM sits under defendant's $100,000 and adds nothing",
+  "quote": "The client's own UM/UIM is $25,000 / $50,000 / the client's own UM/UIM sits under it and adds nothing",
+  "problem": "misleading: The 2026-06-04 note does say UM/UIM sits under the defendant's limit and adds nothing, and the $25,000 / $50,000 figures are supported by the 2026-09-09 note. However, the 06-04 note predates the written confirmation of limits (09-08/09). Citing the older note for a conclusion the later note restates is slightly off. [claim: \"per firm note of 2026-06-04: UM/UIM sits under defendant's $100,000 and adds nothing\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "recent[7]",
+  "on_screen": "Defense counsel filed Tsao neurological expert exchange: Defendants served Dr. Tsao's March 4, 2026 independent neurological examination report; the exchange was filed on NYSCEF as Doc. No. 55 on 03/24/2026. (2026-03-24)",
+  "quote": "RECEIVED NYSCEF: 03/24/2026",
+  "problem": "partial: The excerpt supports the NYSCEF Doc. No. 55 and the 03/24/2026 filing. Dr. Tsao's report date is truncated ('dated Marc\u2026'), so March 4, 2026 and 'independent neurological examination' are not shown. 'Defense counsel filed' is also not shown, because the excerpt shows only a stamped receipt, not who filed it. [claim: \"Defendants served Dr. Tsao's March 4, 2026 independent neurological examination report\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
   "severity": "minor",
   "item": "recent[8]",
-  "on_screen": "Defense counsel served Dr. Katzman's report: Defense counsel served Dr. Marc J. Katzman's report, dated December 8, 2025, on plaintiff's MRIs, chest x-ray and brain MRI under CPLR 3101(d), with the notice dated February 4, 2026. (2026-02-04)",
-  "quote": "the report of Dr. Marc J. Katzman, dated December 8, 2025",
-  "problem": "partial: The report date (Dec 8, 2025), Dr. Katzman, CPLR 3101(d) and service are supported. The excerpt only shows 'RECEIVED NYSCEF: 02/04/2026', not a notice date of Feb 4, 2026, so that date is the receipt/filing date rather than the notice date. 'Defense counsel' is also inferred, as the notice is on behalf of 'responding defendants'. The summary omits the shoulder MRI and the knee MRIs, but this is minor. [claim: \"on plaintiff's MRIs, chest x-ray and brain MRI under CPLR 3101(d), with the notice dated February 4, 2026\"]",
+  "on_screen": "Defense counsel filed Katzman radiology expert exchange: Defendants' counsel served Dr. Katzman's report dated December 8, 2025 on plaintiff's MRIs and x-ray; the exchange was filed on NYSCEF as Doc. No. 47 on 02/04/2026. (2026-02-04)",
+  "quote": "RECEIVED NYSCEF: 02/04/2026",
+  "problem": "partial: The excerpt supports Doc. No. 47 and the 02/04/2026 filing. The report date is cut off ('dated D\u2026'), and the subject matter (MRIs and x-ray) is not shown, so neither can be confirmed. [claim: \"Dr. Katzman's report dated December 8, 2025 on plaintiff's MRIs and x-ray\"]",
   "owner": "S2",
   "extra": {
    "verdict": "partial"
@@ -355,7 +321,7 @@
   "item": "timeline[4]",
   "on_screen": "2023-05-07 | Calendar: Initial client consultation, Justin Sapini | kind=treatment | placed before today",
   "quote": "Initial client consultation, Justin Sapini",
-  "problem": "misleading: The calendar entry is an attorney intake meeting (retainer and HIPAA signed), not medical treatment. Tagging it kind=treatment misclassifies it, though the date and event are accurate. [claim: \"2023-05-07 | Calendar: Initial client consultation, Justin Sapini | kind=treatment\"]",
+  "problem": "misleading: The calendar entry is a legal intake meeting (retainer and HIPAA signed), not medical treatment. Labeling it kind=treatment gives a false impression. The date and event are otherwise accurate. [claim: \"2023-05-07 | Calendar: Initial client consultation, Justin Sapini | kind=treatment\"]",
   "owner": "S2",
   "extra": {
    "verdict": "misleading"
@@ -366,8 +332,8 @@
   "severity": "minor",
   "item": "treatment[8]",
   "on_screen": "Hudson Valley Radiology Associates/Mid Rockland Imaging: first visit 2023-05-08, last visit 2023-08-08, visits None, billed $15,900.00",
-  "quote": "Hudson Valley Radiology Associates/Mid Rockland Imaging / $15,900.00",
-  "problem": "partial: The dates and amount are backed by the expense entry for Hudson Valley Radiology Associates, and the combined provider name appears in the bill of particulars. However, no excerpt shows the bill itself or connects this expense to the Mid Rockland Imaging name, so the line-item support is thin. [claim: \"Hudson Valley Radiology Associates/Mid Rockland Imaging: first visit 2023-05-08, last visit 2023-08-08, billed $15,900.00\"]",
+  "quote": "2023-05-08 to 2023-08-08 / Hudson Valley Radiology Associates/Mid Rockland Imaging",
+  "problem": "partial: Dates and amount are backed by the expense entry. The combined provider name comes from the bill of particulars, whereas the bill/expense names only 'Hudson Valley Radiology Associates'; the 'Mid Rockland Imaging' pairing is not tied to the billed charges. Itemized bill itself not excerpted. [claim: \"Hudson Valley Radiology Associates/Mid Rockland Imaging: first visit 2023-05-08, last visit 2023-08-08, visits None, billed $15,900.00\"]",
   "owner": "S2",
   "extra": {
    "verdict": "partial"
@@ -376,20 +342,10 @@
  {
   "check": "2-record",
   "severity": "critical",
-  "item": "headline.bullets[1]",
-  "on_screen": "The left shoulder MRI is dated 2023-07-12.",
-  "quote": "document:21121911503: Visit date: 05/24/2023",
-  "problem": "Record contradicts this claim. The left shoulder MRI was done 05/24/2023. 2023-07-12 is the date of the pre-op consultation and the surgery authorization note.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "2-record",
-  "severity": "critical",
-  "item": "headline.bullets[3]",
-  "on_screen": "Metro-North has no stated self-insured ceiling, which conflicts with a $100,000 per person and $300,000 per occurrence limit.",
-  "quote": "communication:5029429688: The bodily injury liability limits are $100,000 per person and $300,000 per occurrence.",
-  "problem": "Record contradicts this claim. The claim says no ceiling is stated. The claims administrator confirmed written limits on 2026-09-08, and the 2026-09-09 note says the limits field is no longer unconfirmed.",
+  "item": "headline.bullets[2]",
+  "on_screen": "There is a coverage conflict between Metro-North self-insurance and $100,000/$300,000 limits.",
+  "quote": "note:2996972483: Defendant liability $100,000 per person / $300,000 per occurrence.",
+  "problem": "Record contradicts this claim. No conflict: Metro-North is self-insured and the $100k/$300k limits are Ferrara's personal auto coverage. Though a later email from the Claims Service Bureau confirms limits without distinguishing, the notes treat them as complementary, not conflicting.",
   "owner": "S2",
   "extra": {}
  },
@@ -397,7 +353,7 @@
   "check": "2-record",
   "severity": "minor",
   "item": "headline.bullets[0]",
-  "on_screen": "Liability is contested on two independent levels.",
+  "on_screen": "Liability is contested on two independent levels, neither investigated.",
   "quote": "note:2996972633: Liability is contested on two independent levels and neither has been investigated.",
   "problem": "Supported in the record but not by the cited sources; cite note:2996972633.",
   "owner": "S2",
@@ -407,17 +363,7 @@
   "check": "2-record",
   "severity": "minor",
   "item": "headline.bullets[0]",
-  "on_screen": "Neither level of the liability dispute has been investigated.",
-  "quote": "note:2996972633: Liability is contested on two independent levels and neither has been investigated.",
-  "problem": "Supported in the record but not by the cited sources; cite note:2996972633.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "2-record",
-  "severity": "minor",
-  "item": "headline.bullets[0]",
-  "on_screen": "A sideswipe collision carries no presumption of fault.",
+  "on_screen": "The collision was a sideswipe with no presumption of fault in either direction.",
   "quote": "note:2996972633: A sideswipe between two vehicles in adjacent merging lanes carries no presumption of fault in either direction, unlike a rear-ender.",
   "problem": "Supported in the record but not by the cited sources; cite note:2996972633.",
   "owner": "S2",
@@ -437,19 +383,39 @@
   "check": "2-record",
   "severity": "minor",
   "item": "headline.bullets[1]",
-  "on_screen": "The same MRI study reports posterior inferior glenoid hypoplasia, described as developmental not traumatic.",
-  "quote": "note:2996970788: The same study also reports hypoplasia of the posterior inferior glenoid, which is developmental rather than traumatic.",
-  "problem": "Supported in the record but not by the cited sources; cite note:2996970788.",
+  "on_screen": "Right shoulder arthroscopy is recommended but undated.",
+  "quote": "communication:5029426913: The recommended right shoulder arthroscopy has no date",
+  "problem": "Supported in the record but not by the cited sources; cite communication:5029426913.",
   "owner": "S2",
   "extra": {}
  },
  {
   "check": "2-record",
   "severity": "minor",
-  "item": "headline.bullets[1]",
-  "on_screen": "The defence is expected to use the glenoid hypoplasia finding.",
-  "quote": "note:2996970788: Expect the defence to lean on it.",
-  "problem": "Supported in the record but not by the cited sources; cite note:2996970788.",
+  "item": "headline.bullets[2]",
+  "on_screen": "Metro-North Commuter Railroad is the defendant on claim SIR068120.",
+  "quote": "communication:5029421393: This file is administered by Claims Service Bureau on behalf of Metro-North Commuter Railroad under claim SIR068120.",
+  "problem": "Supported in the record but not by the cited sources; cite communication:5029421393.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[2]",
+  "on_screen": "Progressive Insurance is the client's own no-fault carrier.",
+  "quote": "contact:2437334978: Role on matter: No-fault carrier, client's own policy",
+  "problem": "Supported in the record but not by the cited sources; cite contact:2437334978.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.bullets[2]",
+  "on_screen": "Medical specials total $118,400 billed.",
+  "quote": "custom_field:currency-529999748: Medical Specials To Date: 118400.0",
+  "problem": "Supported in the record but not by the cited sources; cite custom_field:currency-529999748.",
   "owner": "S2",
   "extra": {}
  },
@@ -457,27 +423,7 @@
   "check": "2-record",
   "severity": "minor",
   "item": "headline.bullets[3]",
-  "on_screen": "Medical specials billed are $118,400.00 across 9 providers.",
-  "quote": "note:2996971223: Running total across the nine treating providers, from their itemised bills:",
-  "problem": "Supported in the record but not by the cited sources; cite note:2996971223.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "2-record",
-  "severity": "minor",
-  "item": "headline.bullets[3]",
-  "on_screen": "Metro-North Commuter Railroad is a defendant, self-insured, with claim SIR068120.",
-  "quote": "note:2996970398: Metro-North Commuter Railroad is self-insured.",
-  "problem": "Supported in the record but not by the cited sources; cite note:2996970398.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "2-record",
-  "severity": "minor",
-  "item": "headline.bullets[4]",
-  "on_screen": "A New York State Medicaid lien of $22,180.00 is asserted and unchanged.",
+  "on_screen": "NYS Medicaid asserted a lien of $22,180.00, unchanged.",
   "quote": "note:2996972213: states the asserted figure is unchanged at $22,180.00",
   "problem": "Supported in the record but not by the cited sources; cite note:2996972213.",
   "owner": "S2",
@@ -487,9 +433,9 @@
   "check": "2-record",
   "severity": "minor",
   "item": "headline.status_line",
-  "on_screen": "The action is in the discovery stage of litigation.",
-  "quote": "note:2996972498: Combined demands exchanged. We have served the bill of particulars and the authorizations; defendants have served their combined demands and a notice to produce.",
-  "problem": "Supported in the record but not by the cited sources; cite note:2996972498.",
+  "on_screen": "The Presentation of Claim was served on Metro-North.",
+  "quote": "note:2996971628: the Presentation of Claim was served on Metro-North and the action is now in discovery.",
+  "problem": "Supported in the record but not by the cited sources; cite note:2996971628.",
   "owner": "S2",
   "extra": {}
  },
@@ -497,7 +443,17 @@
   "check": "2-record",
   "severity": "minor",
   "item": "headline.status_line",
-  "on_screen": "Both sides are trying to schedule the client's deposition.",
+  "on_screen": "The action is in discovery.",
+  "quote": "note:2996971628: the Presentation of Claim was served on Metro-North and the action is now in discovery.",
+  "problem": "Supported in the record but not by the cited sources; cite note:2996971628.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "2-record",
+  "severity": "minor",
+  "item": "headline.status_line",
+  "on_screen": "Both sides are trying to schedule the client deposition.",
   "quote": "note:2996972258: Both sides are trying to schedule the client deposition.",
   "problem": "Supported in the record but not by the cited sources; cite note:2996972258.",
   "owner": "S2",
@@ -506,29 +462,9 @@
  {
   "check": "2-record",
   "severity": "minor",
-  "item": "injuries[2]",
-  "on_screen": "The operative post-op diagnosis lists a significant posterior labral tear of the left shoulder.",
-  "quote": "note:2996970878: Post-operative diagnosis: significant posterior labral tear, synovitis, adhesions, impingement, partial biceps tendon tear, partial rotator cuff tear, cartilage defect.",
-  "problem": "Supported in the record but not by the cited sources; cite note:2996970878.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "2-record",
-  "severity": "minor",
   "item": "injuries[3]",
-  "on_screen": "Right shoulder MRI shows an intermediate-grade interstitial tear of the anterior half of the infraspinatus.",
-  "quote": "document:21121911503: Intermediate-grade interstitial tear of the anterior half of the infraspinatus. Partial tear of the posterior inferior",
-  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "2-record",
-  "severity": "minor",
-  "item": "injuries[3]",
-  "on_screen": "Right shoulder MRI shows a partial tear of the posterior inferior labrum at 8 o'clock.",
-  "quote": "document:21121911503: Partial tear of the posterior inferior",
+  "on_screen": "Right shoulder MRI on 05/24/2023 showed intermediate-grade interstitial anterior infraspinatus tear and partial posterior inferior labral tear at 8 o'clock.",
+  "quote": "document:21121911503: Intermediate-grade interstitial tear of the anterior half of the infraspinatus. Partial tear of the posterior inferior labrum at 8 o'clock.",
   "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
   "owner": "S2",
   "extra": {}
@@ -537,8 +473,8 @@
   "check": "2-record",
   "severity": "minor",
   "item": "injuries[4]",
-  "on_screen": "MRI of both knees shows a horizontal undersurface tear of the posterior horn of the medial meniscus.",
-  "quote": "document:21121911503: Horizontal undersurface tear of the posterior horn of the medial meniscus.",
+  "on_screen": "Left knee MRI on 07/03/2023 showed horizontal undersurface tear of the posterior horn of the medial meniscus and prepatellar soft tissue edema or contusion.",
+  "quote": "document:21121911503: Horizontal undersurface tear of the posterior horn of the medial meniscus. Prepatellar soft tissue edema.",
   "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
   "owner": "S2",
   "extra": {}
@@ -546,20 +482,10 @@
  {
   "check": "2-record",
   "severity": "minor",
-  "item": "recent[7]",
-  "on_screen": "The notice accompanying Dr. Tsao's report is dated March 24, 2026.",
-  "quote": "document:21121930883: FILED: NEW YORK COUNTY CLERK 03/24/2026 03:09 PM",
-  "problem": "Record only partly supports it. The notice was filed and received 03/24/2026. The passages cut off before the notice's own 'Dated:' line, so the signing date is not visible.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "2-record",
-  "severity": "minor",
-  "item": "recent[8]",
-  "on_screen": "The notice for Dr. Katzman's report is dated February 4, 2026.",
-  "quote": "document:21121929758: FILED: NEW YORK COUNTY CLERK 02/04/2026 07:14 PM",
-  "problem": "Record only partly supports it. The notice was filed on 02/04/2026. No visible 'Dated:' line for the notice, and the notice's reference to a report 'dated February 11, 2025' is inconsistent, so the notice's own date is not confirmed.",
+  "item": "injuries[5]",
+  "on_screen": "Right knee MRI on 07/03/2023 showed horizontal undersurface tear of the posterior horn of the medial meniscus.",
+  "quote": "document:21121911503: Horizontal undersurface tear of the posterior horn of the medial meniscus.",
+  "problem": "Supported in the record but not by the cited sources; cite document:21121911503.",
   "owner": "S2",
   "extra": {}
  },
@@ -609,16 +535,6 @@
   "item": "timeline[21]",
   "on_screen": "2025-10-09 Calendar: Client appointment: treatment and surgery decision (kind=treatment, future=False)",
   "quote": "Client appointment: treatment and surgery decision",
-  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "5-timeline",
-  "severity": "minor",
-  "item": "timeline[23]",
-  "on_screen": "2026-04-22 Statute of limitations: 2026-04-22 (suit filed 2024, satisfied) (kind=legal, future=False)",
-  "quote": "Three-year statute of limitations expires",
   "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
   "owner": "S2",
   "extra": {}

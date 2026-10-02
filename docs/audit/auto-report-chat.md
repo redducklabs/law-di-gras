@@ -1,8 +1,8 @@
 # Auto audit report: 00001-Sapini
 
-Generated 2026-10-02T12:11 by `uv run python -m app.audit` (checks 7). Dashboard cached 2026-10-02 19:07:06, generated_at 2026-10-02T19:07:06+00:00. Audit LLM cost $0.23.
+Generated 2026-10-02T12:36 by `uv run python -m app.audit` (checks 7). Dashboard cached 2026-10-02 19:26:25, generated_at 2026-10-02T19:26:25+00:00. Audit LLM cost $0.28.
 
-**Findings:** 4 critical, 0 major, 5 minor. Items audited: 89.
+**Findings:** 0 critical, 2 major, 5 minor. Items audited: 88.
 
 Severity: critical = wrong number/date/party/tense on screen; major = unsupported or misleading; minor = cosmetic.
 
@@ -10,118 +10,123 @@ Severity: critical = wrong number/date/party/tense on screen; major = unsupporte
 
 | Sev | Item | On screen | Cited quote | What's wrong | Owner |
 |---|---|---|---|---|---|
-| critical | chat: What are the client's injuries, and which ones does t… | A left shoulder arthroscopy is on the calendar for 2023-07-26 at New Horizon Surgical Center [4]. |  | tense_wrong: The surgery date 2023-07-26 is long past, and the operative report shows the arthroscopy was performed. It is not upcoming. | S2 |
-| critical | chat: What are the client's injuries, and which ones does t… | The evidence does not say which specific injuries the defense disputes. |  | contradicted: The record does identify disputed matters: the answer's affirmative defenses, the serious injury objection, and the IME reports finding all sprains resolved and no traumatic brain injury evidence. The claim that the evidence is silent is wrong. | S2 |
-| critical | chat: What are the client's injuries, and which ones does t… | Orthopedic and neurological IMEs are on the calendar for 2026-09-02 and 2026-09-07 [7][8]. |  | tense_wrong: The calendar entries show the IMEs scheduled for 9/2 and 9/7, but both are past as of 2026-10-02, and the notes and task show they were attended. The sentence frames them as upcoming. | S2 |
-| critical | chat: What are the client's injuries, and which ones does t… | The evidence does not contain any IME findings. |  | contradicted: The record contains the Hostin and Tsao IME reports with findings, e.g. diagnoses of resolved sprains and normal brain MRI. | S2 |
-| minor | chat: And is the $100k/$300k Ferrara's policy or Metro-Nort… | Claims Service Bureau, which administers Metro-North's claims, wrote on 2026-09-08 confirming "the coverage position on this file": bodily injury liability limits of $100,000 per person and $300,000 per occurrence, with no excess or umbrella coverage disclosed. [1][2] |  | partly: The 2026-09-08 email confirms the limits and no excess or umbrella coverage. However, cited note [1] does not support the claim that CSB administers Metro-North's claims for this sentence's quote context—actually it does say claims are administered by CSB. The 'on this file' quote is accurate. Minor issue: the email doesn't tie the limits to Metro-North, but the sentence doesn't claim that. | S2 |
-| minor | chat: And is the $100k/$300k Ferrara's policy or Metro-Nort… | The file itself flags this as a conflict: self-insured with no stated limit versus $100,000 / $300,000 per Claims Service Bureau. [3] |  | partly: The file shows both positions: the 2023 notes say self-insured with no stated ceiling, and CSB's 2026 email gives $100k/$300k. But no passage flags this as a conflict; the 'file itself flags' framing is the author's inference. Also the note says Ferrara personally carries $100k/$300k. | S2 |
-| minor | chat: Did the Pullano deposition happen? | The timeline lists the Pullano deposition as *scheduled* for 2025-12-08, with no record it occurred. [2] |  | partly: The subpoena supports the Dec 8, 2025 date. The reference to 'the timeline' is not shown in the passages. 'No record it occurred' is consistent with the file and the March 2026 note, which lists the deposition as outstanding. | S2 |
-| minor | chat: Did the Pullano deposition happen? | The Metro-North scope-of-employment disclosure and the Pullano deposition remain an open action, status waiting, on Defendants (Metro-North). [3] |  | partly: The 2026-03-06 note lists both items as outstanding on the defense side. 'Remain... status waiting' presents a March 2026 status as current; later notes do not confirm it. The 'action, status waiting' wording is not in the source. | S2 |
-| minor | chat: What are the client's injuries, and which ones does t… | Liability is contested, and comparative negligence, assumption of risk and a seatbelt defence are to be anticipated. [5] |  | partly: Liability contested and anticipated defenses are supported by the 9/15/2026 note. But the defenses are already pleaded in the answer and bill of particulars, so 'to be anticipated' understates their status. | S2 |
+| major | chat: And is the $100k/$300k Ferrara's policy or Metro-Nort… | **Dashboard:** The Dashboard KPI for Metro-North Commuter Railroad, claim SIR068120, reads: Conflict: Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08) [3]. |  | unsupported: No excerpt or passage shows a Dashboard KPI with this text. The cited note only says Metro-North is self-insured, and the 2026-09-08 email gives the limits. The 'Conflict' KPI reading is not in the record. | S2 |
+| major | chat: What are the client's injuries, and which ones does t… | I couldn't find a defense dispute of the cervical, lumbar, thoracic or left shoulder findings in the retrieved record. |  | unsupported: A 2026-09-15 note and a 2023 note say the defence will lean on the glenoid hypoplasia in the left shoulder MRI, and the defense IME (Hostin) lists the left shoulder MRI including hypoplasia. More importantly, the defense IME doctors (Tsao, Hostin) examined the cervical, lumbar and shoulder complaints; the retrieved record does not show their conclusions, so the absence claim is not established, and the 2023 note anticipates a defense challenge to the left shoulder. | S2 |
+| minor | chat: Did the Pullano deposition happen? | The timeline lists the Pullano deposition as scheduled for 2025-12-08, with no record it occurred [2]. |  | partly: The subpoena supports the December 8, 2025 date, and nothing shows the deposition occurred. But no 'timeline' is in the record, and the cited subpoena only commands appearance, so 'scheduled' as listed on a timeline is unsupported. | S2 |
+| minor | chat: Did the Pullano deposition happen? | An open action lists the Metro-North scope-of-employment disclosure and Pullano deposition with status waiting, waiting on Defendants (Metro-North) [4]. |  | partly: The note supports the two items being outstanding on the defendants' side. No 'open action' with the status 'waiting' appears in the passages, so that framing is unsupported. | S2 |
+| minor | chat: What did the court rule on our summary judgment motio… | The complaint states that, by Decision and Order (Tsai, J.), the Court denied the cross motion and dismissed the Complaint, noting Plaintiff's failure to provide the Presentation of Claim before starting suit [1]. |  | partly: The complaint does recite a Decision and Order (Tsai, J.) that denied the cross motion and dismissed the earlier complaint for failure to present the claim. But that ruling was in the prior action and not on a summary judgment motion. The sentence blurs this by attributing it to 'the complaint' without noting that it concerns the earlier case. | S2 |
+| minor | chat: What did the court rule on our summary judgment motio… | The "Demand history and current damages update" note states that the action is now in discovery and both sides are trying to schedule the client deposition [2]. |  | partly: The cited note (2026-08-03) says the action is now in discovery. The statement that both sides are trying to schedule the client deposition comes from a different note dated 2025-08-27, which is not the one cited, and that status may be out of date. | S2 |
+| minor | chat: What insurance coverage is available and what are the… | **Defendant liability (Metro-North Commuter Railroad, claim SIR068120):** Conflict: Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08) [1]. |  | partly: Both positions are in the record (2023 self-insured note vs 2026-09-08 confirmation of $100k/$300k), but the cited note only supports the self-insured side. The later written confirmation supersedes it; framing as an unresolved conflict is questionable. | S2 |
 
 **Q:** What is overdue right now, and what are we waiting on from other people?
 
-> **Overdue right now**
+> - Updated records and right shoulder surgical date from McCulloch Orthopaedic Surgical Services, PLLC: status overdue, due 2026-08-25, waiting on McCulloch Orthopaedic [1]. The firm's 2026-08-03 email to McCulloch was its third written request for a surgical date [2].
+> - Obtain updated employment and commission records from client: status overdue, due 2026-09-26 [3].
 > 
-> - **McCulloch Orthopaedic: updated records and right shoulder surgical date**: due 2026-08-25, overdue, waiting on McCulloch Orthopaedic Surgical Services, PLLC [1]. Our 2026-08-03 email was the third written request for a surgical date [2].
-> - **Updated employment and commission records from client**: due 2026-09-26, overdue [3]. We asked Justin on 2026-09-21 for commission statements after 2022 and Northwestern Mutual confirmation of pre-accident production [4].
+> **Waiting on others**
 > 
-> **Waiting on others (not yet overdue or no due date)**
-> 
-> - **Justin Sapini**: commission statements after 2022 and Northwestern Mutual confirmation of pre-accident production [5]. A client appointment on these records is scheduled for 2026-10-29 [6].
-> - **Advanced Rockland Chiropractic**: current daily notes and itemised bill to date, due 2026-10-07 [7]. Our 2026-09-26 request asked for an itemised ledger with CPT codes [8].
-> - **SportsCare Physical Therapy**: ongoing treatment notes, due 2026-10-14 [9].
-> - **Montefiore Nyack Hospital**: confirmation whether further records or charges exist beyond the 24 April 2023 attendance (no due date stated) [10].
-> - **Claims Service Bureau (Metro-North)**: incident report and vehicle assignment/dispatch records for the morning of the collision (no due date stated) [11].
-> - **Defendants (Metro-North)**: scope-of-employment disclosure and Pullano deposition (no due date stated) [12]. The Pullano deposition was scheduled for 2025-12-08, with no record it occurred [13].
+> - **Justin Sapini (client):** commission statements after 2022 and Northwestern Mutual confirmation of pre-accident production [4]. The 2026-09-21 email to Justin Sapini described this as the single biggest number in the claim, resting on one document [5].
+> - **McCulloch Orthopaedic Surgical Services, PLLC:** updated records and right shoulder surgical date (overdue) [1].
+> - **Advanced Rockland Chiropractic Offices, P.C.:** current daily notes and itemised bill to date, due 2026-10-07 [6]. The firm's 2026-09-26 email requested the itemised ledger with CPT codes [7].
+> - **SportsCare Physical Therapy of New York:** ongoing treatment notes, due 2026-10-14 [8].
+> - **Montefiore Nyack Hospital:** confirmation whether further records or charges exist beyond the 24 April 2023 attendance [9].
+> - **Claims Service Bureau (Metro-North):** incident report and vehicle assignment/dispatch records for the morning of the collision [10].
+> - **Defendants (Metro-North):** scope-of-employment disclosure and Pullano deposition [11]. The Pullano deposition was scheduled for 2025-12-08, with no record it occurred [12].
 
-Citations 13; links: Next steps, Share panel: McCulloch Orthopaedic, Commission records request email
+Citations 12; links: Next steps, McCulloch Orthopaedic share panel, Commission records email
 
 **Q:** What insurance coverage is available and what are the limits?
 
-> **Coverage on file — there is an unresolved conflict about whose policy the stated bodily injury limits belong to.** [1][2]
+> **Defendant liability (Metro-North Commuter Railroad, claim SIR068120):** Conflict: Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08) [1].
 > 
-> **Defendants**
-> - **Metro-North Commuter Railroad:** Self-insured; no carrier and no declarations page. [3] Claims are administered by Claims Service Bureau, c/o D&D Associates, Garden City, claim SIR068120. [3]
-> - **Ferrara (personal auto policy):** $100,000 / $300,000. [3][4]
-> - The 2023-05-14 note says Metro-North is self-insured and that the $100,000 / $300,000 belongs to Ferrara's personal policy, not Metro-North. [2] Weiler's 2026-09-09 note treats the adjuster email as written confirmation of defendant liability limits of $100,000 / $300,000. [5] Defendants' discovery response said insurance information would be provided under separate cover. [6]
+> - A coverage note dated 2023-05-14 states that Metro-North Commuter Railroad is self-insured, with no carrier and no declarations page to request [2].
+> - The 2023-05-14 coverage note states that claims are administered by Claims Service Bureau, c/o D&D Associates, Garden City, claim number SIR068120 [2].
+> - The 2023-05-14 coverage note states that Ferrara personally carries auto coverage identified at $100,000 / $300,000, and that if Metro-North comes out of the case on scope of employment, that policy is the entire recovery [2].
+> - A 2026-09-08 email from Claims Service Bureau states that the bodily injury liability limits are $100,000 per person and $300,000 per occurrence, and that no excess or umbrella coverage is disclosed [3].
+> - A 2026-09-09 firm note states that coverage was confirmed in writing by the adjuster and that recovery is capped at $100,000 unless the case reaches a second defendant [4].
 > 
-> **Client's own coverage**
-> - **UM/UIM:** $25,000 / $50,000, below the defendant's limits, so it adds nothing. [5][7]
-> - **No-fault (Progressive, claim 22-4471102):** $50,000, exhausted. [8]
+> **Client's own coverage:**
+> - UM/UIM (client's own policy): $25,000 / $50,000; per firm note of 2026-06-04, UM/UIM sits under defendant's $100,000 and adds nothing [5].
+> - No-fault (Progressive Insurance Company, client's own policy): Exhausted ($50,000) [6].
 > 
-> **Practical read:** Recovery is capped at $100,000 unless the case reaches a second defendant, and the Medicaid lien of $22,180.00 comes off any recovery. [5]
+> **Lien:** New York State Medicaid has asserted a lien against any recovery [7]. The 2026-09-09 firm note states the Medicaid lien is $22,180.00 [4].
 
-Citations 8; links: Self-insured coverage note, Coverage confirmed note
+Citations 7; links: Coverage KPIs, Claims Service Bureau coverage email, Self-insured coverage note
 
 **Q:** And is the $100k/$300k Ferrara's policy or Metro-North's?
 
-> - The same note says Ferrara personally carries auto coverage identified at $100,000 / $300,000. [1]
-> - Claims Service Bureau, which administers Metro-North's claims, wrote on 2026-09-08 confirming "the coverage position on this file": bodily injury liability limits of $100,000 per person and $300,000 per occurrence, with no excess or umbrella coverage disclosed. [1][2]
-> - That email does not say whose policy or program those limits belong to. [2]
-> - The file itself flags this as a conflict: self-insured with no stated limit versus $100,000 / $300,000 per Claims Service Bureau. [3]
-> - Defendants' discovery response said insurance coverage information would be provided under separate cover. [4]
+> - A 2023-05-14 coverage note states that Metro-North Commuter Railroad is self-insured, with no carrier and no declarations page, and that Ferrara personally carries auto coverage identified at $100,000 / $300,000. [1]
+> - The 2023-05-14 coverage note states that Metro-North claims are administered by Claims Service Bureau, claim number SIR068120. [1] A 2026-09-08 email from Claims Service Bureau states that the bodily injury liability limits on the file are $100,000 per person and $300,000 per occurrence, with no excess or umbrella coverage disclosed [2].
+> - **Dashboard:** The Dashboard KPI for Metro-North Commuter Railroad, claim SIR068120, reads: Conflict: Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08) [3].
 > 
-> The coverage note says that if Metro-North comes out of the case on scope of employment, Ferrara's policy is the entire recovery. [1] The note also says no statement of exposure has been requested from the authority. [1]
+> I couldn't find, in the retrieved record, a statement identifying whose policy the limits in the 2026-09-08 Claims Service Bureau email belong to [2]. The 2023-05-14 note states that if Metro-North comes out of the case on scope of employment, Ferrara's policy is the entire recovery [1].
 
-Citations 4; links: Coverage note (self-insured), Claims Service Bureau coverage email, Coverage conflict entry
+Citations 3; links: Coverage note: Metro-North is self-insured (2023-05-14), Claims Service Bureau email (2026-09-08), Coverage KPIs
 
 **Q:** What are the client's injuries, and which ones does the defense dispute?
 
-> **Injuries claimed**
+> **Claimed injuries (per imaging and records)**
+> - **Cervical spine:** MRI showed straightening of the lordosis and a shallow disc bulge at C5-6 flattening the left ventral margin of the canal [1].
+> - **Lumbar spine:** MRI showed an L5-S1 disc bulge with lateral predominance narrowing the lateral recesses and inferior foramina bilaterally [2].
+> - **Thoracic spine:** The bill of particulars claims thoracic spine myofascial derangement [3].
+> - **Left shoulder:** MRI showed a partial tear of the posterior inferior labrum at 8-9 o'clock and a low-grade interstitial tear of the posterior infraspinatus fibers [4].
+> - **Right shoulder:** MRI of 05/24/2023 showed an intermediate-grade interstitial tear of the anterior half of the infraspinatus and a partial tear of the posterior inferior labrum at 8 o'clock [5].
+> - **Left knee:** MRI of 07/03/2023 showed a horizontal undersurface tear of the posterior horn of the medial meniscus, with prepatellar soft tissue edema reflecting soft tissue contusion [6].
+> - **Right knee:** MRI of 07/03/2023 showed a horizontal undersurface tear of the posterior horn of the medial meniscus [7].
+> - **Brain:** MRI brain with DTI of 08/08/2023 showed 2 of 12 regions of interest and 1 of 6 white matter tracts abnormal, and a hemosiderin focus in the subcortical right parietal lobe [8].
 > 
-> - Case summary: both shoulders, both knees, and a head injury [1].
-> - At intake: cervical and lumbar spine, both shoulders, both knees [2]. CT head and cervical at Montefiore Nyack ER were both negative [2].
-> - The bill of particulars also lists lumbar spine myofascial derangement, an L5-S1 disc bulge narrowing the lateral recesses and inferior foramina bilaterally, restricted range of motion of the back, low back pain radiating to the lower extremities, and thoracic spine myofascial derangement [3].
-> - A left shoulder arthroscopy is on the calendar for 2023-07-26 at New Horizon Surgical Center [4].
+> **Disputed in the defense radiology review (Marc J. Katzman, M.D.)** [9]
+> - **Right shoulder:** The defense radiology review by Marc J. Katzman, M.D. states "no evidence of recent traumatic injury to the right shoulder" [9].
+> - **Left knee:** The defense radiology review by Marc J. Katzman, M.D. states "no recent traumatic injury or internal derangement" [10].
+> - **Right knee:** The defense radiology review by Marc J. Katzman, M.D. states "no recent traumatic injury or internal derangement" [11].
+> - **Brain:** The defense radiology review by Marc J. Katzman, M.D. states the brain MRI "reveals no evidence of traumatic injury to the brain" [12].
 > 
-> **What the defense disputes**
+> I couldn't find a defense dispute of the cervical, lumbar, thoracic or left shoulder findings in the retrieved record.
 > 
-> The evidence does not say which specific injuries the defense disputes. The firm's own notes flag these exposures:
-> 
-> - Liability is contested, and comparative negligence, assumption of risk and a seatbelt defence are to be anticipated. [5]
-> - The client denied prior injuries at intake. [2] His records include 2011 left ankle and left foot X-rays showing a small dorsal avulsion fracture of the anterior talus [6]. He has also complained of left ankle pain from this accident, but no left ankle injury is claimed [6][5].
-> - The left shoulder MRI that supported the surgery also reports hypoplasia of the posterior inferior glenoid, a developmental variant. [5]
-> - Orthopedic and neurological IMEs are on the calendar for 2026-09-02 and 2026-09-07 [7][8]. The evidence does not contain any IME findings.
+> **Related exposures**
+> - The 2026-09-15 firm note flags that the left shoulder MRI reports hypoplasia of the posterior inferior glenoid, a developmental variant, as a causation exposure [13].
+> - The client denied prior injuries at intake, but his own records include 2011 left ankle and left foot X-rays showing a small dorsal avulsion fracture of the anterior talus [14].
 
-Citations 8; links: Injuries, Case posture note, Prior ankle discrepancy
+Citations 14; links: Injuries, Katzman radiology review, Case posture note (causation exposure)
 
 **Q:** When did we last talk to the client, and what did we discuss?
 
-> The last client contact was a phone call on **2026-09-27**, when Justin called about his treatment status [1][2].
+> The most recent client contact on the dashboard is a phone call: "Client call: should he keep going to PT" [1]. The note "Client call: treatment status" dated 2026-09-27 records that call [2].
 > 
-> What was discussed:
-> - He asked whether he should keep attending physical therapy while the case is pending; he was advised yes, to keep going and to keep his own record of every visit [1].
-> - He confirmed the right shoulder surgery still has no date [1].
-> - He said he is otherwise fine and will send updated employment records "soon" [1].
+> What was discussed, per the 2026-09-27 note [2]:
+> - Justin called and asked whether he should keep attending physical therapy while the case is pending [2].
+> - He was advised yes, to keep going, and to keep his own record of every visit [2].
+> - He confirmed the right shoulder surgery still has no date [2].
+> - He said he is otherwise fine and will send updated employment records "soon" [2].
 > 
-> For context, in the prior call he asked again when the right shoulder will be done, and was told the surgeon wants to see him first and that we have asked five times; he was still going to physical therapy twice a week [3].
+> For context, the 2026-09-25 call note records that he asked again when the right shoulder will be done, and was told the surgeon wants to see him first and that the firm has asked five times [3]. The 2026-09-25 call note also records that he is still going to physical therapy twice a week [3].
 > 
-> The next client contact is a follow-up call scheduled for 2026-10-14 to check whether the right shoulder surgery has been scheduled and to chase employment records [4].
+> A follow-up call with the client re treatment status is scheduled for 2026-10-14 [4].
 
-Citations 4; links: Client call 2026-09-27, Scheduled follow-up call 2026-10-14, Recent activity
+Citations 4; links: Client call note 2026-09-27, Call note 2026-09-25, Next steps
 
 **Q:** Did the Pullano deposition happen?
 
-> **No — there is no record that it happened.**
+> I couldn't find any record that the Pullano deposition took place in the retrieved record.
 > 
-> - Plaintiff's subpoena ad testificandum, dated November 2, 2025, commanded Kyle Pullano to appear for a virtual Examination Before Trial on December 8, 2025, at 10:00 a.m. [1]
-> - The timeline lists the Pullano deposition as *scheduled* for 2025-12-08, with no record it occurred. [2]
-> - The Metro-North scope-of-employment disclosure and the Pullano deposition remain an open action, status waiting, on Defendants (Metro-North). [3]
-> - As of the 2026-09-15 case-posture note, Pullano had been identified as the person who can answer the scope-of-employment question, but nobody had contacted him. [4]
-> 
-> Why it matters: Pullano was a passenger in the defendants' vehicle [5], and whether Ferrara was on duty or on a break determines whether vicarious liability holds against Metro-North. [4][6]
+> - A subpoena ad testificandum commanded Kyle Pullano to appear for an Examination Before Trial on December 8, 2025, at 10:00 a.m., to be conducted virtually. [1]
+> - The timeline lists the Pullano deposition as scheduled for 2025-12-08, with no record it occurred [2].
+> - The compliance conference note dated 2026-03-06 states that the Metro-North scope-of-employment disclosure and the Pullano deposition were outstanding on the defendants' side [3].
+> - An open action lists the Metro-North scope-of-employment disclosure and Pullano deposition with status waiting, waiting on Defendants (Metro-North) [4].
+> - The case posture note dated 2026-09-15 states that Kyle Pullano, a Metro-North employee, has been identified as the person who can answer the scope-of-employment question and that nobody has contacted him [5].
+> - The defendants' response to demand identifies Kyle Pullano, Metro-North Employee, as a passenger in the responding defendants' vehicle [6].
+> - The case posture note dated 2026-09-15 describes scope of employment as "the whole case" [5].
 
-Citations 6; links: Pullano subpoena (Dec 8, 2025 EBT), Open action: scope disclosure & Pullano deposition, Timeline: scheduled Pullano deposition
+Citations 6; links: Pullano subpoena, Scheduled Pullano deposition, Next steps
 
 **Q:** What did the court rule on our summary judgment motion?
 
-> The evidence provided does not contain any summary judgment motion or a ruling on one.
+> I couldn't find a summary judgment motion or any ruling on one in the retrieved record.
 > 
-> The record does reference a Decision and Order (Tsai, J.) in which the Court denied a cross motion and dismissed the Complaint, noting Plaintiff's failure to provide the Presentation of Claim before starting suit [1]. After that dismissal, Plaintiff served another Presentation of Claim by overnight mail dated September 10, 2024, and started this suit pursuant to CPLR 205 after waiting 30 days [1]. That ruling concerned a cross motion. [1]
-> 
-> If a summary judgment motion was filed, it is not reflected in the materials available to me.
+> Related court and status items in the retrieved record:
+> - The complaint states that, by Decision and Order (Tsai, J.), the Court denied the cross motion and dismissed the Complaint, noting Plaintiff's failure to provide the Presentation of Claim before starting suit [1].
+> - The complaint states that Plaintiff then served another Presentation of Claim by overnight mail dated September 10, 2024, and started this suit pursuant to CPLR 205 after waiting 30 days [1].
+> - The "Demand history and current damages update" note states that the action is now in discovery and both sides are trying to schedule the client deposition [2].
 
-Citations 1; links: Complaint (references prior Decision & Order), Case status, Case timeline
+Citations 2; links: Complaint (prior Decision and Order), Case status, Timeline
 
