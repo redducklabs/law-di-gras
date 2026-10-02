@@ -7,8 +7,11 @@ Run: cd backend && uv run uvicorn app.main:app --reload --port 8000
 import importlib
 import logging
 
-from fastapi import FastAPI
+from fastapi import FastAPI, Request
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
+
+from app.auth import session
 
 from app.db import init_db
 
@@ -24,9 +27,23 @@ app.add_middleware(
 
 init_db()
 
+if not session.enabled():
+    log.warning("APP_LOGIN_USER/APP_LOGIN_PASSWORD not set: firm sign-in is DISABLED (all /api open)")
+
+
+@app.middleware("http")
+async def require_session(request: Request, call_next):
+    """Every /api/* needs a firm session except sign-in, health and provider share links."""
+    if (session.enabled() and request.method != "OPTIONS" and not session.is_public(request.url.path)
+            and not session.session_user(request.cookies.get(session.COOKIE))):
+        return JSONResponse({"detail": "sign in required"}, status_code=401)
+    return await call_next(request)
+
 # Each stream exposes `router` in its module. Missing modules are skipped so
 # streams can land independently.
-for module in ("app.api.sources", "app.api.digest", "app.api.share", "app.clio.web", "app.demo_auth"):
+# app.api.auth must precede app.demo_auth: it owns the shared /api/auth/* routes.
+for module in ("app.api.auth", "app.api.cases", "app.api.sources", "app.api.digest", "app.api.share",
+               "app.clio.web", "app.demo_auth"):
     try:
         app.include_router(importlib.import_module(module).router)
     except ModuleNotFoundError as e:
