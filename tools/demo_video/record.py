@@ -42,27 +42,27 @@ def main_env() -> dict:
 
 # ---------- narration ----------
 SEGMENTS = [
-    ("cases", "A personal-injury file is thousands of pages. Every matter here is read live from Clio, read-only, "
+    ("cases", "A personal-injury file is thousands of pages. Here, every matter is read live from Clio, read-only, "
               "and sorted by what needs you first."),
     ("brief", "Open a case and it reads in ninety seconds: where it stands, what's next, "
-              "and a timeline with medical, legal and deadlines in their own lanes."),
-    ("source", "Every fact links to its source. Click it, and the page opens with the exact quote highlighted. "
+              "and a timeline of medical, legal and deadlines."),
+    ("source", "Every fact links to its source: the page opens with the exact quote highlighted. "
                "If it isn't in the record, it isn't on screen."),
-    ("conflict", "When the file contradicts itself, like Metro-North's coverage, we show both sides and their sources "
-                 "instead of guessing."),
-    ("blind", "Then the part nobody has time for. An agent reads the whole file for what a page-by-page review misses. "
-              "Here, the defense says it annexed Metro-North's incident report, while our own follow-up says it isn't in their response."),
-    ("audit", "And every run is audited automatically. Quotes, numbers and overstatements are checked, "
-              "and anything doubtful is flagged, not stated as fact."),
-    ("next", "What's overdue and who we're waiting on, with a cited follow-up drafted in one click."),
-    ("chat", "Ask anything. Answers come only from the record, with sources, and take you to the right place."),
-    ("share", "Treating providers on a lien get their own view: status, coverage, what we need from them, and their bills. "
-              "No strategy, no notes. The attorney decides what they see."),
-    ("close", "The whole case in ninety seconds, every fact traceable, for about two fifty a case."),
+    ("conflict", "Where the file contradicts itself, like Metro-North's coverage, we show both sides."),
+    ("blind", "Blind spots: an agent reads the whole file for what a page-by-page review misses. "
+              "The defense says it annexed Metro-North's incident report; our own follow-up says it isn't there."),
+    ("audit", "Every run is audited automatically. Anything doubtful is flagged, not stated as fact."),
+    ("next", "What's overdue, and a cited follow-up drafted in one click."),
+    ("chat", "Ask anything, like when the Pullano deposition is. Answers come only from the record, every sentence cited, "
+             "and the links take you straight to the source."),
+    ("share", "Providers on a lien get their own view: status, coverage, what we need from them, and their bills. "
+              "Never strategy or notes."),
+    ("close", "The whole case in ninety seconds, every fact traceable, about two fifty a case."),
 ]
 
-TTS_INSTRUCTIONS = ("Calm, confident product-demo narrator speaking to trial attorneys. Natural pace, "
-                    "clear diction, slight warmth, no hype.")
+TTS_INSTRUCTIONS = ("Warm, engaged woman presenting a product she's proud of to a room of trial lawyers. "
+                    "Conversational and natural, like talking to a colleague, upbeat but credible. Brisk pace, "
+                    "vary intonation, a little smile in the voice, light emphasis on key words, short natural pauses.")
 
 
 def tts(env: dict, voice: str, dry: bool) -> dict[str, Path]:
@@ -78,10 +78,18 @@ def tts(env: dict, voice: str, dry: bool) -> dict[str, Path]:
             with wave.open(str(p), "wb") as w:
                 w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(b"\0\0" * n)
         elif not p.exists() or p.stat().st_mtime < Path(__file__).stat().st_mtime:
-            with client.audio.speech.with_streaming_response.create(
-                    model="gpt-4o-mini-tts", voice=voice, input=text, instructions=TTS_INSTRUCTIONS,
-                    response_format="wav") as r:
-                r.stream_to_file(p)
+            for attempt in range(4):  # raw 24 kHz 16-bit mono PCM -> our own WAV header
+                try:
+                    pcm = client.audio.speech.create(model="gpt-4o-mini-tts", voice=voice, input=text,
+                                                     instructions=TTS_INSTRUCTIONS, response_format="pcm").content
+                    break
+                except Exception as e:
+                    print(f"tts {key} retry {attempt + 1}: {e.__class__.__name__}")
+                    time.sleep(2 + 2 * attempt)
+            else:
+                sys.exit(f"TTS failed for {key}")
+            with wave.open(str(p), "wb") as w:
+                w.setnchannels(1); w.setsampwidth(2); w.setframerate(24000); w.writeframes(pcm)
         files[key] = p
     return files
 
@@ -142,13 +150,21 @@ class Stage:
             self.overlay()
 
     def goto(self, url: str):
-        self.page.goto(url)
-        self.page.wait_for_load_state("networkidle")
+        self.page.goto(url, wait_until="domcontentloaded")
+        try:
+            self.page.wait_for_load_state("networkidle", timeout=4000)  # polling pages never go idle
+        except Exception:
+            pass
         self.overlay()
 
     def scroll_to(self, sel: str):
         self.page.locator(sel).first.scroll_into_view_if_needed()
         time.sleep(0.4)
+
+
+# Dead time to cut from the final video, as (start, end) in seconds since t0.
+CUTS: list[tuple[float, float]] = []
+T0 = [0.0]
 
 
 # ---------- the demo path ----------
@@ -217,7 +233,11 @@ def run_segment(s: Stage, key: str, ctx) -> None:
         s.move(box, click=True)
         box.type("When is the Pullano deposition?", delay=35)
         s.move(p.get_by_role("button", name="Send"), click=True)
-        p.locator("aside[aria-label='Ask the case'] button:has-text('→')").first.wait_for(timeout=45000)
+        t_send = time.monotonic() - T0[0] + 1.5  # keep the "Reading the record…" beat
+        p.locator("aside[aria-label='Ask the case'] button:has-text('→')").first.wait_for(timeout=60000)
+        t_ans = time.monotonic() - T0[0] - 0.2
+        if t_ans - t_send > 1.0:
+            CUTS.append((t_send, t_ans))
         time.sleep(1.0)
         link = p.locator("aside[aria-label='Ask the case'] button:has-text('→')").first
         s.move(link, click=True, pause=1.2)
@@ -240,7 +260,7 @@ def run_segment(s: Stage, key: str, ctx) -> None:
 def main():
     ap = argparse.ArgumentParser()
     ap.add_argument("--dry", action="store_true")
-    ap.add_argument("--voice", default="ash")
+    ap.add_argument("--voice", default="nova")
     ap.add_argument("--headed", action="store_true")
     a = ap.parse_args()
     env = main_env()
@@ -261,6 +281,7 @@ def main():
             sys.exit(f"login failed: {r.status}")
         page = ctx.new_page()
         t0 = time.monotonic()
+        T0[0] = t0
         s = Stage(page)
         s.goto(f"{BASE}/cases")
         time.sleep(1.0)
@@ -269,12 +290,14 @@ def main():
             starts[key] = time.monotonic() - t0
             s.caption(text)
             seg_t = time.monotonic()
+            cut_before = sum(b - a for a, b in CUTS)
             try:
                 run_segment(s, key, ctx)
             except Exception as e:  # keep recording; report the broken step
                 print(f"[{key}] step failed: {e.__class__.__name__}: {str(e)[:200]}")
                 page.screenshot(path=str(OUT / f"fail-{key}.png"))
-            left = durs[key] + 0.5 - (time.monotonic() - seg_t)
+            cut_here = sum(b - a for a, b in CUTS) - cut_before
+            left = durs[key] + 0.5 - (time.monotonic() - seg_t - cut_here)
             if left > 0:
                 time.sleep(left)
             elif left < -0.2:
@@ -285,11 +308,14 @@ def main():
         video = page.video.path()
         ctx.close(); browser.close()
 
-    # Build one narration track: each segment starts where its actions started.
+    # Map recording time -> final-video time (lead trimmed, CUTS removed).
+    def vt(t: float) -> float:
+        return t - lead - sum(min(b, t) - a for a, b in CUTS if a < t)
+
     rate = 24000
     track = bytearray()
     for key, _ in SEGMENTS:
-        pos = int((starts[key] - lead) * rate) * 2
+        pos = int(vt(starts[key]) * rate) * 2
         if len(track) < pos:
             track += b"\0" * (pos - len(track))
         with wave.open(str(audio[key])) as w:
@@ -298,13 +324,20 @@ def main():
     with wave.open(str(narr), "wb") as w:
         w.setnchannels(1); w.setsampwidth(2); w.setframerate(rate); w.writeframes(bytes(track))
     final = OUT / ("demo-dry.mp4" if a.dry else "demo.mp4")
+    keep, at = [], lead
+    for a_, b_ in sorted(CUTS):
+        keep.append((at, a_)); at = b_
+    keep.append((at, end))
+    parts = "".join(f"[0:v]trim=start={x:.3f}:end={y:.3f},setpts=PTS-STARTPTS[v{i}];" for i, (x, y) in enumerate(keep))
+    graph = parts + "".join(f"[v{i}]" for i in range(len(keep))) + f"concat=n={len(keep)}:v=1:a=0[v]"
     ff = imageio_ffmpeg.get_ffmpeg_exe()
-    subprocess.run([ff, "-y", "-loglevel", "error", "-ss", f"{lead:.2f}", "-i", str(video), "-i", str(narr),
-                    "-t", f"{end - lead:.2f}", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20",
-                    "-c:a", "aac", "-b:a", "160k", "-shortest", str(final)], check=True)
-    print(f"video: {final}  ({end - lead:.1f}s)")
+    subprocess.run([ff, "-y", "-loglevel", "error", "-i", str(video), "-i", str(narr), "-filter_complex", graph,
+                    "-map", "[v]", "-map", "1:a", "-c:v", "libx264", "-pix_fmt", "yuv420p", "-crf", "20",
+                    "-r", "25", "-c:a", "aac", "-b:a", "160k", str(final)], check=True)
+    total = vt(end)
+    print(f"video: {final}  ({total:.1f}s; cut {sum(b - a for a, b in CUTS):.1f}s of waiting)")
     for k in starts:
-        print(f"  {k:9s} @ {starts[k] - lead:5.1f}s  narration {durs[k]:4.1f}s")
+        print(f"  {k:9s} @ {vt(starts[k]):5.1f}s  narration {durs[k]:4.1f}s")
 
 
 if __name__ == "__main__":
