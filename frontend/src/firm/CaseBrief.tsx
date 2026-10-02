@@ -1,14 +1,16 @@
 // Firm Case Brief: one screen answering "where does this case stand, and what do I do next".
+// Calm by default: status, numbers, timeline, the few actions; detail opens on demand.
 import { useState, type FormEvent } from 'react'
 import { Link } from 'react-router-dom'
 import { Account } from '../cases/Account'
 import type { Citation, Dashboard, Fact } from '../api/types'
 import {
-  Avatar, Badge, Card, Fonts, SourceChips, Tile, daysFromToday, fmtDate, fmtDateTime, money, relDays,
+  Avatar, Card, Disclosure, Fonts, SourceChips, daysFromToday, fmtDate, fmtDateTime, money, relDays, useReveal,
 } from '../components'
 import { StageStepper } from './CaseProgress'
 import { TimelineStrip } from './Timeline'
 import { NextSteps } from './NextSteps'
+import { KpiStrip } from './KpiStrip'
 import { BlindSpots, useReview } from '../review'
 
 export interface CaseBriefProps {
@@ -25,6 +27,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
   const contactAge = daysFromToday(d.last_client_contact?.date)
   const review = useReview(d.matter.id)
   const billedTotal = d.treatment.reduce((s, t) => s + (t.billed?.amount ?? 0), 0)
+  const nextVisit = d.treatment.map(t => t.next_visit).filter((v): v is string => !!v).sort()[0]
 
   return (
     <div className="min-h-screen bg-page text-slate-900">
@@ -36,18 +39,21 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
           </Link>
           <Account />
         </nav>
-        {/* Header */}
-        <header className="mb-5 flex flex-wrap items-center justify-between gap-4">
-          <div className="flex min-w-0 items-center gap-3.5">
+
+        {/* Header: who, matter, last contact. Stage lives on the stepper below. */}
+        <header className="mb-4 flex flex-wrap items-start justify-between gap-4">
+          <div className="flex min-w-0 flex-1 items-center gap-3.5">
             <Avatar name={d.matter.client_name} src={d.matter.client_photo_url} />
             <div className="min-w-0">
-              <div className="flex flex-wrap items-center gap-2">
-                <h1 className="truncate text-[22px] font-semibold tracking-tight">{d.matter.client_name}</h1>
-                <Badge tone="brand">{d.headline.stage}</Badge>
-              </div>
-              <div className="truncate text-[13px] text-slate-500">
-                {d.matter.title} · {d.matter.display_number}
-                {d.matter.opened_date && <> · opened {fmtDate(d.matter.opened_date, true)}</>}
+              <h1 className="truncate text-[22px] font-semibold tracking-tight">{d.matter.client_name}</h1>
+              <div className="flex flex-wrap items-center gap-x-1.5 text-[13px] text-slate-500">
+                <span className="truncate">{d.matter.title} · {d.matter.display_number}</span>
+                {d.last_client_contact && (
+                  <span className={`inline-flex items-center gap-1.5 ${contactAge != null && contactAge <= -30 ? 'font-medium text-warn-700' : ''}`}>
+                    · Last client contact {contactAge != null ? relDays(contactAge) : d.last_client_contact.value}
+                    <SourceChips citations={d.last_client_contact.citations} onOpen={onOpenSource} max={1} compact />
+                  </span>
+                )}
               </div>
             </div>
           </div>
@@ -60,8 +66,16 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
           </div>
         </header>
 
-        {/* Timeline first: lawyers read the case through it. Section ids match PageSection (chat deeplinks). */}
-        <section id="timeline" className="scroll-mt-4">
+        {/* The one headline sentence. */}
+        <p className="mb-4 max-w-[64rem] text-[18px] font-medium leading-snug text-slate-900">
+          {d.headline.status_line}{' '}
+          {!!d.headline.status_citations?.length && <SourceChips citations={d.headline.status_citations} onOpen={onOpenSource} max={2} compact />}
+        </p>
+
+        {/* Money: one quiet strip. Section ids match PageSection (chat deeplinks). */}
+        <section id="kpis" className="scroll-mt-4"><KpiStrip data={d} onOpenSource={onOpenSource} /></section>
+
+        <section id="timeline" className="mt-4 scroll-mt-4">
           <Card className="p-5 sm:p-6" pad={false}>
             <StageStepper stage={d.headline.stage} />
             <TimelineStrip events={d.timeline} onOpenSource={onOpenSource} zoomUi="direct" lanes focusDate={focusDate} />
@@ -73,69 +87,36 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
           <BlindSpots review={review.review} loading={review.loading} onRun={review.run} onOpenSource={onOpenSource} collapsible />
         </section>
 
-        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
+        <div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-12">
           <section id="next-steps" className="scroll-mt-4 lg:col-span-7">
             <NextSteps data={d} onOpenSource={onOpenSource} />
           </section>
           <section id="status" className="scroll-mt-4 lg:col-span-5">
-            <Card className="h-full" title="Where the case stands">
-              <p className="text-[17px] font-medium leading-snug text-slate-900">{d.headline.status_line}</p>
-              {!!d.headline.status_citations?.length && (
-                <div className="mt-1.5"><SourceChips citations={d.headline.status_citations} onOpen={onOpenSource} max={2} /></div>
-              )}
-              <ul className="mt-4 space-y-3">
-                {d.headline.bullets.map(b => (
-                  <li key={b.id} className="flex gap-3 text-[13.5px] leading-relaxed text-slate-700">
-                    <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${b.verified ? 'bg-brand-500' : 'bg-warn-600'}`} />
-                    <span>
-                      {b.label.length <= 40 && <span className="font-semibold text-slate-900">{b.label}. </span>}{b.value}{' '}
-                      <SourceChips citations={b.citations} onOpen={onOpenSource} max={2} />
-                    </span>
-                  </li>
-                ))}
-              </ul>
-              {d.last_client_contact && (
-                <div className={`mt-5 flex flex-wrap items-center gap-2 rounded-lg px-3 py-2 text-[12.5px] ${contactAge != null && contactAge <= -30 ? 'bg-warn-50 text-warn-700' : 'bg-page text-slate-600'}`}>
-                  <span className="font-semibold">Last client contact</span>
-                  <span>{d.last_client_contact.value}{contactAge != null && ` · ${relDays(contactAge)}`}</span>
-                  <SourceChips citations={d.last_client_contact.citations} onOpen={onOpenSource} max={1} />
-                </div>
-              )}
-              {d.recent.length > 0 && <RecentActivity items={d.recent} onOpenSource={onOpenSource} />}
-            </Card>
+            <KeyFacts bullets={d.headline.bullets} onOpenSource={onOpenSource} />
           </section>
         </div>
 
-        {/* Money: compact here; the Cases page carries these across matters. */}
-        <section id="kpis" className="mt-5 grid scroll-mt-4 grid-cols-2 gap-3 lg:grid-cols-4">
-          {d.kpis.case_value
-            ? <Tile compact fact={d.kpis.case_value} tone="warn" onOpen={onOpenSource} sub="Draft range · attorney review" />
-            : <Tile compact label="Case value (draft)" tone="warn" />}
-          {d.kpis.coverage.length
-            ? <Tile compact fact={d.kpis.coverage[0]} tone="brand" onOpen={onOpenSource}
-                sub={d.kpis.coverage.length > 1 ? `+${d.kpis.coverage.length - 1} more polic${d.kpis.coverage.length > 2 ? 'ies' : 'y'}` : undefined} />
-            : <Tile compact label="Coverage / policy limits" tone="brand" />}
-          <Tile compact fact={d.kpis.specials} label="Medical specials" tone="ok" onOpen={onOpenSource} sub={liensSub(d.kpis.liens)} />
-          <Tile compact fact={d.kpis.firm_spent} label="Firm costs advanced" tone="neutral" onOpen={onOpenSource} />
-        </section>
-
-        {/* Detail */}
-        <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
-          <section id="injuries" className="scroll-mt-4 lg:col-span-5"><Card className="h-full" title="Injuries" extra={<span className="text-[12px] text-slate-400">{d.injuries.length} documented</span>}>
+        {/* Detail on demand: one card, three collapsed rows. Deeplinks open them. */}
+        <div className="mt-4 overflow-hidden rounded-xl border border-line bg-surface shadow-card">
+          <Disclosure id="injuries" title="Injuries" extra={<Unverified facts={d.injuries} />}
+            summary={d.injuries.length ? `${d.injuries.length} documented · ${d.injuries.map(f => f.label).join(', ')}` : 'None found in the record yet'}>
             {d.injuries.length ? (
-              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+              <ul className="grid grid-cols-1 gap-2 sm:grid-cols-2 lg:grid-cols-3">
                 {d.injuries.map(f => (
                   <li key={f.id} className={`rounded-lg border px-3 py-2.5 ${f.verified ? 'border-line' : 'border-dashed border-warn-600/70'}`}>
                     <div className="text-[11px] font-medium uppercase tracking-wide text-slate-400">{f.label}</div>
-                    <div className="text-[13.5px] font-medium">{f.value}</div>
-                    <div className="mt-1.5"><SourceChips citations={f.citations} onOpen={onOpenSource} max={2} /></div>
+                    <div className={`text-[13.5px] font-medium ${f.verified ? '' : 'text-warn-700'}`}>{f.value}</div>
+                    <div className="mt-1.5"><SourceChips citations={f.citations} onOpen={onOpenSource} max={2} compact /></div>
                   </li>
                 ))}
               </ul>
             ) : <Empty>No injuries found in the record yet.</Empty>}
-          </Card></section>
-          <section id="treatment" className="scroll-mt-4 lg:col-span-7"><Card className="h-full" title="Treatment by provider"
-            extra={billedTotal > 0 && <span className="text-[12px] text-slate-500">Billed to date <b className="text-slate-900">{money(billedTotal)}</b></span>}>
+          </Disclosure>
+
+          <Disclosure id="treatment" title="Treatment" extra={<Unverified facts={d.treatment.flatMap(t => (t.billed ? [t.billed] : []))} />}
+            summary={d.treatment.length
+              ? <>{d.treatment.length} provider{d.treatment.length === 1 ? '' : 's'}{billedTotal > 0 && <> · {money(billedTotal)} billed</>}{nextVisit && <> · next visit {fmtDate(nextVisit, true)}</>}</>
+              : 'None found in the record yet'}>
             {d.treatment.length ? (
               <ul>
                 {d.treatment.map((t, i) => {
@@ -153,20 +134,35 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
                             {t.next_visit && <span className="text-ok-700"> · next visit {fmtDate(t.next_visit, true)}</span>}
                           </div>
                         </div>
-                        <div className="min-w-0 max-w-[55%] shrink-0 text-right">
+                        <div className="flex min-w-0 max-w-[55%] shrink-0 items-center gap-2">
+                          <SourceChips citations={t.billed?.citations ?? t.citations} onOpen={onOpenSource} max={1} compact />
                           {t.billed
                             ? <div className={`text-[14px] font-semibold tabular-nums ${t.billed.verified ? '' : 'text-warn-700'}`}>{t.billed.value}</div>
                             : <div className="text-[12px] text-slate-400">Bill not in file</div>}
-                          <div className="mt-0.5"><SourceChips citations={t.billed?.citations ?? t.citations} onOpen={onOpenSource} max={1} /></div>
                         </div>
                       </div>
-                      {share > 0 && <div className="mt-1.5 h-1 rounded-full bg-line-soft"><div className="h-1 rounded-full bg-ok-600/60" style={{ width: `${share}%` }} /></div>}
+                      {share > 0 && <div className="mt-1.5 h-1 rounded-full bg-line-soft"><div className="h-1 rounded-full bg-slate-300" style={{ width: `${share}%` }} /></div>}
                     </li>
                   )
                 })}
               </ul>
             ) : <Empty>No treatment found in the record yet.</Empty>}
-          </Card></section>
+          </Disclosure>
+
+          <Disclosure id="recent" title="Recent activity" extra={<Unverified facts={d.recent} />}
+            summary={d.recent[0] ? `${d.recent.length} items · latest ${fmtDate(d.recent[0].date)}: ${d.recent[0].label}` : 'Nothing recent in the record'}>
+            <ul>
+              {d.recent.map(f => (
+                <li key={f.id} className="flex gap-3 py-1.5 text-[13px]">
+                  <span className="w-12 shrink-0 pt-px text-[12px] tabular-nums text-slate-400">{fmtDate(f.date)}</span>
+                  <span className="min-w-0 flex-1">
+                    <span className={f.verified ? 'text-slate-800' : 'text-warn-700'} title={f.value}>{f.label}</span>{' '}
+                    <SourceChips citations={f.citations} onOpen={onOpenSource} max={1} compact />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          </Disclosure>
         </div>
 
         <footer className="mt-6 flex flex-wrap items-center justify-center gap-x-2 gap-y-1 text-center text-[11.5px] text-slate-400">
@@ -181,40 +177,41 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh,
   )
 }
 
-const RECENT_VISIBLE = 4
+const FACTS_VISIBLE = 3
 
-function RecentActivity({ items, onOpenSource }: { items: Fact[]; onOpenSource?: (c: Citation) => void }) {
+/** Headline bullets: the first three, the rest on demand. A "status" deeplink opens all. */
+function KeyFacts({ bullets, onOpenSource }: { bullets: Fact[]; onOpenSource?: (c: Citation) => void }) {
   const [all, setAll] = useState(false)
-  const shown = all ? items : items.slice(0, RECENT_VISIBLE)
+  useReveal('status', () => setAll(true))
+  const shown = all ? bullets : bullets.slice(0, FACTS_VISIBLE)
   return (
-    <div id="recent" className="mt-5 scroll-mt-4 border-t border-line-soft pt-4">
-      <div className="mb-2 flex items-baseline justify-between">
-        <h3 className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Recent activity</h3>
-        {items.length > RECENT_VISIBLE && (
-          <button type="button" onClick={() => setAll(v => !v)} className="cursor-pointer text-[12px] font-semibold text-brand-700 hover:underline">
-            {all ? 'Show fewer' : `All ${items.length}`}
-          </button>
-        )}
-      </div>
-      <ul>
-        {shown.map(f => (
-          <li key={f.id} className="flex gap-3 py-1.5 text-[13px]">
-            <span className="w-12 shrink-0 pt-px text-[12px] tabular-nums text-slate-400">{fmtDate(f.date)}</span>
-            <span className="min-w-0 flex-1">
-              <span className={f.verified ? 'text-slate-800' : 'text-warn-700'} title={f.value}>{f.label}</span>{' '}
-              <SourceChips citations={f.citations} onOpen={onOpenSource} max={1} />
-            </span>
-          </li>
-        ))}
-      </ul>
-    </div>
+    <Card className="h-full" title="Key facts">
+      {bullets.length ? (
+        <ul className="space-y-3">
+          {shown.map(b => (
+            <li key={b.id} className="flex gap-3 text-[13.5px] leading-relaxed text-slate-700">
+              <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${b.verified ? 'bg-slate-300' : 'bg-warn-600'}`} />
+              <span className={b.verified ? '' : 'text-warn-700'}>
+                {b.label.length <= 40 && <span className="font-semibold text-slate-900">{b.label}. </span>}{b.value}{' '}
+                <SourceChips citations={b.citations} onOpen={onOpenSource} max={2} compact />
+              </span>
+            </li>
+          ))}
+        </ul>
+      ) : <Empty>No key facts digested yet.</Empty>}
+      {bullets.length > FACTS_VISIBLE && (
+        <button type="button" onClick={() => setAll(v => !v)} className="mt-3 cursor-pointer px-1 text-[12px] font-semibold text-brand-700 hover:underline">
+          {all ? 'Show fewer' : `${bullets.length - FACTS_VISIBLE} more`}
+        </button>
+      )}
+    </Card>
   )
 }
 
-function liensSub(liens?: Fact[]) {
-  if (!liens?.length) return undefined
-  const total = liens.reduce((s, f) => s + (f.amount ?? 0), 0)
-  return `${liens.length} lien${liens.length === 1 ? '' : 's'}${total ? ` · ${money(total)}` : ''}`
+/** Collapsed rows still say when something inside is not verified. */
+function Unverified({ facts }: { facts: Fact[] }) {
+  const n = facts.filter(f => !f.verified || f.citations.some(c => !c.verified)).length
+  return n ? <span className="rounded-full border border-dashed border-warn-600 bg-warn-50 px-2 py-0.5 text-[11px] font-semibold text-warn-700">{n} unverified</span> : null
 }
 
 function SearchBox({ onSearch }: { onSearch: (q: string) => void }) {
