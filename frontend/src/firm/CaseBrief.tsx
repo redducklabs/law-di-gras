@@ -54,6 +54,19 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
           <TimelineStrip events={d.timeline} onOpenSource={onOpenSource} />
         </Card>
 
+        {/* Money: the attorney's first two questions (worth, coverage) above the fold. */}
+        <div className="mt-4 grid grid-cols-2 gap-3 lg:grid-cols-4">
+          {d.kpis.case_value
+            ? <Tile compact fact={d.kpis.case_value} tone="warn" onOpen={onOpenSource} sub="Draft range · attorney review" />
+            : <Tile compact label="Case value (draft)" tone="warn" />}
+          {d.kpis.coverage.length
+            ? <Tile compact fact={d.kpis.coverage[0]} tone="brand" onOpen={onOpenSource}
+                sub={d.kpis.coverage.length > 1 ? `+${d.kpis.coverage.length - 1} more polic${d.kpis.coverage.length > 2 ? 'ies' : 'y'}` : undefined} />
+            : <Tile compact label="Coverage / policy limits" tone="brand" />}
+          <Tile compact fact={d.kpis.specials} label="Medical specials" tone="ok" onOpen={onOpenSource} sub={liensSub(d.kpis.liens)} />
+          <Tile compact fact={d.kpis.firm_spent} label="Firm costs advanced" tone="neutral" onOpen={onOpenSource} />
+        </div>
+
         <div className="mt-5 grid grid-cols-1 gap-5 lg:grid-cols-12">
           <Card className="lg:col-span-7" title="Where the case stands">
             <p className="text-[18px] font-medium leading-snug text-slate-900 sm:text-[19px]">{d.headline.status_line}</p>
@@ -80,21 +93,6 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
           <div className="order-first lg:order-none lg:col-span-5">
             <NextSteps data={d} onOpenSource={onOpenSource} />
           </div>
-        </div>
-
-        {/* Money */}
-        <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-          <Tile fact={d.kpis.specials} label="Medical specials" tone="ok" onOpen={onOpenSource} sub={liensSub(d.kpis.liens)} />
-          {d.kpis.coverage.length
-            ? d.kpis.coverage.slice(0, 1).map(f => (
-                <Tile key={f.id} fact={f} tone="brand" onOpen={onOpenSource}
-                  sub={d.kpis.coverage.length > 1 ? `+${d.kpis.coverage.length - 1} more policy` : undefined} />
-              ))
-            : <Tile label="Coverage / policy limits" tone="brand" />}
-          <Tile fact={d.kpis.firm_spent} label="Firm costs advanced" tone="neutral" onOpen={onOpenSource} />
-          {d.kpis.case_value
-            ? <Tile fact={d.kpis.case_value} tone="warn" onOpen={onOpenSource} sub="Draft range for attorney review" />
-            : <Tile label="Case value (draft)" tone="warn" />}
         </div>
 
         {/* Detail */}
