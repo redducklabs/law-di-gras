@@ -13,7 +13,7 @@ draft once beforehand so PDFs and drafts are warm.
 
 **Chat questions safe to demo (S6 audited):** Pullano deposition, overdue / waiting on, last client contact, coverage (after conflict B is fixed). Avoid the injuries/defense-IME question until S6 confirms the fix.
 
-**Blind spots (S6 Check 8b, cache frozen; never POST /review before recording):** safe to show as worded: #1 incident report "annexed" vs "not produced" (the demo beat), #7 IME dates, #9 deferring surgery vs "available", #10 prior injuries "Not applicable". In narration never say "only eyewitness", "without any analysis", "neither matches the pleadings", or "the lien will have grown" (#2/#4/#6/#8 overstate).
+**Blind spots (S6 Check 8b, cache frozen; never POST /review before recording):** safe to show as worded: #1 incident report "annexed" vs "not produced" (the demo beat), #7 IME dates, #9 deferring surgery vs "available", #10 prior injuries "Not applicable". In narration never say "only eyewitness", "without any analysis", "neither matches the pleadings", "the lien will have grown" (#2/#4/#6/#8 overstate), "planned motion to compel" or "the only contemporaneous account" (#1), or "were never reported" (#7). S7's verifier (016061d) now catches all of these on any future run.
 
 **Warm the chat:** ask the exact demo questions once before recording (cold answers take 20–28 s; cached repeats take about 1 s). Example: "When is the Pullano deposition?" and "What's overdue and who are we waiting on?".
 
