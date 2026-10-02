@@ -5,6 +5,7 @@ spot (verbatim quotes, token check, Sonnet claim judge) and tells the agent what
 agent can fix and resubmit once. Only verified findings are kept.
 """
 
+import os
 import re
 import time
 from datetime import date, datetime, timezone
@@ -21,7 +22,8 @@ from app.retrieval.search import search_hits
 from app.review.checks import overreach, record_cites, same_source
 from app.schemas import CaseReview, Citation, Dashboard, ReviewFinding
 
-MAX_TURNS = 40
+MAX_TURNS = int(os.getenv("REVIEW_MAX_TURNS", "40"))  # small values make a short test run
+EXPECTED_TURNS = min(MAX_TURNS, 26)  # typical full run, for the progress bar
 MAX_COST = 3.00
 MAX_FINDINGS = 10
 SEVERITY = {"high": 0, "medium": 1, "low": 2}
@@ -357,7 +359,12 @@ def _cost(u) -> tuple[int, float]:
     return int(eff), (eff * 4.0 + u.output_tokens * 20.0) / 1_000_000
 
 
-def run(matter_id: str, log=print) -> CaseReview:
+def _noop(stage: str, pct: int) -> None:
+    pass
+
+
+def run(matter_id: str, log=print, progress=_noop) -> CaseReview:
+    progress("Reading the record", 3)
     d = dashboard.cached(matter_id)
     if d is None:
         raise LookupError("no dashboard yet for this matter")
@@ -368,6 +375,7 @@ def run(matter_id: str, log=print) -> CaseReview:
             "Review the whole file now. Read the key documents you need (pleadings, discovery responses, "
             "the subpoena, the expert reports, bills) and submit your findings.")
     messages: list = [{"role": "user", "content": user}]
+    progress("Reviewing the file", 8)
     cost, t0 = 0.0, time.time()
     for turn in range(MAX_TURNS):
         try:
@@ -387,6 +395,8 @@ def run(matter_id: str, log=print) -> CaseReview:
         log(f"turn {turn}: {resp.stop_reason}, {len(uses)} tools "
             f"[{', '.join(b.name for b in uses)}], ${cost:.2f}, {time.time() - t0:.0f}s, "
             f"{len(s.findings)} findings")
+        progress(f"Reviewing the file (round {turn + 1}, {len(s.findings)} verified findings)",
+                 8 + int(80 * min(1.0, (turn + 1) / EXPECTED_TURNS)))
         if resp.stop_reason != "tool_use" or not uses:
             break
         results = []
@@ -398,6 +408,8 @@ def run(matter_id: str, log=print) -> CaseReview:
             if b.name == "submit_finding":
                 log(f"  submit [{b.input.get('severity')}/{b.input.get('category')}] {b.input.get('title')}: {out[:300]}")
             results.append({"type": "tool_result", "tool_use_id": b.id, "content": out})
+            if b.name == "submit_finding":
+                progress(f"Verifying findings ({len(s.findings)} accepted)", 0)
         if turn >= MAX_TURNS - 4 or cost > MAX_COST:
             results.append({"type": "text", "text": "Budget nearly exhausted: submit any remaining findings "
                                                     "now, then stop."})
@@ -405,6 +417,7 @@ def run(matter_id: str, log=print) -> CaseReview:
             break
         messages.append({"role": "user", "content": results})
 
+    progress("Verifying findings", 90)
     judge_cost = _judge_cost(matter_id, t0)
     findings = sorted(s.findings, key=lambda f: SEVERITY[f.severity])
     for i, f in enumerate(findings, 1):
@@ -434,7 +447,7 @@ def cached(matter_id: str) -> CaseReview | None:
     return CaseReview.model_validate_json(row["payload_json"]) if row else None
 
 
-def build(matter_id: str, force: bool = False, log=print) -> CaseReview:
+def build(matter_id: str, force: bool = False, log=print, progress=_noop) -> CaseReview:
     """Cached by the dashboard input hash; runs the agent only when the record changed or force."""
     h = dashboard.input_hash(matter_id)
     with connect() as conn:
@@ -442,9 +455,10 @@ def build(matter_id: str, force: bool = False, log=print) -> CaseReview:
                            (matter_id, KIND)).fetchone()
     if row and row["input_hash"] == h and not force:
         return CaseReview.model_validate_json(row["payload_json"])
-    review = run(matter_id, log)
+    review = run(matter_id, log, progress)
+    progress("Saving", 97)
     if not review.findings and row:
-        return CaseReview.model_validate_json(row["payload_json"])  # never replace a good review with nothing
+        raise RuntimeError("the review produced no verified findings; previous review kept")
     with connect() as conn:
         conn.execute("INSERT OR REPLACE INTO digests (matter_id, kind, input_hash, payload_json, model, created_at)"
                      " VALUES (?, ?, ?, ?, ?, ?)", (matter_id, KIND, h, review.model_dump_json(), MODEL_OPUS,
