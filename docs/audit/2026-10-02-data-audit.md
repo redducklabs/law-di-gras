@@ -266,6 +266,40 @@ in a spine/shoulder bullet). Fix them if S2 has a cycle; otherwise keep headline
 bullets 1 and 3 out of close-up narration. Chat is safe for the injuries,
 coverage, last contact, overdue and Pullano questions.
 
+## Final recheck: S2 r26 (dashboard 20:08 UTC, the recording cache)
+
+Ran dashboard checks 1, 3, 5 and 6 plus the chat check on the 5 demo questions
+and the follow-up, for $0.87.
+
+**Verdict: PASS, with no real criticals.** All six "critical" flags were reviewed
+and are judge false positives:
+- bullet 2 specials: the judge summed only the 4 expense cites shown; the KPI tile
+  cites all 9.
+- case value: the judge missed the CSB email.
+- the IME items carry their conflict labels by design.
+- pre-op consult: the McCulloch bill confirms it.
+- chat "was to be provided": the judge itself says it is a fair restatement.
+
+Clean in this run:
+- **KPIs reconcile:** $118,400 = 9 charges, $1,410 = 5 costs, and $177,600–$355,200
+  is exactly 1.5x–3x of specials.
+- **Provider views:** 0 leaked citations and no cross-provider data.
+- **Chat:** every span and deeplink checks out.
+
+| # | Status |
+|---|---|
+| G1 bullet 3 conflict misattribution | **Resolved.** Now "Metro-North: Conflict, self-insured vs $100,000/$300,000. Ferrara $100,000/$300,000." Minor: the bullet doesn't cite the CSB email (5029429688); the coverage tile does. |
+| G2 knee quote in the spine/shoulder bullet | **Resolved.** The defense quote is no longer orphaned in the headline. |
+| SOL "p.2" leaking into the label | **Resolved.** |
+| Ledger claim uncited | **Resolved.** The specials tile notes it with the 9/25/2026 note quoted. |
+| #2 bullet 0 cites | **Still open (minor for recording).** It now opens "Both vehicles southbound" (supported by the BoP); "contested on two levels, neither investigated" is still uncited (note 2996972633). |
+| Status line has no own citations | **Still open (minor).** The text is supported by the record: complaint p7 for the Presentation of Claim, and note 2996972258 for the deposition. |
+| New minor | "Calendar: Initial client consultation" is now typed `treatment`; it was a legal intake. This only affects color. |
+
+Recording guidance: every headline bullet, KPI tile and timeline item is safe to
+show. Chat is safe for injuries/defense, coverage, last contact, overdue and
+Pullano.
+
 ## Check 7: ask-the-case chat (S2 /chat, 7 questions incl. 1 follow-up and 1 trick)
 
 Run: `uv run python -m app.audit --checks 7 --suffix=-chat` ($0.23). Full Q&A

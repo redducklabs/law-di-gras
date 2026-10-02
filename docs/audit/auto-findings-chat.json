@@ -1,81 +1,11 @@
 [
  {
   "check": "7-chat",
-  "severity": "major",
-  "item": "chat: What are the client's injuries, and which ones does the defe",
-  "on_screen": "The 2026-09-13 note states Dr.",
-  "quote": "",
-  "problem": "Uncited sentence carries a date or amount.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "7-chat",
-  "severity": "major",
-  "item": "chat: What insurance coverage is available and what are the limits",
-  "on_screen": "**Case value (draft):** 1.5x\u20133x billed specials ($118,400.00); conflicting limits (Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08)); capped at $100,000 per person if those limits apply; before liens ($22,180): $177,600 \u2013 $355,200. [9]",
-  "quote": "",
-  "problem": "unsupported: The cited excerpt is a $3,475 expense entry and says nothing on the case value. The 1.5x\u20133x multiplier is not in the record. The $118,400 specials figure and the $100k cap appear, but the $177,600\u2013$355,200 range is not stated anywhere. The record also treats the limits as confirmed, not as 'conflicting'.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "7-chat",
-  "severity": "minor",
+  "severity": "critical",
   "item": "chat: And is the $100k/$300k Ferrara's policy or Metro-North's?",
-  "on_screen": "Both, according to different sources \u2014 and the record does not reconcile them:",
+  "on_screen": "The defendants' discovery response stated insurance coverage information was to be provided under separate cover [5].",
   "quote": "",
-  "problem": "partly: The sources do conflict: the coverage note says Metro-North is self-insured and the limits are Ferrara's, while the adjuster email gives the limits without saying whose. But 'does not reconcile' overstates it, since the notes elsewhere treat the limits as the defendant's. The passages shown also don't back the 'different sources' framing as stated.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "7-chat",
-  "severity": "minor",
-  "item": "chat: And is the $100k/$300k Ferrara's policy or Metro-North's?",
-  "on_screen": "The dashboard lists the Ferrara personal auto liability policy at $100,000 / $300,000. [1]",
-  "quote": "",
-  "problem": "partly: The coverage note says Ferrara personally carries $100k/$300k. The excerpt is a note, not a dashboard listing. The custom field says only 'Defendant liability' and does not name the Ferrara policy.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "7-chat",
-  "severity": "minor",
-  "item": "chat: And is the $100k/$300k Ferrara's policy or Metro-North's?",
-  "on_screen": "A 2026-09-08 email from Claims Service Bureau to Aron Weiler states that the bodily injury liability limits on the file are $100,000 per person and $300,000 per occurrence, with no excess or umbrella coverage disclosed. [2] The dashboard shows Metro-North's coverage as: Conflict: Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08). [3]",
-  "quote": "",
-  "problem": "partly: The first half is supported: the 2026-09-08 email states the limits and no excess or umbrella coverage. The dashboard 'Conflict' quote is not in any excerpt. The cited note says Metro-North is self-insured, with no stated limit and no conflict display.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "7-chat",
-  "severity": "minor",
-  "item": "chat: Did the Pullano deposition happen?",
-  "on_screen": "I couldn't find any record that the Pullano deposition took place in the retrieved record.",
-  "quote": "",
-  "problem": "partly: The record has no note that the deposition occurred, but it does not support 'no record' fully. The 2026-03-06 note lists the deposition as outstanding. The 2026-09-15 note says Pullano has not been contacted. Both suggest it did not happen, so the sentence understates what the record shows.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "7-chat",
-  "severity": "minor",
-  "item": "chat: Did the Pullano deposition happen?",
-  "on_screen": "**Timeline:** The deposition was scheduled for 2025-12-08, and the timeline entry notes there is no record it occurred. [2]",
-  "quote": "",
-  "problem": "partly: The subpoena supports the Dec 8, 2025 scheduling. No 'timeline entry' noting there is no record it occurred appears in the passages, so that part is unsupported.",
-  "owner": "S2",
-  "extra": {}
- },
- {
-  "check": "7-chat",
-  "severity": "minor",
-  "item": "chat: Did the Pullano deposition happen?",
-  "on_screen": "**Open action:** The Metro-North scope-of-employment disclosure and Pullano deposition remain in waiting status, waiting on Defendants (Metro-North). [4]",
-  "quote": "",
-  "problem": "partly: The 2026-03-06 note supports both items as outstanding on defendants' side. 'Remain in waiting status' as a current open action is not stated, and the calendar entry omits the deposition. The 2026-09-15 note only says Pullano hasn't been contacted.",
+  "problem": "tense_wrong: The response says insurance coverage information is 'to be provided under separate cover', which is a promise of future production. The sentence's past-tense 'was to be provided' is a reasonable restatement, but the later email suggests coverage was subsequently confirmed, so this is not a present-tense assertion. The wording fits the response but is misleading as a statement of current status.",
   "owner": "S2",
   "extra": {}
  },
@@ -83,9 +13,9 @@
   "check": "7-chat",
   "severity": "minor",
   "item": "chat: What are the client's injuries, and which ones does the defe",
-  "on_screen": "Katzman, M.D.) states the brain MRI \"reveals no evidence of traumatic injury to the brain\" [10].",
+  "on_screen": "Right shoulder: the defense radiology review by Marc J.",
   "quote": "",
-  "problem": "partly: Katzman's brain MRI impression (quoted in the Hostin report) says no evidence of traumatic injury to the brain. But the cited span is the plaintiff's radiology report, not Katzman's, so the citation does not support the quote.",
+  "problem": "partly: Sentence is a fragment introducing the Katzman right shoulder review. The review is in the record, but the sentence completes only in the next sentence.",
   "owner": "S2",
   "extra": {}
  },
@@ -93,9 +23,29 @@
   "check": "7-chat",
   "severity": "minor",
   "item": "chat: What are the client's injuries, and which ones does the defe",
-  "on_screen": "I couldn't find a defense position on the left shoulder tears or spine MRI findings in the retrieved record.",
+  "on_screen": "Left knee: the defense radiology review by Marc J.",
   "quote": "",
-  "problem": "partly: The record contains no defense position on spine MRIs, but the 2023 note (July 12) says to expect the defence to lean on the left shoulder hypoplasia, an anticipated rather than actual position. Hostin report also notes refused cervical rotation measurement; no actual defense statement on left shoulder tears is shown.",
+  "problem": "partly: Fragment introducing Katzman's left knee review. The review exists, but the sentence is incomplete.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "minor",
+  "item": "chat: What are the client's injuries, and which ones does the defe",
+  "on_screen": "Right knee: the defense radiology review by Marc J.",
+  "quote": "",
+  "problem": "partly: Fragment introducing Katzman's right knee review. The review exists, but the sentence is incomplete.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "minor",
+  "item": "chat: What are the client's injuries, and which ones does the defe",
+  "on_screen": "Brain: the defense radiology review by Marc J.",
+  "quote": "",
+  "problem": "partly: Fragment introducing Katzman's brain review. The review exists, but the sentence is incomplete.",
   "owner": "S2",
   "extra": {}
  },
@@ -103,9 +53,9 @@
   "check": "7-chat",
   "severity": "minor",
   "item": "chat: What did the court rule on our summary judgment motion?",
-  "on_screen": "The timeline lists the prior lawsuit as commenced 2024-02-01 [2].",
+  "on_screen": "The demand history and current damages update states that the action is now in discovery and both sides are trying to schedule the client deposition [2].",
   "quote": "",
-  "problem": "partly: The cited complaint says Plaintiff started a prior lawsuit on February 1, 2024, so the date is supported. No timeline is cited or shown in the record, so attributing the date to 'the timeline' is unsupported. The source is the complaint's background section.",
+  "problem": "partly: The cited 2026-08-03 note supports that the action is now in discovery. It does not say both sides are trying to schedule the client deposition. That comes from a separate 2025-08-27 note, so presenting it as the current status in the damages update is inaccurate and may be stale.",
   "owner": "S2",
   "extra": {}
  },
@@ -113,9 +63,19 @@
   "check": "7-chat",
   "severity": "minor",
   "item": "chat: What insurance coverage is available and what are the limits",
-  "on_screen": "**Metro-North Commuter Railroad (defendant, claim SIR068120):** Conflict: Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08). [1]",
+  "on_screen": "**Case value (draft):** Firm rule (configurable): 1.5x\u20133x billed specials ($118,400.00); conflicting limits (Self-insured; no stated limit vs $100,000 per person / $300,000 per occurrence (Claims Service Bureau, 2026-09-08)); capped at $100,000 per person if those limits apply; before liens ($22,180): $177,600 \u2013 $355,200 [8].",
   "quote": "",
-  "problem": "partly: Self-insured status (2023 note) and the $100k/$300k limits (2026-09-08 email) are both in the record, but the 'conflict' is really a superseded position. The later confirmation resolves it, and the 2023 note is dated earlier. The label overstates it.",
+  "problem": "partly: The cited span is a $3,475 expense and supports nothing here. The $100k cap, $22,180 lien and $118,400 specials appear elsewhere. The 1.5x\u20133x rule is not in the passages. The range is $177,600\u2013$355,200, which is above the cap, and the figure is not supported by the cited text.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "minor",
+  "item": "chat: What is overdue right now, and what are we waiting on from o",
+  "on_screen": "Defendants (Metro-North): scope-of-employment disclosure and Pullano deposition. [12]",
+  "quote": "",
+  "problem": "partly: The 2026-03-06 note lists the scope-of-employment disclosure and the Pullano deposition as outstanding on the defendants' side. That note is about seven months old, and nothing confirms the items are still outstanding today. The later notes do not clearly show current status.",
   "owner": "S2",
   "extra": {}
  }
