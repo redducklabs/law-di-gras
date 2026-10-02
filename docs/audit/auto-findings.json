@@ -1,0 +1,1168 @@
+[
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "headline.bullets[1]",
+  "on_screen": "Left shoulder posterior labral tear, Right shoulder infraspinatus and labral tears, Traumatic brain injury: Left shoulder labral repair done 07/2023; right shoulder arthroscopy recommended but undated. Spine, knee, and TBI claims are disputed by defense IMEs.",
+  "quote": "Partial tear of the posterior inferior labrum at 8-9 o'clock / LEFT SHOULDER SIGNIFICANT POSTERIOR LABRAL TEAR",
+  "problem": "Date(s) 2023-07 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "headline.status_line",
+  "on_screen": "[stage: Litigation] In litigation and discovery against Metro-North and Ferrara; treatment ongoing. Next: lock down the right shoulder arthroscopy date, which is holding up the client's deposition.",
+  "quote": "(none)",
+  "problem": "Headline status line carries no citations of its own; it cannot be checked on screen.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "injuries[0]",
+  "on_screen": "Left shoulder posterior labral tear: Partial tear of posterior inferior labrum at 8-9 o'clock on MRI; with infraspinatus interstitial tear; arthroscopic repair performed 07/26/2023 (post-op dx included synovitis, adhesions, impingement, partial biceps/rotator cuff tear, cartilage defect) (date 2023-05-24)",
+  "quote": "Partial tear of the posterior inferior labrum at 8-9 o'clock / LEFT SHOULDER SIGNIFICANT POSTERIOR LABRAL TEAR",
+  "problem": "Date(s) 2023-05-24, 2023-07-26 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "injuries[2]",
+  "on_screen": "Cervical spine disc bulge C5-6: MRI: straightening of lordosis with shallow disc bulge at C5-6 flattening left ventral margin of the canal (date 2023-05-08)",
+  "quote": "Shallow disc bulge at C5-6 flattening the left ventral margin of the canal",
+  "problem": "Date(s) 2023-05-08 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "injuries[3]",
+  "on_screen": "Lumbar spine L5-S1 disc bulge: MRI: L5-S1 disc bulge with lateral predominance narrowing lateral recesses and inferior foramina bilaterally (date 2023-05-08)",
+  "quote": "L5-S1 disc bulge with lateral predominance narrowing the lateral recesses and inferior foramina bilaterally",
+  "problem": "Date(s) 2023-05-08 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "injuries[5]",
+  "on_screen": "Traumatic brain injury: Brain MRI/DTI 08/08/2023: abnormal DTI in 2 of 12 regions and 1 of 6 tracts, right parietal hemosiderin focus; disputed by defense radiologist and IME as objectively resolved/no traumatic injury (date 2023-08-08)",
+  "quote": "Hemosiderin focus in the subcortical right parietal lobe at the gray-white junction / Brain Injury, objectively resolved",
+  "problem": "Date(s) 2023-08, 2023-08-08 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "injuries[6]",
+  "on_screen": "Post-concussion syndrome and post-traumatic headaches: Diagnosed by IME neurologist as status post post-concussion syndrome and post-traumatic headaches/migraines, objectively resolved (date 2026-03-04)",
+  "quote": "Status Post Post-Concussion Syndrome, objectively resolved",
+  "problem": "Date(s) 2026-03-04 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "injuries[7]",
+  "on_screen": "Bilateral wrist injury with carpal tunnel syndrome: Status post bilateral wrist injury with clinical evidence of incidental bilateral carpal tunnel syndrome; positive Tinel's, bilateral ulnar tingling (date 2026-03-04)",
+  "quote": "bilateral wrist injury with clinical evidence of incidental bilateral carpal tunnel syndrome",
+  "problem": "Date(s) 2026-03-04 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "injuries[8]",
+  "on_screen": "Thoracic strain: Status post thoracic strain, objectively resolved per IME neurologist (date 2026-03-04)",
+  "quote": "Status Post Thoracic Strain, objectively resolved",
+  "problem": "Date(s) 2026-03-04 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "major",
+  "item": "timeline[5]",
+  "on_screen": "2023-05-08 | Treatment starts: Hudson Valley Radiology Associates/Mid Rockland Imaging | kind=treatment | placed before today",
+  "quote": "Hudson Valley Radiology Associates/Mid Rockland Imaging",
+  "problem": "Date(s) 2023-05-08 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "injuries[1]",
+  "on_screen": "Right shoulder infraspinatus and labral tears: Intermediate-grade interstitial tear of anterior half of infraspinatus and partial tear of posterior inferior labrum at 8 o'clock on MRI; right shoulder arthroscopy recommended (date 2023-05-24)",
+  "quote": "Intermediate-grade interstitial tear of the anterior half of the infraspinatus / Dr. Capiola recommends a right shoulder arthroscopy",
+  "problem": "Date(s) 2023-05-24 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "injuries[4]",
+  "on_screen": "Bilateral knee medial meniscus tears: MRI: horizontal undersurface tear of posterior horn of medial meniscus in both knees; left prepatellar soft tissue contusion (date 2023-07-03)",
+  "quote": "Horizontal undersurface tear of the posterior horn of the medial meniscus",
+  "problem": "Date(s) 2023-07-03 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "recent[6]",
+  "on_screen": "Defense exchanged radiology expert report from Dr. Katzman: Defendants served expert radiological review by Dr. Marc J. Katzman regarding MRIs of knees and shoulder, chest x-ray, and brain MRI dated December 8, 2025. (2026-09-22)",
+  "quote": "the report of Dr. Marc J. Katzman, dated December 8, 2025, concerning plaintiff Justin Sapini\u2019s MRIs",
+  "problem": "Date(s) 2026-09-22 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "recent[9]",
+  "on_screen": "Defense exchanged independent neurology expert report from Dr. Tsao: Defendants served independent neurological evaluation report by Dr. Jack W. Tsao dated March 4, 2026, regarding plaintiff's neurological condition. (2026-09-20)",
+  "quote": "the report of Dr. Jack W. Tsao, dated March 4, 2026, concerning the independent neurological examination of plaintiff",
+  "problem": "Date(s) 2026-09-20 on screen are not in any cited quote, record date, or the text around the quote; the source pane cannot show where the date comes from.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "timeline[11]",
+  "on_screen": "2023-07-26 | Treatment starts: New Horizon Surgical Center, LLC | kind=treatment | placed before today",
+  "quote": "Anesthesia care for the same left shoulder procedure",
+  "problem": "Date(s) 2023-07-26 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "timeline[12]",
+  "on_screen": "2023-08-23 | Treatment starts: Melinda L. Miller, M.D. | kind=treatment | placed before today",
+  "quote": "EMG/NCV: upper extremities / EMG/NCV: lower extremities",
+  "problem": "Date(s) 2023-08-23 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "timeline[18]",
+  "on_screen": "2024-12-02 | Response to demand for statement of damages due (deadline passed) | kind=legal | placed before today",
+  "quote": "within fifteen (15) days of the date hereof",
+  "problem": "Date(s) 2024-12-02 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "timeline[2]",
+  "on_screen": "2023-04-26 | Treatment starts: Advanced Rockland Chiropractic Offices, P.C. | kind=treatment | placed before today",
+  "quote": "Initial chiropractic evaluation / Weekly chiropractic treatment visit",
+  "problem": "Date(s) 2023-04-26 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "timeline[6]",
+  "on_screen": "2023-05-17 | Treatment starts: McCulloch Orthopaedic Surgical Services, PLLC | kind=treatment | placed before today",
+  "quote": "Initial orthopaedic examination / Right shoulder treatment-planning consultation",
+  "problem": "Date(s) 2023-05-17 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "timeline[7]",
+  "on_screen": "2023-05-31 | Treatment starts: Peter C. Kwan, M.D. | kind=treatment | placed before today",
+  "quote": "Comprehensive neurological re-examination / Peter C. Kwan, M.D",
+  "problem": "Date(s) 2023-05-31 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "timeline[8]",
+  "on_screen": "2023-06-29 | Treatment starts: SportsCare Physical Therapy of New York | kind=treatment | placed before today",
+  "quote": "Initial physical therapy evaluation / This is the latest physical therapy date",
+  "problem": "Date(s) 2023-06-29 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "treatment[2]",
+  "on_screen": "Peter C. Kwan, M.D.: first visit 2023-05-31, last visit 2023-12-12, visits 4, billed $3,200.00",
+  "quote": "Comprehensive neurological re-examination / Peter C. Kwan, M.D",
+  "problem": "Date(s) 2023-05-31 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "treatment[3]",
+  "on_screen": "Melinda L. Miller, M.D.: first visit 2023-08-23, last visit 2023-09-20, visits 2, billed $4,800.00",
+  "quote": "EMG/NCV: upper extremities / EMG/NCV: lower extremities",
+  "problem": "Date(s) 2023-08-23 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "treatment[4]",
+  "on_screen": "McCulloch Orthopaedic Surgical Services, PLLC: first visit 2023-05-17, last visit 2024-05-27, visits 8, billed $9,530.00",
+  "quote": "Initial orthopaedic examination / Right shoulder treatment-planning consultation",
+  "problem": "Date(s) 2023-05-17 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "treatment[6]",
+  "on_screen": "SportsCare Physical Therapy of New York: first visit 2023-06-29, last visit 2023-12-14, visits None, billed $5,825.00",
+  "quote": "Initial physical therapy evaluation / This is the latest physical therapy date",
+  "problem": "Date(s) 2023-06-29 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "treatment[7]",
+  "on_screen": "Advanced Rockland Chiropractic Offices, P.C.: first visit 2023-04-26, last visit 2024-08-15, visits None, billed $14,220.00",
+  "quote": "Initial chiropractic evaluation / Weekly chiropractic treatment visit",
+  "problem": "Date(s) 2023-04-26 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-code",
+  "severity": "minor",
+  "item": "treatment[8]",
+  "on_screen": "Hudson Valley Radiology Associates/Mid Rockland Imaging: first visit 2023-05-08, last visit 2023-08-08, visits None, billed $15,900.00",
+  "quote": "Hudson Valley Radiology Associates/Mid Rockland Imaging / $15,900.00",
+  "problem": "Date(s) 2023-05-08 are near but not inside the highlighted quote.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "1-judge",
+  "severity": "critical",
+  "item": "headline.bullets[2]",
+  "on_screen": "Medical specials (billed), Liability \u00b7 Metro-North Commuter Railroad \u00b7 defendant \u00b7 claim SIR068120, BI liability \u00b7 Ferrara personal auto \u00b7 defendant: $118,400 billed specials against Metro-North (self-insured, no stated limit), Ferrara $100k/$300k, and $25k UM. No-fault is exhausted.",
+  "quote": "$3,475.00 / $1,450.00",
+  "problem": "unsupported: The cited expense entries are only $3,475 and $1,450 and cannot be shown to sum to $118,400. Self-insured status, Ferrara $100k/$300k, $25k UM and exhausted no-fault are supported. Note the UM is $25k/$50k, and the BI limits email in 2026 appears to be attributed generally, but the specials total is not backed. [claim: \"$118,400 billed specials against Metro-North\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "unsupported"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "critical",
+  "item": "treatment[4]",
+  "on_screen": "McCulloch Orthopaedic Surgical Services, PLLC: first visit 2023-05-17, last visit 2024-05-27, visits 8, billed $9,530.00",
+  "quote": "Initial orthopaedic examination / Right shoulder treatment-planning consultation",
+  "problem": "wrong_amount: The line items sum to 425+245+265+7800+0+285+245+265 = $9,530, which matches. The dates and 8 listed lines are also consistent, but one is a $0 included post-op follow-up and the last (5/27/2024) is a treatment-planning consultation. The bill's own total is not printed, so the amount is as summed. The figures check out against the excerpts, so this entry should be supported and the verdict is a misfire. [claim: \"visits 8, billed $9,530.00\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "wrong_amount"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "headline.bullets[0]",
+  "on_screen": "Mechanism, Liability: Liability contested on mechanism and scope of employment. Client gave three inconsistent accounts, there is no police report, and the sideswipe carries no fault presumption.",
+  "quote": "Defendant\u2019s passenger-side door came into contact with the Plaintiff\u2019s driver-side door and front fender / negligently merging",
+  "problem": "unsupported: Excerpts show only the pleaded mechanism (door contact, negligent merging) and scope of employment allegations. Nothing shows contested liability, three inconsistent accounts, absence of a police report, or a lack of fault presumption. [claim: \"Client gave three inconsistent accounts, there is no police report, and the sideswipe carries no fault presumption\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "unsupported"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "headline.bullets[1]",
+  "on_screen": "Left shoulder posterior labral tear, Right shoulder infraspinatus and labral tears, Traumatic brain injury: Left shoulder labral repair done 07/2023; right shoulder arthroscopy recommended but undated. Spine, knee, and TBI claims are disputed by defense IMEs.",
+  "quote": "Partial tear of the posterior inferior labrum at 8-9 o'clock / LEFT SHOULDER SIGNIFICANT POSTERIOR LABRAL TEAR",
+  "problem": "partial: Left shoulder labral tear, right shoulder infraspinatus/labral tears, and undated recommended right arthroscopy are backed. The 07/2023 date is in the bill of particulars text (July 26, 2023), but the cited span supports a post-op diagnosis only. The defense IME dispute is only partly shown: the Tsao exchange says TBI objectively resolved, but nothing covers knee claims, and the spine item is only a resolved strain. The MRI shows a hemosiderin focus, not a TBI diagnosis. [claim: \"Left shoulder labral repair done 07/2023; ... Spine, knee, and TBI claims are disputed by defense IMEs.\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "headline.bullets[4]",
+  "on_screen": "Deposition scheduling, Surgery recommended, undated: Urgent: McCulloch records and right shoulder surgery date are overdue (due 08/25). Defense wants the deposition after this surgery.",
+  "quote": "Both sides are trying to schedule the client deposition / repeats the recommendation for a right shoulder arthroscopy",
+  "problem": "unsupported: No excerpt shows an 08/25 due date or an overdue McCulloch records request. The surgery being undated and defense wanting the deposition after surgery are supported. [claim: \"McCulloch records and right shoulder surgery date are overdue (due 08/25)\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "unsupported"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "headline.status_line",
+  "on_screen": "[stage: Litigation] In litigation and discovery against Metro-North and Ferrara; treatment ongoing. Next: lock down the right shoulder arthroscopy date, which is holding up the client's deposition.",
+  "quote": "Defendant\u2019s passenger-side door came into contact with the Plaintiff\u2019s driver-side door and front fender / negligently merging",
+  "problem": "misleading: Excerpts say the client keeps deferring and Dr. Capiola will not schedule until he stops; the surgery is the item holding the case, but the excerpts don't show it is holding up the deposition. The deposition note says both sides are trying to schedule, and defense asked for dates after surgery. Also the status line implies the firm can lock down the date, but the delay is client deferral. Discovery stage and 'treatment ongoing' are supported only loosely (note 2025-04-22 is old). [claim: \"lock down the right shoulder arthroscopy date, which is holding up the client's deposition\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "injuries[0]",
+  "on_screen": "Left shoulder posterior labral tear: Partial tear of posterior inferior labrum at 8-9 o'clock on MRI; with infraspinatus interstitial tear; arthroscopic repair performed 07/26/2023 (post-op dx included synovitis, adhesions, impingement, partial biceps/rotator cuff tear, cartilage defect) (date 2023-05-24)",
+  "quote": "Partial tear of the posterior inferior labrum at 8-9 o'clock / LEFT SHOULDER SIGNIFICANT POSTERIOR LABRAL TEAR",
+  "problem": "partial: The excerpts back the MRI findings of a partial posterior inferior labral tear and an infraspinatus interstitial tear, plus the post-op diagnoses. Neither excerpt gives the surgery date of 07/26/2023, or states that the repair was done. The post-op diagnosis list is also attributed to a pleading excerpt that does not show the date. [claim: \"arthroscopic repair performed 07/26/2023\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "injuries[5]",
+  "on_screen": "Traumatic brain injury: Brain MRI/DTI 08/08/2023: abnormal DTI in 2 of 12 regions and 1 of 6 tracts, right parietal hemosiderin focus; disputed by defense radiologist and IME as objectively resolved/no traumatic injury (date 2023-08-08)",
+  "quote": "Hemosiderin focus in the subcortical right parietal lobe at the gray-white junction / Brain Injury, objectively resolved",
+  "problem": "partial: The radiology findings (2 of 12 regions, 1 of 6 tracts, right parietal hemosiderin focus) are supported. The Tsao expert exchange supports the 'objectively resolved' diagnosis. Nothing in the excerpts shows a defense radiologist disputing the findings. Tsao's text says 'objectively resolved', which is not the same as 'no traumatic injury'. [claim: \"disputed by defense radiologist and IME as objectively resolved/no traumatic injury\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "injuries[6]",
+  "on_screen": "Post-concussion syndrome and post-traumatic headaches: Diagnosed by IME neurologist as status post post-concussion syndrome and post-traumatic headaches/migraines, objectively resolved (date 2026-03-04)",
+  "quote": "Status Post Post-Concussion Syndrome, objectively resolved",
+  "problem": "misleading: The excerpt supports the IME wording, but the screen is headed as the client's injury and gives no sign that this is a defense-side exam. The 'Diagnosed by IME neurologist' line is also vague, since the IME's finding of resolution cuts against the client's claim. The date 2026-03-04 is not shown in the excerpt, which has a record date of 2026-09-20. [claim: \"Post-concussion syndrome and post-traumatic headaches: Diagnosed by IME neurologist as status post post-concussion syndrome and post-traumatic headaches/migraines, objectively resolved\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "kpis.case_value",
+  "on_screen": "Case value (draft): Firm rule (configurable): 1.5x\u20133x billed specials ($118,400); not capped: Liability self-insured; no stated limit; before liens ($22,180).: $180,000 \u2013 $355,000",
+  "quote": "$3,475.00 / Metro-North Commuter Railroad, SELF-INSURED",
+  "problem": "partial: The excerpts contain no 1.5x\u20133x firm rule. The specials, the lien amount and the self-insured status are backed. 1.5x of $118,400 is $177,600, not $180,000, and 3x is $355,200, so the range is rounded inconsistently. 'Not capped' also ignores the note that Ferrara's $100k/$300k policy is the entire recovery if Metro-North is dismissed. [claim: \"Firm rule (configurable): 1.5x\u20133x billed specials ($118,400) ... $180,000 \u2013 $355,000\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "recent[6]",
+  "on_screen": "Defense exchanged radiology expert report from Dr. Katzman: Defendants served expert radiological review by Dr. Marc J. Katzman regarding MRIs of knees and shoulder, chest x-ray, and brain MRI dated December 8, 2025. (2026-09-22)",
+  "quote": "the report of Dr. Marc J. Katzman, dated December 8, 2025, concerning plaintiff Justin Sapini\u2019s MRIs",
+  "problem": "misleading: The sentence structure attaches 'dated December 8, 2025' to the brain MRI (or the imaging generally), but the excerpt shows December 8, 2025 is the date of Katzman's report. The imaging was performed on various earlier dates (2018 and 2023). It also gives no sign that the service was on behalf of responding defendants, though that part is supported. [claim: \"Defendants served expert radiological review by Dr. Marc J. Katzman regarding MRIs of knees and shoulder, chest x-ray, and brain MRI dated December 8, 2025.\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[13]",
+  "on_screen": "2023-08-31 | Post-operative follow-up, Dr. Capiola | kind=legal | placed before today",
+  "quote": "Post-operative follow-up, Dr. Capiola",
+  "problem": "tense_wrong: The source is only a calendar entry with no record the visit occurred. The item is placed before today and is read as having happened, so it needs a hedge such as 'Scheduled: ... (no record it occurred)'. [claim: \"Post-operative follow-up, Dr. Capiola\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "tense_wrong"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[16]",
+  "on_screen": "2024-05-27 | Consultation re second surgery, right shoulder | kind=legal | placed before today",
+  "quote": "Consultation re second surgery, right shoulder",
+  "problem": "tense_wrong: The source is only a calendar entry with no record that the consultation occurred. The item is placed before today and is read as a completed consultation, so it should be hedged, e.g. 'Scheduled ... (no record it occurred)'. [claim: \"Consultation re second surgery, right shoulder\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "tense_wrong"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[18]",
+  "on_screen": "2024-12-02 | Response to demand for statement of damages due (deadline passed) | kind=legal | placed before today",
+  "quote": "within fifteen (15) days of the date hereof",
+  "problem": "misleading: The excerpt shows the defense demand was dated Dec 2, 2024 and requires a response within 15 days, so the response was due about 2024-12-17, not Dec 2. The on-screen date is the date of the demand. The excerpt also does not show whether a response was served, and the screen implies the deadline was missed. [claim: \"2024-12-02 | Response to demand for statement of damages due (deadline passed)\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[21]",
+  "on_screen": "2025-04-15 | Compliance conference | kind=legal | placed before today | major",
+  "quote": "Compliance conference",
+  "problem": "misleading: The calendar entry only shows an event titled Compliance conference with a start time. The description lists outstanding items, but nothing shows the conference took place. The April 16 letter says no PC date or scheduling order had been received, which suggests no court conference was held. A past item is read as having occurred, so the unhedged label gives a false impression. [claim: \"2025-04-15 | Compliance conference\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[24]",
+  "on_screen": "2026-04-22 | Statute of limitations (deadline passed) | kind=legal | placed before today | major",
+  "quote": "Three-year statute of limitations expires",
+  "problem": "misleading: The calendar entry says the three-year limitations period expires on this date, but the excerpt does not say whether suit was filed. The screen's \"deadline passed\" implies a missed deadline, but the pleadings show suit was already filed in 2024, so the limitations date is moot. The entry also notes a Presentation of Claim must precede suit, which the screen does not mention. [claim: \"2026-04-22 | Statute of limitations (deadline passed)\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[25]",
+  "on_screen": "2026-09-02 | Orthopedic IME attended | kind=legal | placed before today | major",
+  "quote": "Dr. Emmanuel Hostin. IME watchdog attended",
+  "problem": "misleading: The task was marked complete on 2026-10-02, one month after its due date of 2026-09-02. The task says an \"IME watchdog attended\", but the completion date does not confirm the IME occurred on 09-02. Marking it complete is a task status, not independent proof of the IME date. [claim: \"2026-09-02 | Orthopedic IME attended\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "misleading"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "major",
+  "item": "timeline[5]",
+  "on_screen": "2023-05-08 | Treatment starts: Hudson Valley Radiology Associates/Mid Rockland Imaging | kind=treatment | placed before today",
+  "quote": "Hudson Valley Radiology Associates/Mid Rockland Imaging",
+  "problem": "unsupported: The excerpt is a bill of particulars that only lists the provider's name and address. It gives no service date, so the 2023-05-08 treatment start is not backed. [claim: \"2023-05-08 | Treatment starts: Hudson Valley Radiology Associates/Mid Rockland Imaging\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "unsupported"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "actions[16]",
+  "on_screen": "[waiting] Metro-North scope-of-employment disclosure and Pullano deposition | due None | owner None | waiting on Defendants (Metro-North)",
+  "quote": "outstanding on theirs is the Metro-North scope-of-employment disclosure and the Pullano deposition",
+  "problem": "partial: The note from 2026-03-06 supports that the Metro-North disclosure and Pullano deposition are outstanding on the defense side. It is dated seven months before today and does not show they are still outstanding. Due date and owner are not supported, which is minor. [claim: \"due None | owner None | waiting on Defendants (Metro-North)\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "injuries[7]",
+  "on_screen": "Bilateral wrist injury with carpal tunnel syndrome: Status post bilateral wrist injury with clinical evidence of incidental bilateral carpal tunnel syndrome; positive Tinel's, bilateral ulnar tingling (date 2026-03-04)",
+  "quote": "bilateral wrist injury with clinical evidence of incidental bilateral carpal tunnel syndrome",
+  "problem": "partial: The diagnosis wording is supported, but the excerpt does not mention positive Tinel's or bilateral ulnar tingling. The excerpt also doesn't show the 2026-03-04 date, and it does not say the diagnosis is from the IME neurologist. [claim: \"positive Tinel's, bilateral ulnar tingling (date 2026-03-04)\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "recent[1]",
+  "on_screen": "Client confirmed he will continue physical therapy attendance: Client confirmed he is attending PT and will maintain records; right shoulder surgery date remains unscheduled and he will send updated employment records soon. (2026-09-27)",
+  "quote": "Advised yes, keep going, and to keep his own record of every visit",
+  "problem": "partial: The note says the client asked whether he should keep attending PT and was advised to; it does not say he confirmed he is attending or will maintain records. The surgery unscheduled and employment records \"soon\" claims are supported. [claim: \"Client confirmed he is attending PT and will maintain records\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "recent[3]",
+  "on_screen": "Attorney explained surgeon requires visit before scheduling shoulder surgery: Client asked about right shoulder surgery date; attorney explained surgeon requires initial consultation and the firm has requested a date five times. (2026-09-25)",
+  "quote": "the surgeon wants to see him first and that we have asked five times",
+  "problem": "partial: The note says the surgeon wants to see him first and the firm asked five times. It does not say a consultation is required or that a date was requested; the asks may be for a visit. [claim: \"surgeon requires initial consultation and the firm has requested a date five times\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "1-judge",
+  "severity": "minor",
+  "item": "timeline[11]",
+  "on_screen": "2023-07-26 | Treatment starts: New Horizon Surgical Center, LLC | kind=treatment | placed before today",
+  "quote": "Anesthesia care for the same left shoulder procedure",
+  "problem": "partial: The cited span only shows an anesthesia charge on 07/26/2023. The excerpt's bill header does not name the 'LLC' entity in the visible text. It is a one-day surgical encounter, so 'Treatment starts' is loosely worded. The date matches. [claim: \"Treatment starts: New Horizon Surgical Center, LLC\"]",
+  "owner": "S2",
+  "extra": {
+   "verdict": "partial"
+  }
+ },
+ {
+  "check": "3-kpi",
+  "severity": "major",
+  "item": "kpis.case_value",
+  "on_screen": "$180,000 \u2013 $355,000 \u2014 Case value (draft): Firm rule (configurable): 1.5x\u20133x billed specials ($118,400); not capped: Liability self-insured; no stated limit; before liens ($22,180).",
+  "quote": "",
+  "problem": "Range does not equal the stated rule: 1.5x and 3.0x of $118,400 = $177,600 \u2013 $355,200; shown $180,000 \u2013 $355,000 (rounding is inconsistent and undisclosed).",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "4-ingest",
+  "severity": "major",
+  "item": "document:21121903523",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf \u2014 header date 2024-03-08",
+  "quote": "2024-10-15, 2024-10-29",
+  "problem": "Clio date 2024-03-08 (shown as the document date) is earlier than dates written on page 1 (latest 2024-10-29); the header date is a Clio filing/received date, not the document's own date.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ingest",
+  "severity": "major",
+  "item": "document:21121904498",
+  "on_screen": "02-pleadings__doc-05__verified-answer-demands.pdf \u2014 header date 2024-04-17",
+  "quote": "2024-02, 2024-12-02",
+  "problem": "Clio date 2024-04-17 (shown as the document date) is earlier than dates written on page 1 (latest 2024-12-02); the header date is a Clio filing/received date, not the document's own date.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ingest",
+  "severity": "major",
+  "item": "document:21121905788",
+  "on_screen": "02-pleadings__doc-07__bill-of-particulars.pdf \u2014 header date 2024-05-27",
+  "quote": "2023-04-23, 2025-01-02, 2025-02",
+  "problem": "Clio date 2024-05-27 (shown as the document date) is earlier than dates written on page 1 (latest 2025-01-02); the header date is a Clio filing/received date, not the document's own date.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ingest",
+  "severity": "major",
+  "item": "document:21121906493",
+  "on_screen": "02-pleadings__doc-41__bop-affirmative-defenses.pdf \u2014 header date 2024-06-26",
+  "quote": "2025-09-30",
+  "problem": "Clio date 2024-06-26 (shown as the document date) is earlier than dates written on page 1 (latest 2025-09-30); the header date is a Clio filing/received date, not the document's own date.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ingest",
+  "severity": "major",
+  "item": "document:21121907483",
+  "on_screen": "03-discovery__doc-08__response-discovery-demands.pdf \u2014 header date 2024-05-07",
+  "quote": "2024-12-02, 2025-01-02, 2025-02",
+  "problem": "Clio date 2024-05-07 (shown as the document date) is earlier than dates written on page 1 (latest 2025-01-02); the header date is a Clio filing/received date, not the document's own date.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ingest",
+  "severity": "major",
+  "item": "document:21121908368",
+  "on_screen": "03-discovery__doc-40__defendants-response-demand.pdf \u2014 header date 2024-11-03",
+  "quote": "2025-01-02, 2025-09-30",
+  "problem": "Clio date 2024-11-03 (shown as the document date) is earlier than dates written on page 1 (latest 2025-09-30); the header date is a Clio filing/received date, not the document's own date.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ingest",
+  "severity": "major",
+  "item": "document:21121909583",
+  "on_screen": "03-discovery__doc-43__subpoena-kyle-pullano.pdf \u2014 header date 2025-01-02",
+  "quote": "2025-02, 2025-11-02, 2025-12-08",
+  "problem": "Clio date 2025-01-02 (shown as the document date) is earlier than dates written on page 1 (latest 2025-12-08); the header date is a Clio filing/received date, not the document's own date.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ingest",
+  "severity": "major",
+  "item": "document:21121929233",
+  "on_screen": "06-correspondence__doc-12__letter-to-judge.pdf \u2014 header date 2024-09-24",
+  "quote": "2025-01-02, 2025-04-16",
+  "problem": "Clio date 2024-09-24 (shown as the document date) is earlier than dates written on page 1 (latest 2025-04-16); the header date is a Clio filing/received date, not the document's own date.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "major",
+  "item": "document:21121902848 p1",
+  "on_screen": "01-intake__created__photo-id.pdf",
+  "quote": "",
+  "problem": "OCR word error \u224869% vs vision transcription; numbers missing/garbled: 94.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "major",
+  "item": "document:21121903523 p6",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf",
+  "quote": "",
+  "problem": "OCR word error \u22484% vs vision transcription; numbers missing/garbled: 10/11/2024, 5102, 5104.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "minor",
+  "item": "document:21121903523 p1",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf",
+  "quote": "",
+  "problem": "OCR word error \u22486% vs vision transcription; numbers missing/garbled: 10/11/2024.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "minor",
+  "item": "document:21121903523 p2",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf",
+  "quote": "",
+  "problem": "OCR word error \u22485% vs vision transcription; numbers missing/garbled: 10/11/2024, 5.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "minor",
+  "item": "document:21121903523 p3",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf",
+  "quote": "",
+  "problem": "OCR word error \u22485% vs vision transcription; numbers missing/garbled: 10/11/2024, 24.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "minor",
+  "item": "document:21121903523 p4",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf",
+  "quote": "",
+  "problem": "OCR word error \u22482% vs vision transcription; numbers missing/garbled: 10/11/2024.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "minor",
+  "item": "document:21121903523 p5",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf",
+  "quote": "",
+  "problem": "OCR word error \u22484% vs vision transcription; numbers missing/garbled: 10/11/2024.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "minor",
+  "item": "document:21121903523 p7",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf",
+  "quote": "",
+  "problem": "OCR word error \u22488% vs vision transcription; numbers missing/garbled: 10/11/2024, 361-4888.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "4-ocr",
+  "severity": "minor",
+  "item": "document:21121903523 p8",
+  "on_screen": "02-pleadings__doc-01__summons-complaint.pdf",
+  "quote": "",
+  "problem": "OCR word error \u22482% vs vision transcription; numbers missing/garbled: 10/11/2024.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "major",
+  "item": "timeline[24]",
+  "on_screen": "2026-04-22 Statute of limitations (deadline passed) (kind=legal, future=False)",
+  "quote": "Three-year statute of limitations expires",
+  "problem": "SOL shown as 'deadline passed' although the action was commenced (complaint on file); reads as a blown limitations period.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[10]",
+  "on_screen": "2023-07-26 Left shoulder arthroscopy, New Horizon Surgical Center (kind=legal, future=False)",
+  "quote": "",
+  "problem": "Medical event typed as 'legal' (wrong colour/filter).",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[10]",
+  "on_screen": "2023-07-26 Left shoulder arthroscopy, New Horizon Surgical Center (kind=legal, future=False)",
+  "quote": "Left shoulder arthroscopy, New Horizon Surgical Center",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[13]",
+  "on_screen": "2023-08-31 Post-operative follow-up, Dr. Capiola (kind=legal, future=False)",
+  "quote": "",
+  "problem": "Medical event typed as 'legal' (wrong colour/filter).",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[13]",
+  "on_screen": "2023-08-31 Post-operative follow-up, Dr. Capiola (kind=legal, future=False)",
+  "quote": "Post-operative follow-up, Dr. Capiola",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[16]",
+  "on_screen": "2024-05-27 Consultation re second surgery, right shoulder (kind=legal, future=False)",
+  "quote": "",
+  "problem": "Medical event typed as 'legal' (wrong colour/filter).",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[16]",
+  "on_screen": "2024-05-27 Consultation re second surgery, right shoulder (kind=legal, future=False)",
+  "quote": "Consultation re second surgery, right shoulder",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[21]",
+  "on_screen": "2025-04-15 Compliance conference (kind=legal, future=False)",
+  "quote": "Compliance conference",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[22]",
+  "on_screen": "2025-10-09 Client appointment: treatment and surgery decision (kind=legal, future=False)",
+  "quote": "",
+  "problem": "Medical event typed as 'legal' (wrong colour/filter).",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[22]",
+  "on_screen": "2025-10-09 Client appointment: treatment and surgery decision (kind=legal, future=False)",
+  "quote": "Client appointment: treatment and surgery decision",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[24]",
+  "on_screen": "2026-04-22 Statute of limitations (deadline passed) (kind=legal, future=False)",
+  "quote": "Three-year statute of limitations expires",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[26]",
+  "on_screen": "2026-09-07 Neurological IME, Dr. Jack W. Tsao (kind=legal, future=False)",
+  "quote": "Neurological IME, Dr. Jack W. Tsao",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[27]",
+  "on_screen": "2026-10-09 Client treatment: chiropractic, Advanced Rockland Chiropractic Offices, P.C. (kind=deadline, future=True)",
+  "quote": "",
+  "problem": "Appointment/internal reminder typed as 'deadline'.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[28]",
+  "on_screen": "2026-10-10 Client treatment: physical therapy, SportsCare Physical Therapy of New York (kind=deadline, future=True)",
+  "quote": "",
+  "problem": "Appointment/internal reminder typed as 'deadline'.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[29]",
+  "on_screen": "2026-10-10 Call to McCulloch Orthopaedic re right shoulder surgical date (kind=deadline, future=True)",
+  "quote": "",
+  "problem": "Appointment/internal reminder typed as 'deadline'.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[30]",
+  "on_screen": "2026-10-14 Follow-up call with client re treatment status (kind=deadline, future=True)",
+  "quote": "",
+  "problem": "Appointment/internal reminder typed as 'deadline'.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[31]",
+  "on_screen": "2026-10-17 Client treatment: physical therapy (following week), SportsCare Physical Therapy of New York (kind=deadline, future=True)",
+  "quote": "",
+  "problem": "Appointment/internal reminder typed as 'deadline'.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[32]",
+  "on_screen": "2026-10-21 File review: compliance conference and the second surgery (kind=deadline, future=True)",
+  "quote": "",
+  "problem": "Appointment/internal reminder typed as 'deadline'.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[33]",
+  "on_screen": "2026-10-29 Client appointment: updated employment and commission records (kind=deadline, future=True)",
+  "quote": "",
+  "problem": "Appointment/internal reminder typed as 'deadline'.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[4]",
+  "on_screen": "2023-05-07 Initial client consultation, Justin Sapini (kind=legal, future=False)",
+  "quote": "",
+  "problem": "Medical event typed as 'legal' (wrong colour/filter).",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[4]",
+  "on_screen": "2023-05-07 Initial client consultation, Justin Sapini (kind=legal, future=False)",
+  "quote": "Initial client consultation, Justin Sapini",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[9]",
+  "on_screen": "2023-07-12 Pre-operative consultation, Dr. Capiola (kind=legal, future=False)",
+  "quote": "",
+  "problem": "Medical event typed as 'legal' (wrong colour/filter).",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "5-timeline",
+  "severity": "minor",
+  "item": "timeline[9]",
+  "on_screen": "2023-07-12 Pre-operative consultation, Dr. Capiola (kind=legal, future=False)",
+  "quote": "Pre-operative consultation, Dr. Capiola",
+  "problem": "Past calendar entry shown as an event that happened; the only evidence is that it was calendared.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Advanced Rockland Chiropractic Offices, P.C. (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Advanced Rockland Chiropractic Offices, P.C. (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "David Capiola (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "David Capiola (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "David Capiola (saved)",
+  "on_screen": "(no treatment lines)",
+  "quote": "",
+  "problem": "Provider sees no treatment/billing lines for themselves.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Hudson Valley Radiology Associates (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Hudson Valley Radiology Associates (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Interventional Physical Medicine & Rehabilitation, P.C. (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Interventional Physical Medicine & Rehabilitation, P.C. (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "McCulloch Orthopaedic Surgical Services, PLLC (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "McCulloch Orthopaedic Surgical Services, PLLC (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Melinda L. Miller (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Melinda L. Miller (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Montefiore Nyack Hospital (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Montefiore Nyack Hospital (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "New Horizon Surgical Center, LLC (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "New Horizon Surgical Center, LLC (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Peter C. Kwan (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "Peter C. Kwan (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "SportsCare Physical Therapy of New York (all-on)",
+  "on_screen": "\"major\":false,\"citations\":[]},{\"date\":\"2024-04-12\",\"label\":\"Demand package sent\",\"kind\":\"legal\",\"is_future\":false,\"major\":true,\"citati \u2026 ons\":[]},{\"date\":\"2025-03-05\",\"label\":\"Scheduled: Plaintiff deposition notice (no record it occurred)\",\"kind\":\"legal\",\"is_future\": \u2026 tions\":[]},{\"date\":\"2025-12-08\",\"label\":\"Scheduled: Pullano deposition (EBT) (no record it occurred)\",\"kind\":\"legal\",\"is_future\":f",
+  "quote": "",
+  "problem": "Litigation/strategy terms visible to the provider: demand package, deposition.",
+  "owner": "S4",
+  "extra": {}
+ },
+ {
+  "check": "6-provider",
+  "severity": "minor",
+  "item": "SportsCare Physical Therapy of New York (saved)",
+  "on_screen": "Neurological IME, Dr. Jack W. Tsao",
+  "quote": "",
+  "problem": "Defense IME milestones shown to a treating provider under 'updates' (litigation detail; attorney did not opt in to the timeline).",
+  "owner": "S4",
+  "extra": {}
+ }
+]
