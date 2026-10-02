@@ -137,9 +137,19 @@ export interface ProviderView {
   documents?: { source_id: string; title: string }[] | null
 }
 
+// Mirrors firm/aiDraft.ts AiDraftRequest. Template is a structural hint only, never a fact source.
 export interface DraftRequest {
-  action_index?: number | null
+  kind?: 'overdue' | 'upcoming' | 'waiting' | 'client' | null
   title?: string | null
+  why?: string | null
+  owner?: string | null
+  waiting_on?: string | null
+  date?: string | null
+  audience?: string | null
+  source_ids?: string[]
+  template_subject?: string | null
+  template_body?: string | null
+  action_index?: number | null
 }
 
 export interface DraftSegment {
@@ -149,7 +159,7 @@ export interface DraftSegment {
   verified: boolean
 }
 
-// AI draft for attorney review; never sent by the app.
+// AI draft for attorney review; never sent by the app. Segments join verbatim (text carries its own spacing).
 export interface Draft {
   subject: string
   segments: DraftSegment[]

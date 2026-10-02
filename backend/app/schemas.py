@@ -192,8 +192,18 @@ class ProviderView(BaseModel):
 
 
 class DraftRequest(BaseModel):
-    action_index: int | None = None  # index into Dashboard.actions
-    title: str | None = None         # or match an action by title
+    """A next step to draft for. Mirrors frontend/src/firm/aiDraft.ts AiDraftRequest."""
+    kind: Literal["overdue", "upcoming", "waiting", "client"] | None = None
+    title: str | None = None
+    why: str | None = None
+    owner: str | None = None
+    waiting_on: str | None = None
+    date: str | None = None
+    audience: str | None = None          # who the message is addressed to
+    source_ids: list[str] = Field(default_factory=list)  # grounding sources (plus retrieval)
+    template_subject: str | None = None  # structural hint only, never a fact source
+    template_body: str | None = None
+    action_index: int | None = None      # shortcut: index into Dashboard.actions
 
 
 class DraftSegment(BaseModel):
