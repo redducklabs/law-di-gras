@@ -65,6 +65,7 @@ export const fixture: Dashboard = {
       fact('k3', 'Client UIM', 'Unconfirmed', [note('n4', 'UIM inquiry', '2026-06-02', 'awaiting UIM dec page')], { verified: false }),
     ],
     case_value: fact('k4', 'Case value (draft)', '$140k – $210k', [er(3, 'Total charges'), dec(1, 'Bodily Injury')], { verified: false }),
+    liens: [fact('l1', 'Health plan lien', '$9,800', [note('n8', 'Lien notice', '2026-07-01', 'asserting a lien')], { amount: 9800 })],
     firm_spent: fact('k5', 'Firm costs advanced', '$2,315', [cite('expense:9', 'Records fees', 'Records retrieval', { source_kind: 'expense' })], { amount: 2315 }),
   },
   actions: [

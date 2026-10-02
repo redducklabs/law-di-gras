@@ -1,6 +1,6 @@
 // Firm Case Brief: one screen answering "where does this case stand, and what do I do next".
 import { useState, type FormEvent } from 'react'
-import type { Citation, Dashboard } from '../api/types'
+import type { Citation, Dashboard, Fact } from '../api/types'
 import {
   Avatar, Badge, Card, Fonts, SourceChips, Tile, daysFromToday, fmtDate, fmtDateTime, money, relDays,
 } from '../components'
@@ -82,7 +82,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
 
         {/* Money */}
         <div className="mt-5 grid grid-cols-2 gap-3 sm:gap-5 lg:grid-cols-4">
-          <Tile fact={d.kpis.specials} label="Medical specials" tone="ok" onOpen={onOpenSource} />
+          <Tile fact={d.kpis.specials} label="Medical specials" tone="ok" onOpen={onOpenSource} sub={liensSub(d.kpis.liens)} />
           {d.kpis.coverage.length
             ? d.kpis.coverage.slice(0, 1).map(f => (
                 <Tile key={f.id} fact={f} tone="brand" onOpen={onOpenSource}
@@ -152,6 +152,12 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
       </div>
     </div>
   )
+}
+
+function liensSub(liens?: Fact[]) {
+  if (!liens?.length) return undefined
+  const total = liens.reduce((s, f) => s + (f.amount ?? 0), 0)
+  return `${liens.length} lien${liens.length === 1 ? '' : 's'}${total ? ` · ${money(total)}` : ''}`
 }
 
 function SearchBox({ onSearch }: { onSearch: (q: string) => void }) {
