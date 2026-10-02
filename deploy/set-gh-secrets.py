@@ -1,7 +1,7 @@
 """Load the demo's GitHub Actions secrets and variables. Prints names only, never values.
 
 Sources: the main checkout's .env (AI + Clio keys), doctl's saved token (DO_TOKEN),
-~/.ssh/law_di_gras_demo (deploy key), and a generated basic-auth password kept in
+~/.ssh/law_di_gras_demo (deploy key), and a generated sign-in password kept in
 ~/law-di-gras-demo-credentials.txt (outside the repo; hand it over from there).
 
 Run from the backend venv so python-dotenv is available:
@@ -46,8 +46,8 @@ doctl_cfg = Path(os.environ.get("APPDATA", HOME / ".config")) / "doctl" / "confi
 m = re.search(r"^access-token:\s*(\S+)", doctl_cfg.read_text(), re.M) if doctl_cfg.exists() else None
 put("secret", "DO_TOKEN", m.group(1) if m else "")
 
-for k in ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "COHERE_API_KEY",
-          "CLIO_CLIENT_ID", "CLIO_CLIENT_SECRET", "CLIO_ACCESS_TOKEN", "CLIO_REFRESH_TOKEN"]:
+# Clio tokens are not set here: the hosted app's Connect Clio page (/api/clio) gets its own.
+for k in ["ANTHROPIC_API_KEY", "OPENAI_API_KEY", "COHERE_API_KEY", "CLIO_CLIENT_ID", "CLIO_CLIENT_SECRET"]:
     put("secret", k, env.get(k) or "")
 
 put("variable", "DEMO_BASIC_AUTH_USER", "demo")

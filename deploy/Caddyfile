@@ -1,14 +1,28 @@
-# Hosted demo: TLS (Let's Encrypt), static frontend, /api proxy, basic auth.
-# Provider share links (/p/*, /api/share/*) and the static bundle stay public,
-# the way a provider would open them in real use.
+# Hosted demo: TLS (Let's Encrypt), static frontend, /api proxy, sign-in.
+# Protected requests are checked by the backend (app/demo_auth.py): a valid
+# session cookie passes; pages redirect to /login, API calls get 401.
+# Provider share links (/p/*, /api/share/*), the static bundle and the sign-in
+# routes stay public, the way a provider would open them in real use.
 {$DEMO_DOMAIN} {
 	encode zstd gzip
 
-	@protected not path /p/* /api/share/* /assets/* /favicon.svg
-	# auth.caddy is written on the server by the deploy workflow:
-	#   basic_auth @protected { <user> <bcrypt hash> }
-	import /etc/caddy/auth.caddy
+	@protected not path /p/* /api/share/* /assets/* /favicon.png /apple-touch-icon.png /brand/* /login /logout /api/auth/*
+	forward_auth @protected api:8000 {
+		uri /api/auth/check
+	}
 
+	handle /brand/* {
+		root * /opt
+		file_server
+	}
+	handle /login {
+		rewrite * /api/auth/login
+		reverse_proxy api:8000
+	}
+	handle /logout {
+		rewrite * /api/auth/logout
+		reverse_proxy api:8000
+	}
 	handle /api/* {
 		reverse_proxy api:8000
 	}

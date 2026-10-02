@@ -1,11 +1,14 @@
-# Runs on the Droplet from /opt/law-di-gras/deploy. Secrets and auth live in
-# /etc/law-di-gras (written by the deploy workflow); data in /var/lib/law-di-gras.
+# Runs on the Droplet from /opt/law-di-gras/deploy. Secrets live in
+# /etc/law-di-gras/app.env (written by the deploy workflow); data and the
+# Clio tokens from the in-app connect flow live in /var/lib/law-di-gras.
 services:
   api:
     build:
       context: ../backend
       dockerfile: ../deploy/Dockerfile.api
     env_file: /etc/law-di-gras/app.env
+    environment:
+      ENV_FILE: /data/clio.env
     volumes:
       - /var/lib/law-di-gras:/data
     restart: unless-stopped
@@ -20,7 +23,7 @@ services:
       DEMO_DOMAIN: ${DEMO_DOMAIN:-demo.redducklaw.com}
     volumes:
       - ./Caddyfile:/etc/caddy/Caddyfile:ro
-      - /etc/law-di-gras/auth.caddy:/etc/caddy/auth.caddy:ro
+      - ./brand:/opt/brand:ro
       - ../frontend-dist:/srv:ro
       - caddy_data:/data
       - caddy_config:/config

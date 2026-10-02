@@ -61,8 +61,6 @@ jobs:
           COHERE_API_KEY: ${{ secrets.COHERE_API_KEY }}
           CLIO_CLIENT_ID: ${{ secrets.CLIO_CLIENT_ID }}
           CLIO_CLIENT_SECRET: ${{ secrets.CLIO_CLIENT_SECRET }}
-          CLIO_ACCESS_TOKEN: ${{ secrets.CLIO_ACCESS_TOKEN }}
-          CLIO_REFRESH_TOKEN: ${{ secrets.CLIO_REFRESH_TOKEN }}
           CASE_VALUE_MULTIPLIER_LOW: ${{ vars.CASE_VALUE_MULTIPLIER_LOW }}
           CASE_VALUE_MULTIPLIER_HIGH: ${{ vars.CASE_VALUE_MULTIPLIER_HIGH }}
         run: |
@@ -76,15 +74,14 @@ jobs:
           # app.env: single-quoted so Compose reads values literally. Unset values are left out.
           env_file="$RUNNER_TEMP/srv/app.env"
           : > "$env_file"
-          for k in ANTHROPIC_API_KEY OPENAI_API_KEY COHERE_API_KEY CLIO_CLIENT_ID CLIO_CLIENT_SECRET \
-                   CLIO_ACCESS_TOKEN CLIO_REFRESH_TOKEN CASE_VALUE_MULTIPLIER_LOW CASE_VALUE_MULTIPLIER_HIGH; do
+          # Clio tokens are not shipped: the app's Connect Clio page (/api/clio) stores them on the data volume.
+          export DEMO_AUTH_USER="$AUTH_USER" DEMO_AUTH_PASSWORD="$AUTH_PASSWORD"
+          export CLIO_REDIRECT_URI="https://$DEMO_DOMAIN/api/clio/callback"
+          for k in ANTHROPIC_API_KEY OPENAI_API_KEY COHERE_API_KEY CLIO_CLIENT_ID CLIO_CLIENT_SECRET CLIO_REDIRECT_URI \
+                   DEMO_AUTH_USER DEMO_AUTH_PASSWORD CASE_VALUE_MULTIPLIER_LOW CASE_VALUE_MULTIPLIER_HIGH; do
             v=$(printenv "$k" || true)
             if [ -n "$v" ]; then printf "%s='%s'\n" "$k" "$v" >> "$env_file"; fi
           done
-
-          hash=$(docker run --rm caddy:2 caddy hash-password --plaintext "$AUTH_PASSWORD")
-          echo "::add-mask::$hash"
-          printf 'basic_auth @protected {\n\t%s %s\n}\n' "$AUTH_USER" "$hash" > "$RUNNER_TEMP/srv/auth.caddy"
 
       - name: Ship code and config, restart
         if: steps.host.outputs.ip != ''
@@ -96,7 +93,8 @@ jobs:
           rsync -az --delete --exclude .venv --exclude data --exclude __pycache__ backend/ "$HOST:/opt/law-di-gras/backend/"
           rsync -az --delete deploy/ "$HOST:/opt/law-di-gras/deploy/"
           rsync -az --delete frontend/dist/ "$HOST:/opt/law-di-gras/frontend-dist/"
-          scp -q "$RUNNER_TEMP/srv/app.env" "$RUNNER_TEMP/srv/auth.caddy" "$HOST:/etc/law-di-gras/"
+          scp -q "$RUNNER_TEMP/srv/app.env" "$HOST:/etc/law-di-gras/"
+          ssh "$HOST" "rm -f /etc/law-di-gras/auth.caddy"
           rm -rf "$RUNNER_TEMP/srv"
           ssh "$HOST" "chmod 600 /etc/law-di-gras/* && cd /opt/law-di-gras/deploy \
             && DEMO_DOMAIN=$DEMO_DOMAIN docker compose up -d --build --remove-orphans \
@@ -107,16 +105,19 @@ jobs:
         env:
           AUTH_PASSWORD: ${{ secrets.DEMO_BASIC_AUTH_PASSWORD }}
         run: |
+          set -eu
           code=000
           for i in $(seq 1 36); do
             code=$(curl -s -o /dev/null -w '%{http_code}' "https://$DEMO_DOMAIN/" || true)
-            [ "$code" = "401" ] && break
+            [ "$code" = "302" ] && break
             sleep 5
           done
-          echo "unauthenticated / -> $code (want 401)"
-          [ "$code" = "401" ]
-          curl -sf -u "$AUTH_USER:$AUTH_PASSWORD" "https://$DEMO_DOMAIN/api/health"
-          echo
+          echo "signed-out / -> $code (want 302 to /login)"; [ "$code" = "302" ]
+          code=$(curl -s -o /dev/null -w '%{http_code}' "https://$DEMO_DOMAIN/api/matters")
+          echo "signed-out /api/matters -> $code (want 401)"; [ "$code" = "401" ]
           code=$(curl -s -o /dev/null -w '%{http_code}' "https://$DEMO_DOMAIN/p/smoke-test")
-          echo "unauthenticated /p/... -> $code (want 200)"
-          [ "$code" = "200" ]
+          echo "signed-out /p/... -> $code (want 200)"; [ "$code" = "200" ]
+          jar=$(mktemp)
+          curl -s -o /dev/null -c "$jar" --data-urlencode "username=$AUTH_USER" --data-urlencode "password=$AUTH_PASSWORD"             --data-urlencode "next=/" "https://$DEMO_DOMAIN/login"
+          curl -sf -b "$jar" "https://$DEMO_DOMAIN/api/health"; echo
+          rm -f "$jar"
