@@ -9,6 +9,8 @@ run `POST /api/matters/1811191943/digest` once so every click is served from
 cache; browser at 1440x900, zoom 100%, no other tabs; open one chip and one
 draft once beforehand so PDFs and drafts are warm.
 
+**Warm the chat:** ask the exact demo questions once before recording (cold answers take 20–28 s; cached repeats take about 1 s). Example: "When is the Pullano deposition?" and "What's overdue and who are we waiting on?".
+
 **Accuracy gate (blocker):** after the final re-digest, run
 `cd backend; uv run python -m app.audit --checks 1,2,3,5,6` (about $0.75, 3–4 min).
 Any critical finding blocks recording until fixed or the item is cut from the video.
