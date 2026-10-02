@@ -4,7 +4,8 @@ import type { Citation, Dashboard, Fact } from '../api/types'
 import {
   Avatar, Badge, Card, Fonts, SourceChips, Tile, daysFromToday, fmtDate, fmtDateTime, money, relDays,
 } from '../components'
-import { StageStepper, TimelineStrip } from './CaseProgress'
+import { StageStepper } from './CaseProgress'
+import { TimelineStrip } from './Timeline'
 import { NextSteps } from './NextSteps'
 
 export interface CaseBriefProps {
@@ -61,8 +62,8 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
                 <li key={b.id} className="flex gap-3 text-[13.5px] leading-relaxed text-slate-700">
                   <span className={`mt-[7px] h-1.5 w-1.5 shrink-0 rounded-full ${b.verified ? 'bg-brand-500' : 'bg-warn-600'}`} />
                   <span>
-                    <span className="font-semibold text-slate-900">{b.label}.</span> {b.value}{' '}
-                    <SourceChips citations={b.citations} onOpen={onOpenSource} />
+                    {b.label.length <= 40 && <span className="font-semibold text-slate-900">{b.label}. </span>}{b.value}{' '}
+                    <SourceChips citations={b.citations} onOpen={onOpenSource} max={2} />
                   </span>
                 </li>
               ))}
@@ -126,7 +127,7 @@ export function CaseBrief({ data: d, onOpenSource, onShare, onSearch, onRefresh 
                             {fmtDate(t.first_visit)}{t.last_visit && t.last_visit !== t.first_visit && <> – {fmtDate(t.last_visit)}</>}
                           </div>
                         </div>
-                        <div className="shrink-0 text-right">
+                        <div className="min-w-0 max-w-[55%] shrink-0 text-right">
                           {t.billed
                             ? <div className={`text-[14px] font-semibold tabular-nums ${t.billed.verified ? '' : 'text-warn-700'}`}>{t.billed.value}</div>
                             : <div className="text-[12px] text-slate-400">Bill not in file</div>}

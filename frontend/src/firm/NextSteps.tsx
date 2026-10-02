@@ -13,11 +13,15 @@ const numTone: Record<Tone, string> = {
   ok: 'bg-ok-600 text-white', neutral: 'bg-slate-200 text-slate-600',
 }
 
+/** To-dos shown before "Show all" (including the hero). */
+const VISIBLE = 5
+
 type Act = { onOpenSource?: (c: Citation) => void; onDraft: (s: Step) => void; data: Dashboard }
 
 /** The "what do I do now" card. Step 1 is a hero; the rest is a numbered checklist. Every step drafts in one click. */
 export function NextSteps({ data, onOpenSource }: { data: Dashboard; onOpenSource?: (c: Citation) => void }) {
   const [drafting, setDrafting] = useState<Step | null>(null)
+  const [expanded, setExpanded] = useState(false)
   const steps = buildNextSteps(data)
   const todo = steps.filter(s => s.group === 'do')
   const waiting = steps.filter(s => s.group === 'waiting')
@@ -43,17 +47,23 @@ export function NextSteps({ data, onOpenSource }: { data: Dashboard; onOpenSourc
 
       {rest.length > 0 && (
         <ol className="mt-3">
-          {rest.map((s, i) => <Row key={i} n={i + 2} step={s} {...act} />)}
+          {(expanded ? rest : rest.slice(0, VISIBLE - 1)).map((s, i) => <Row key={i} n={i + 2} step={s} {...act} />)}
         </ol>
       )}
 
       {waiting.length > 0 && (
         <div className="mt-4 border-t border-line-soft pt-3">
           <div className="mb-1 text-[11px] font-semibold uppercase tracking-wider text-slate-400">Waiting on others · follow up</div>
-          <ul>{waiting.map((s, i) => <Row key={i} step={s} {...act} />)}</ul>
+          <ul>{(expanded ? waiting : waiting.slice(0, 3)).map((s, i) => <Row key={i} step={s} {...act} />)}</ul>
         </div>
       )}
 
+      {(rest.length > VISIBLE - 1 || waiting.length > 3) && (
+        <button type="button" onClick={() => setExpanded(v => !v)}
+          className="mt-2 cursor-pointer self-start px-1 text-[12px] font-semibold text-brand-700 hover:underline">
+          {expanded ? 'Show fewer' : `Show all ${steps.length} steps`}
+        </button>
+      )}
       <DraftDrawer step={drafting} data={data} onClose={() => setDrafting(null)} onOpenSource={onOpenSource} />
     </Card>
   )
