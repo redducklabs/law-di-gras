@@ -41,7 +41,7 @@ async def require_session(request: Request, call_next):
 
 # Each stream exposes `router` in its module. Missing modules are skipped so
 # streams can land independently.
-for module in ("app.api.auth", "app.api.cases", "app.api.sources", "app.api.digest", "app.api.share", "app.api.review",
+for module in ("app.api.auth", "app.api.cases", "app.api.sources", "app.api.digest", "app.api.share", "app.api.review", "app.api.audit",
                "app.clio.web"):
     try:
         app.include_router(importlib.import_module(module).router)
