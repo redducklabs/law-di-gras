@@ -32,3 +32,11 @@ takes home more money.
 - Users are now likely **PI attorneys and their staff** (paralegals, case
   managers) plus **medical-provider billing/lien staff**, not only trial
   attorneys. Confirm once the challenge is announced.
+
+## Working direction (2026-10-02, from Aron)
+
+**Turn a case into a dashboard.** Ingest a PI case file (notes, emails, tasks,
+documents) and show where the case stands: stage, key dates and next steps,
+medical treatment and bills/liens, insurer negotiation status, and open
+risks. Every dashboard fact links to its source page (catalog: A1, A7, R2, R7
+plus PDF highlighting). Likely two views: the firm, and the medical providers.
