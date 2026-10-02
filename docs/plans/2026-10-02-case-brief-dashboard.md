@@ -36,6 +36,7 @@ Decisions: `docs/challenge.md` → Decisions. Deadline 4:00 PM PT; feature freez
   | S2 | 8002 | n/a |
   | S3 | n/a (fixture), later 8000 | 5173 → 8000 |
   | S4 | 8004 | 5174 → 8004 |
+  | S5 | 8005 | 5176 → 8005 |
 
   Backend: `cd backend; uv run uvicorn app.main:app --reload --port 8001`.
   Frontend: `cd frontend; $env:PORT=5173; $env:API_PORT=8000; npm run dev`.
@@ -70,7 +71,7 @@ frontend/                     Vite + React + TS + Tailwind on :5173, proxy /api 
   src/firm/                   [S3] dashboard page, cards, timeline strip, KPI tiles
   src/components/             [S3] SourceChip, Card, Badge, Tile, Drawer (S4 imports, never edits)
   src/dev/fixture.ts          [S3] fictional "Doe v. Example" data for design; deleted by 3 PM
-  src/source/                 [integration] SourcePane: react-pdf + highlight overlay, note/email viewer
+  src/source/                 [S5] SourcePane: react-pdf + highlight overlay, note/email viewer, Find/Ask
   src/provider/               [S4] provider page + share panel (functional); S3 does the visual pass after
 ```
 
@@ -184,9 +185,13 @@ get feedback, revise. It owns the look of every screen; mechanics live elsewhere
 - [ ] Provider page `/p/:token`: plain billing/treatment language, case-active badge, coverage, requests, their visits/bills
 - [ ] (Nice) view log + "opened" badge in share panel
 
+### S5: Source pane (started after S1 finished)
+- [ ] `SourcePane` in the firm page's right Drawer: PDF page via react-pdf + rect highlight overlay + scroll to it; text sources with the span highlighted
+- [ ] Find in case (`/search`) results as chips; Ask (`/ask`) with [n] linked to citations
+- [ ] Unverified citations visibly marked; OCR pages labelled
+
 ### Integration (this session)
 - [ ] Commit contracts + scaffold (backend runs, frontend renders a blank shell)
-- [ ] `src/source/SourcePane`: react-pdf page + rect overlay + scroll to highlight; text sources with highlighted span; Find-in-case + Ask boxes (S3 styles it)
 - [ ] Wire routes in `main.py`, keep demo path green, README run commands
 - [ ] `docs/demo-script.md`, record the video with Playwright, submission notes (models + cost per case)
 
@@ -263,4 +268,18 @@ Sharing rules (slide 10): share status changes, bills and records; never strateg
 4. frontend/src/provider/SharePanel: drawer opened from the firm header Share button: provider picker, toggles, live preview of the provider page, Copy link, "Opened <time>" if viewed.
 5. frontend/src/provider/ProviderPage at /p/:token: calm, plain billing/treatment language, big "Case active" and coverage answer, "What the firm needs from your office", "Your patient's visits and bills", shared documents opening in the source viewer.
 Done when: on Sapini, toggling coverage off in the panel removes it from the provider page after reload, and the link works in a private window. Screenshot both.
+```
+
+### S5 prompt
+
+```
+You own stream S5 (source pane) of the Sapini dashboard.
+Read CLAUDE.md, docs/challenge.md (Decisions) and docs/plans/2026-10-02-case-brief-dashboard.md first. Hackathon: move fast, no tests, verify by running it. Clio is READ-ONLY: only HTTP GET, through backend/app/clio/client.py. Never hardcode case content: everything shown must come from Sapini data read from Clio (no Sapini names, dates, amounts or injuries in code or prompts). Never print or commit .env values. Build against the shared contracts (backend/app/schemas.py, db.py, llm.py, frontend/src/api/types.ts); change a contract only with a small `contract:` commit. Touch only your owned paths. You run in your own git worktree: follow the plan's "Worktrees, ports, syncing" section (use your assigned ports; .env and the SQLite DB are shared from the main checkout, never copy .env). Commit small and often with conventional commits, git add only your owned paths, then git pull --rebase origin main and git push origin HEAD:main. Report what you ran/clicked.
+Owned: frontend/src/source/ only. Import (never edit) frontend/src/components/ (Drawer, SourceChip, Badge, tokens) and frontend/src/api/. App.tsx already mounts <SourcePane matterId citation query onOpenCitation /> inside the firm page's right Drawer; keep that props contract (frontend/src/source/SourcePane.tsx) or change App.tsx in one small commit if you must. Ports: backend 8005, frontend 5176 → 8005.
+Goal: "If a date is on screen, show where it came from. Click anything to open the note, document or email it came from." This is the demo's proof moment: click a date or injury chip → the scanned page opens with the exact quote highlighted.
+1. citation mode: GET /api/sources/{id}. If has_file: render the cited page with react-pdf (already a dependency; set up the pdfjs worker for Vite) from /api/sources/{id}/file, overlay citation.rects (normalized 0..1, top-left origin, 1-based page) as translucent highlight boxes, scroll the first rect into view, allow paging. If no rects: show the page and the quote above it. Text sources (notes, emails, tasks, calendar, expenses): show header (kind, date, author) and the text with char_start..char_end highlighted and scrolled into view; if offsets are missing, find the quote in the text (whitespace-normalized).
+2. Mark unverified citations clearly ("Quote not found verbatim in source"), and label OCR pages ("Scanned page, OCR text").
+3. query mode: GET /api/matters/{matterId}/search?q= → passage list (snippet, source title, page, chip); clicking one calls onOpenCitation. Add an Ask box: POST /ask, render answer_markdown with [n] markers as clickable chips to its citations; if the route 404s, hide the box.
+4. Match S3's visual language (components and theme tokens); S3 may restyle later without touching your logic.
+Done when: on real Sapini data, clicking at least one scanned-PDF citation and one note/email citation opens the source with the highlight visible, and a search returns clickable passages. Screenshot each.
 ```
