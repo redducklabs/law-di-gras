@@ -23,7 +23,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 7
+PIPELINE_REV = 9
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -196,11 +196,27 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     if inc:
         timeline.append(TimelineEvent(date=inc.date, label=inc.value[:80], kind="incident",
                                       is_future=_future(inc.date, today), citations=inc.citations))
-    for f in facts.get("key_dates", []):
-        if f.date:
-            fut = _future(f.date, today)
-            timeline.append(TimelineEvent(date=f.date, label=f.label, kind="deadline" if fut else "legal",
-                                          is_future=fut, citations=f.citations))
+    unconfirmed: set[int] = set()  # id() of past events the record only scheduled
+    for x, f in zip(ex.get("key_dates", []), facts.get("key_dates", [])):
+        if not f.date:
+            continue
+        fut = _future(f.date, today)
+        status = x.status or "unknown"
+        label = f.label
+        if status == "deadline":
+            label = f.label if fut else f"{f.label} (deadline passed)"
+        elif status == "adjourned":
+            label = f"Adjourned: {f.label}"
+        elif status in ("scheduled", "unknown") and fut:
+            label = f"Scheduled: {f.label}" if status == "scheduled" else f.label
+        elif status in ("scheduled", "unknown"):
+            # a notice/subpoena set this date; nothing in the record says it happened
+            label = f"Scheduled: {f.label} (no record it occurred)"
+        ev = TimelineEvent(date=f.date, label=label, kind="deadline" if fut else "legal", is_future=fut,
+                           citations=f.citations)
+        if status == "adjourned" or (status not in ("occurred", "deadline") and not fut):
+            unconfirmed.add(id(ev))
+        timeline.append(ev)
     for t in treatment:
         if t.first_visit:
             timeline.append(TimelineEvent(date=t.first_visit, label=f"Treatment starts: {t.provider}",
@@ -215,9 +231,17 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
             continue  # "Date of incident" etc. duplicates the incident marker
         if any(fuzz.token_set_ratio(u.label, e.label) >= 80 for u in same_day):
             continue
+        words = {w for w in re.findall(r"[a-z]{6,}", e.label.lower())}
+        if e.kind in ("legal", "deadline") and any(
+                u.kind in ("legal", "deadline") and words & set(re.findall(r"[a-z]{6,}", u.label.lower()))
+                for u in same_day):
+            continue  # same-day legal events sharing a key word (e.g. a limitations date logged twice)
         uniq.append(e)
 
     mark_milestones(matter_id, uniq, today)
+    for e in uniq:
+        if id(e) in unconfirmed:
+            e.major = False  # never put an unconfirmed past event on the compact strip
 
     # Actions
     actions: list[ActionItem] = st.actions_from_tasks(matter_id, today) + cal_actions

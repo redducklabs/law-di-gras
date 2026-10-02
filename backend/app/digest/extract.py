@@ -39,6 +39,7 @@ class Item(BaseModel):
     end_date: str | None = None   # YYYY-MM-DD
     party: str | None = None
     count: int | None = None
+    status: str | None = None     # key dates: occurred | scheduled | adjourned | deadline | unknown
     evidence: list[Evidence]
 
 
@@ -108,7 +109,13 @@ CATEGORIES = [
         "important upcoming deadline",
     ], "Extract key legal and case dates: label=what the date is (e.g. 'Statute of limitations', 'Demand "
        "sent', 'Deposition'), date=the date, value=one-line description. Only dates that are explicitly "
-       "stated. Skip the incident date itself, treatment visit dates, and routine internal task due dates."),
+       "stated. Skip the incident date itself, treatment visit dates, and routine internal task due dates. "
+       "Set status from the quoted wording itself: 'occurred' only if the passage says it happened (was held, "
+       "was taken, was filed, was sent, attended); 'scheduled' if the passage only schedules, notices, "
+       "subpoenas, commands or sets it; 'adjourned' if it was adjourned, cancelled or postponed; 'unknown' "
+       "otherwise. A notice or subpoena dated earlier that sets a later date is 'scheduled', never 'occurred'. "
+       "Use 'deadline' for a limit or due date (statute of limitations, notice-of-claim period, discovery "
+       "cutoff, response due), which neither occurs nor is scheduled."),
     Category("requests", [
         "waiting on records or bills from provider",
         "requested medical records and billing, follow up",
@@ -150,6 +157,7 @@ class Extracted:
     party: str | None
     count: int | None
     citations: list[Citation] = field(default_factory=list)
+    status: str | None = None
 
     @property
     def verified(self) -> bool:
@@ -219,7 +227,7 @@ def _run(matter_id: str, cat: Category, base: list[Hit]) -> list[Extracted]:
                     cits.append(c)
             cits.sort(key=lambda c: (not c.verified, not c.rects))  # highlightable scans first
             results.append(Extracted(cat.key, it.label.strip(), it.value.strip(), it.amount, it.date,
-                                     it.end_date, it.party, it.count, cits))
+                                     it.end_date, it.party, it.count, cits, (it.status or "").lower() or None))
     return results
 
 
