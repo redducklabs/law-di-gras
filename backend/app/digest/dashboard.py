@@ -10,6 +10,7 @@ from datetime import date, datetime, timezone
 
 from rapidfuzz import fuzz
 
+from app.config import CASE_VALUE_MULTIPLIER_HIGH, CASE_VALUE_MULTIPLIER_LOW
 from app.db import connect
 from app.digest import structured as st
 from app.digest.brief import write_brief
@@ -22,7 +23,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 6
+PIPELINE_REV = 7
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -41,7 +42,7 @@ def input_hash(matter_id: str) -> str:
     with connect() as conn:
         rows = conn.execute("SELECT id, content_hash FROM sources WHERE matter_id = ? ORDER BY id",
                             (matter_id,)).fetchall()
-    h = hashlib.sha256(PIPELINE_VERSION.encode())
+    h = hashlib.sha256(f"{PIPELINE_VERSION}|value:{VALUE_LOW_X:g}-{VALUE_HIGH_X:g}".encode())
     for r in rows:
         h.update(f"{r[0]}={r[1]};".encode())
     return f"r{PIPELINE_REV}:{h.hexdigest()}"
@@ -75,7 +76,7 @@ def _name_sim(a: str, b: str) -> float:
     return max(fuzz.token_set_ratio(a, b), fuzz.partial_ratio(a.lower(), b.lower()))
 
 
-VALUE_LOW_X, VALUE_HIGH_X = 1.5, 3.0
+VALUE_LOW_X, VALUE_HIGH_X = CASE_VALUE_MULTIPLIER_LOW, CASE_VALUE_MULTIPLIER_HIGH  # firm setting (.env)
 _LIABILITY = re.compile(r"liabil|bodily|(?<![a-z])bi(?![a-z])", re.I)
 _UNCAPPED = re.compile(r"self[- ]insured|no stated limit|unlimited", re.I)
 
@@ -93,7 +94,7 @@ def value_range(specials: Fact | None, coverage: list[Fact], liens: list[Fact]) 
     low, high = _round5k(VALUE_LOW_X * s_amt), _round5k(VALUE_HIGH_X * s_amt)
     liab = [c for c in coverage if c.verified and _LIABILITY.search(c.label)]
     uncapped = [c for c in liab if _UNCAPPED.search(c.value) or c.amount is None]
-    notes = [f"Rule: {VALUE_LOW_X:g}x-{VALUE_HIGH_X:g}x billed specials (${s_amt:,.0f})"]
+    notes = [f"Firm rule (configurable): {VALUE_LOW_X:g}x–{VALUE_HIGH_X:g}x billed specials (${s_amt:,.0f})"]
     if liab and not uncapped:
         cap = sum(c.amount for c in liab)
         if high > cap:
