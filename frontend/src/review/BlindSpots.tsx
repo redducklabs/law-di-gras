@@ -1,6 +1,7 @@
 import { useState } from 'react'
-import type { CaseReview, Citation, ReviewCategory, ReviewFinding } from '../api/types'
-import { Badge, Card, SourceChips, fmtDate, type Tone } from '../components'
+import type { AuditFlag, AuditReport, CaseReview, Citation, ReviewCategory, ReviewFinding } from '../api/types'
+import { Badge, Card, ProgressBar, SourceChips, fmtDate, pctOf, type Tone } from '../components'
+import { useReviewAudit } from './hooks'
 
 const CATEGORY: Record<ReviewCategory, { label: string; tone: Tone }> = {
   conflict: { label: 'Conflict', tone: 'danger' },
@@ -36,13 +37,18 @@ export function BlindSpots({ review, onOpenSource, loading = false, onRun, colla
   const [open, setOpen] = useState(false)
   const findings = review?.findings ?? []
   const high = findings.filter(f => f.severity === 'high').length
+  const run = review?.run ?? null
+  const running = run?.status === 'running' || run?.status === 'queued'
+  const audit = useReviewAudit(review?.matter_id, findings.length ? review?.generated_at : undefined)
+  const flagsFor = (id: string) => (audit?.run.status === 'done' ? audit.flags.filter(f => f.item_id === id) : [])
   const shown = expanded ? findings : findings.slice(0, VISIBLE)
 
   const badges = (
     <div className="flex flex-wrap items-center gap-1.5">
       {high > 0 && <Badge tone="danger">{high} high</Badge>}
       {findings.length > 0 && <Badge tone="brand">{findings.length} found</Badge>}
-      {loading && !findings.length && <Badge>Reviewing…</Badge>}
+      {running && run && <Badge tone="brand">Reviewing · {pctOf(run)}%</Badge>}
+      {findings.length > 0 && !running && <AuditBadge audit={audit} />}
       <Badge>AI file review · draft</Badge>
     </div>
   )
@@ -54,19 +60,30 @@ export function BlindSpots({ review, onOpenSource, loading = false, onRun, colla
         Each point is checked against the quoted record.
       </p>
 
-      {loading && !findings.length && (
-        <div className="space-y-2">
-          {[0, 1, 2].map(i => <div key={i} className="h-20 animate-pulse rounded-lg bg-slate-100" />)}
-          <div className="text-center text-[12px] text-slate-400">Reviewing the whole file… this takes 2–4 minutes.</div>
+      {run && (running || run.status === 'failed') && (
+        <div className="mb-3 rounded-lg border border-line-soft bg-page/60 px-3 py-2.5">
+          <ProgressBar progress={run} />
+          <div className="mt-1 text-[11px] text-slate-400">
+            {running
+              ? `A new whole-file review is running (usually 6–8 minutes).${findings.length ? ' The previous findings stay below until it finishes.' : ''}`
+              : 'The previous review is kept.'}
+          </div>
         </div>
       )}
 
-      {!loading && !findings.length && (
+      {(loading || running) && !findings.length && (
+        <div className="space-y-2">
+          {[0, 1, 2].map(i => <div key={i} className="h-20 animate-pulse rounded-lg bg-slate-100" />)}
+          {!running && <div className="text-center text-[12px] text-slate-400">Loading the file review…</div>}
+        </div>
+      )}
+
+      {!loading && !running && !findings.length && (
         <div className="rounded-lg bg-slate-50 px-4 py-6 text-center text-[13px] text-slate-500">
           {review ? 'The review found nothing the dashboard does not already show.' : 'No file review yet.'}
           {onRun && (
             <div className="mt-3">
-              <button type="button" onClick={onRun}
+              <button type="button" onClick={() => onRun()}
                 className="cursor-pointer rounded-lg bg-brand-700 px-3 py-1.5 text-[12.5px] font-semibold text-white hover:bg-brand-800">
                 Run file review
               </button>
@@ -77,7 +94,7 @@ export function BlindSpots({ review, onOpenSource, loading = false, onRun, colla
 
       {findings.length > 0 && (
         <ol className="space-y-2.5">
-          {shown.map(f => <Finding key={f.id} f={f} onOpenSource={onOpenSource} />)}
+          {shown.map(f => <Finding key={f.id} f={f} flags={flagsFor(f.id)} onOpenSource={onOpenSource} />)}
         </ol>
       )}
 
@@ -129,7 +146,7 @@ function Chevron({ open }: { open: boolean }) {
   )
 }
 
-function Finding({ f, onOpenSource }: { f: ReviewFinding; onOpenSource?: (c: Citation) => void }) {
+function Finding({ f, flags, onOpenSource }: { f: ReviewFinding; flags: AuditFlag[]; onOpenSource?: (c: Citation) => void }) {
   const cat = CATEGORY[f.category]
   const sev = SEV[f.severity]
   return (
@@ -147,6 +164,12 @@ function Finding({ f, onOpenSource }: { f: ReviewFinding; onOpenSource?: (c: Cit
         <span><span className="font-semibold">Next step: </span>{f.suggested_next_step}</span>
       </div>
       <div className="mt-2"><SourceChips citations={f.citations} onOpen={onOpenSource} max={3} /></div>
+      {flags.map((fl, i) => (
+        <div key={i} className="mt-2 rounded-md border border-dashed border-warn-600/60 bg-warn-50 px-2.5 py-1.5 text-[12.5px] text-warn-700">
+          <span className="font-semibold">Audit flag{fl.severity === 'minor' ? '' : ` (${fl.severity})`}: </span>{fl.note}
+          {fl.citations.length > 0 && <div className="mt-1"><SourceChips citations={fl.citations} onOpen={onOpenSource} max={2} /></div>}
+        </div>
+      ))}
     </li>
   )
 }
@@ -165,4 +188,12 @@ function ArrowIcon() {
       <path d="M2 8h11M9 4l4 4-4 4" />
     </svg>
   )
+}
+
+/** "Unaudited" until the built-in audit is done; then "Audited · N flags". Missing audit route → Unaudited. */
+function AuditBadge({ audit }: { audit: AuditReport | null }) {
+  if (!audit || audit.run.status === 'failed') return <Badge>Unaudited</Badge>
+  if (audit.run.status !== 'done') return <Badge>Audit running · {pctOf(audit.run)}%</Badge>
+  const n = audit.flags.length
+  return <Badge tone={n ? 'warn' : 'ok'}>Audited · {n} flag{n === 1 ? '' : 's'}</Badge>
 }
