@@ -34,7 +34,7 @@ export function PdfView({ source, citation }: { source: SourceDetail; citation: 
   const box = useRef<HTMLDivElement>(null)
   const firstMark = useRef<HTMLDivElement>(null)
 
-  useEffect(() => setPage(startPage), [startPage, source.id])
+  useEffect(() => { setPage(startPage); setRendered(null); setRenderFailed(null) }, [startPage, source.id])
 
   useLayoutEffect(() => {
     const el = box.current
@@ -125,7 +125,12 @@ export function PdfView({ source, citation }: { source: SourceDetail; citation: 
                 <Page pageNumber={page} width={width} renderTextLayer={false} renderAnnotationLayer={false}
                   onRenderSuccess={onRendered} onRenderError={onRenderError}
                   loading={<div style={{ height: width * 1.29 }} className="px-4"><Spinner label={`Rendering page ${page}…`} /></div>} />
-                {rects.map((r, i) => (
+                {rendered !== page && (
+                  <div className="absolute inset-0 flex items-start justify-center bg-white pt-24">
+                    <Spinner label={`Rendering page ${page}…`} />
+                  </div>
+                )}
+                {rendered === page && rects.map((r, i) => (
                   <div key={i} ref={i === 0 ? firstMark : undefined}
                     className={`pointer-events-none absolute rounded-[2px] mix-blend-multiply ${citation.verified ? 'bg-yellow-300/55 ring-1 ring-yellow-500/50' : 'bg-amber-300/40 ring-1 ring-dashed ring-warn-600'}`}
                     style={{
