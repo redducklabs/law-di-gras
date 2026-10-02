@@ -42,17 +42,17 @@ def main_env() -> dict:
 
 # ---------- narration ----------
 SEGMENTS = [
-    ("cases", "A personal-injury file is thousands of pages. Clio captures it; nobody has time to digest it. "
-              "Every matter here is read live from Clio, read-only, and sorted by what needs you first."),
-    ("brief", "Open a case, and it reads in ninety seconds: where it stands, what's next, "
-              "and the timeline lawyers asked for, with medical, legal and deadlines in their own lanes."),
+    ("cases", "A personal-injury file is thousands of pages. Every matter here is read live from Clio, read-only, "
+              "and sorted by what needs you first."),
+    ("brief", "Open a case and it reads in ninety seconds: where it stands, what's next, "
+              "and a timeline with medical, legal and deadlines in their own lanes."),
     ("source", "Every fact links to its source. Click it, and the page opens with the exact quote highlighted. "
                "If it isn't in the record, it isn't on screen."),
     ("conflict", "When the file contradicts itself, like Metro-North's coverage, we show both sides and their sources "
                  "instead of guessing."),
     ("blind", "Then the part nobody has time for. An agent reads the whole file for what a page-by-page review misses. "
               "Here, the defense says it annexed Metro-North's incident report, while our own follow-up says it isn't in their response."),
-    ("audit", "And every run is audited automatically: quotes, numbers, overstatement and contradictions are checked, "
+    ("audit", "And every run is audited automatically. Quotes, numbers and overstatements are checked, "
               "and anything doubtful is flagged, not stated as fact."),
     ("next", "What's overdue and who we're waiting on, with a cited follow-up drafted in one click."),
     ("chat", "Ask anything. Answers come only from the record, with sources, and take you to the right place."),
@@ -125,6 +125,8 @@ class Stage:
 
     def move(self, loc, click=False, pause=0.35):
         loc.scroll_into_view_if_needed(timeout=8000)
+        loc.evaluate("e => { const r = e.getBoundingClientRect(); if (r.top < 90 || r.bottom > innerHeight - 170) e.scrollIntoView({block: 'center', behavior: 'smooth'}) }")
+        time.sleep(0.45)
         b = loc.bounding_box()
         if not b:
             return
@@ -150,6 +152,18 @@ class Stage:
 
 
 # ---------- the demo path ----------
+def close_all(s: Stage):
+    """Close any open drawer / chat panel (visible Close buttons only)."""
+    for _ in range(3):
+        btns = [b for b in s.page.get_by_role("button", name="Close").all() if b.is_visible()]
+        if not btns:
+            return
+        try:
+            s.move(btns[0], click=True, pause=0.4)
+        except Exception:
+            s.page.keyboard.press("Escape")
+
+
 def run_segment(s: Stage, key: str, ctx) -> None:
     p = s.page
     if key == "cases":
@@ -171,10 +185,8 @@ def run_segment(s: Stage, key: str, ctx) -> None:
         s.move(chip, click=True, pause=1.5)
         p.wait_for_timeout(2500)
     elif key == "conflict":
-        close = p.get_by_role("button", name="Close").first
-        if close.is_visible():
-            s.move(close, click=True)
-        hit = p.get_by_text(re.compile(r"Metro-North: Conflict|Conflict", re.I)).first
+        close_all(s)
+        hit = p.locator("#status li", has_text="Conflict").first
         if hit.count():
             s.move(hit)
     elif key == "blind":
@@ -185,9 +197,7 @@ def run_segment(s: Stage, key: str, ctx) -> None:
             s.move(chip, click=True, pause=1.5)
             p.wait_for_timeout(2000)
     elif key == "audit":
-        close = p.get_by_role("button", name="Close").first
-        if close.is_visible():
-            s.move(close, click=True)
+        close_all(s)
         badge = p.get_by_text(re.compile(r"Audited|Audit running", re.I)).first
         if badge.count():
             s.page.evaluate("window.scrollTo({top:0,behavior:'smooth'})"); time.sleep(0.6)
@@ -197,13 +207,11 @@ def run_segment(s: Stage, key: str, ctx) -> None:
             s.move(flag)
     elif key == "next":
         s.scroll_to("#next-steps")
-        btn = p.get_by_role("button", name=re.compile("Draft", re.I)).first
+        btn = p.locator("#next-steps").get_by_role("button", name=re.compile("Draft", re.I)).first
         s.move(btn, click=True, pause=1.2)
         p.wait_for_timeout(1500)
     elif key == "chat":
-        close = p.get_by_role("button", name="Close").first
-        if close.is_visible():
-            s.move(close, click=True)
+        close_all(s)
         s.move(p.get_by_role("button", name="Ask the case"), click=True, pause=0.6)
         box = p.get_by_placeholder(re.compile("Ask about this case"))
         s.move(box, click=True)
@@ -214,9 +222,7 @@ def run_segment(s: Stage, key: str, ctx) -> None:
         link = p.locator("aside[aria-label='Ask the case'] button:has-text('→')").first
         s.move(link, click=True, pause=1.2)
     elif key == "share":
-        close = p.locator("aside[aria-label='Ask the case']").get_by_role("button", name="Close")
-        if close.is_visible():
-            s.move(close, click=True)
+        close_all(s)
         p.evaluate("window.scrollTo({top:0,behavior:'smooth'})"); time.sleep(0.6)
         s.move(p.get_by_role("button", name="Share with provider").first, click=True, pause=1.5)
         link = p.locator("[aria-label='Share with provider'] a[href*='/p/']").first
