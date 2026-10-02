@@ -26,7 +26,7 @@ from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, Timel
 
 # Bump PIPELINE_REV on every change that alters the Dashboard. A server never overwrites a dashboard
 # cached by a newer rev (a stale server that missed a pull serves it as-is instead).
-PIPELINE_REV = 23
+PIPELINE_REV = 25
 PIPELINE_VERSION = f"r{PIPELINE_REV}-{PROMPT_VERSION}"
 
 
@@ -160,7 +160,7 @@ def _complaint_filed_before(matter_id: str, deadline: str):
                                     locate(conn, h.source_id, rec.group(0), h.page_no) if rec else None]
                         if c and c.verified]
                 what = "action recommenced (CPLR 205)" if rec and "205" in rec.group(0) else "complaint filed"
-                page = f", p.{h.page_no}" if h.page_no else ""
+                page = ""
                 best = (score, (f"{what}{page}, filed {filed}", cits))
     return best[1] if best and best[1][1] else None
 
@@ -480,7 +480,20 @@ def build(matter_id: str, force: bool = False, store: bool = True) -> Dashboard:
     hl = [status_fact] + headline.bullets
     for f, (v, cit) in zip(hl, check_statements(matter_id, [(f.value, f.citations) for f in hl],
                                                 purpose="record_check_headline")):
-        _apply_finding(f, v, cit, bullet=True)
+        if f is status_fact or "conflict" in f.value.lower():
+            continue
+        bullet_srcs = {c.source_id for c in f.citations}
+        tile = next((c for c in facts.get("coverage", []) + facts.get("liens", [])
+                     if c.value.startswith("Conflict:") and bullet_srcs & {x.source_id for x in c.citations}), None)
+        if not tile and (v.verdict != "contradicted" or cit is None):
+            continue
+        if tile:  # a bullet drawing on a source behind a Conflict tile must carry that conflict, in its words
+            f.value = f"{f.value.rstrip('.')}. {tile.value}"
+            f.citations = list(f.citations) + [c for c in tile.citations if c not in f.citations]
+        else:
+            when = f", {cit.date[:10]}" if cit.date else ""
+            f.value = f"{f.value.rstrip('.')}. (Conflict: {cit.source_title[:60]}{when} states \"{cit.quote[:140].strip()}\")"
+            f.citations = list(f.citations) + [cit]
     if adverse:  # a status line naming one adverse party must name all of them
         names = [p.split(" (")[0] for p in adverse.value.split("; ")]
         def _named(n: str) -> bool:

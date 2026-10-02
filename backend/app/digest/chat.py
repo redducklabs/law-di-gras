@@ -24,7 +24,7 @@ from app.retrieval.fence import FENCE_RULE, fence
 from app.retrieval.search import search
 from app.schemas import ChatRequest, ChatResponse, Citation, Dashboard, DeepLink
 
-VERSION = "ch6"
+VERSION = "ch7"
 SECTIONS = {"timeline", "next-steps", "status", "kpis", "injuries", "treatment", "recent"}
 ROUTES = {"/cases"}
 MAX_LINKS = 3
@@ -63,7 +63,9 @@ SYSTEM = (
     "is not an event that happened: say 'scheduled for'. A 'Calendar:' entry is only the firm's calendar; if "
     "other evidence shows the event was performed (operative record, bill), say it was performed. For "
     "coverage, limits and case value, state them exactly as the 'Dashboard KPI' evidence does, including any "
-    "Conflict wording. Every sentence must stand alone: name its source instead of 'the same note'. Present "
+    "Conflict wording, and attribute each policy to its holder exactly as the KPI label does. Never cite 'the "
+    "dashboard' or 'the timeline' as a source: name the underlying record (note, email, document). Every "
+    "sentence must stand alone: name its source instead of 'the same note'. Present "
     "an older note's status as of its date. Direct, concise, professional; markdown lists allowed. "
     + FENCE_RULE
 )

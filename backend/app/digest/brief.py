@@ -21,7 +21,7 @@ from app.llm import MODEL_OPUS, structured
 from app.retrieval.fence import FENCE_RULE
 from app.schemas import ActionItem, Citation, Fact, Headline
 
-VERSION = "b6"
+VERSION = "b7"
 
 
 class Bullet(BaseModel):
@@ -44,6 +44,8 @@ SYSTEM = (
     "defense IME / defense expert opinion explicitly (e.g. 'defense radiology review says ...'); never blend "
     "it into the client's findings. Where a fact is marked Conflict or carries a caveat, keep that visible. "
     "When the status line names who the case is against, name every defendant the facts name. "
+    "A defense opinion covers only the body part and side it addresses: name it ('defense review, left "
+    "knee: ...') and never let it read as covering other injuries in the same sentence. "
     + FENCE_RULE
 )
 
