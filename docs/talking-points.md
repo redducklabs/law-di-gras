@@ -5,6 +5,7 @@
 - **The problem.** A PI file is thousands of entries. Attorneys asked for "the 10 that matter out of 300", what changed, and what's stuck, at a glance. Providers treating on a lien have no visibility at all.
 - **Our bet: trust, not more widgets.** In law, one wrong cite costs credibility in front of a judge. Nothing reaches the screen unless its quote is found verbatim in the Clio record, one click from the highlighted page.
 - **Real data.** Sapini is pulled live from Clio through a GET-only client and never written back. It's digested once into our own cache so it opens fast. No case content is hardcoded.
+  - ***A production version of this would be using webhooks to receive live updates from Clio***
 
 ## Play the video (88 s)
 
