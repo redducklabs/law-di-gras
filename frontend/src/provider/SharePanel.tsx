@@ -31,7 +31,7 @@ function Toggle({ on, onChange, label }: { on: boolean; onChange: (v: boolean) =
 export default function SharePanel({ matterId, open, onClose }: { matterId: string; open: boolean; onClose: () => void }) {
   const { providers, error: provError } = useProviders(matterId, open)
   const [contactId, setContactId] = useState<string | null>(null)
-  const { settings, documents, preview, saving, error, save } = useShare(matterId, contactId)
+  const { settings, documents, preview, saving, error, save } = useShare(matterId, open ? contactId : null) // reloads settings + preview on every open
   const [copied, setCopied] = useState(false)
   const [doc, setDoc] = useState<OpenedDoc | null>(null)
 
