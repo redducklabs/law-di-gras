@@ -9,6 +9,10 @@ run `POST /api/matters/1811191943/digest` once so every click is served from
 cache; browser at 1440x900, zoom 100%, no other tabs; open one chip and one
 draft once beforehand so PDFs and drafts are warm.
 
+**Accuracy gate (blocker):** after the final re-digest, run
+`cd backend; uv run python -m app.audit --checks 1,2,3,5,6` (about $0.75, 3–4 min).
+Any critical finding blocks recording until fixed or the item is cut from the video.
+
 | Time | On screen | Say |
 |---|---|---|
 | 0:00–0:08 | Firm Case Brief loads | "A PI file is thousands of pages. Clio captures it; nobody digests it. This is Sapini, live from Clio." |
