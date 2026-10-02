@@ -166,6 +166,23 @@ sum correctly while still flagging them. Raw output is in
 | minor | Recent "notice dated March 24 / February 4" | These are NYSCEF filing dates; the notices carry no date of their own. Say "filed". | S2 |
 | minor | Recent: "CSB sent Katzman review" (9/22) and "Defense counsel served Katzman report" (2/4) | The same report appears twice, from two transmittals. | S2 |
 
+## Check 7: ask-the-case chat (S2 /chat, 7 questions incl. 1 follow-up and 1 trick)
+
+Run: `uv run python -m app.audit --checks 7 --suffix=-chat` ($0.23). Full Q&A
+transcript: [auto-report-chat.md](auto-report-chat.md). Every citation span is
+verbatim, every [n] marker is in range, and every deeplink is valid (sections,
+sources, timeline dates, share targets).
+
+| Sev | Question | Answer text | What's wrong | Owner |
+|---|---|---|---|---|
+| **critical** | "What are the client's injuries, and which ones does the defense dispute?" | "The evidence does not say which specific injuries the defense disputes." / "The evidence does not contain any IME findings." | False. The record has the Hostin ortho IME (sprains resolved), the Tsao neuro IME ("objectively resolved") and the Katzman radiology review ("no evidence…"), and the dashboard's own injury cards quote them. Retrieval missed the expert reports, so the answer reports their absence as fact. Fix: add the expert reports and the dashboard injury facts to chat evidence for injury questions, and stop "the evidence does not contain X" claims unless retrieval actually covered X. | S2 |
+| major | same | "A left shoulder arthroscopy is on the calendar for 2023-07-26" | It was performed (New Horizon op record, bill). Saying "on the calendar" undersells the main surgery in the case. | S2 |
+| major | "What insurance coverage is available…?" | "Practical read: Recovery is capped at $100,000 unless the case reaches a second defendant" [Weiler 9/9 note] | This contradicts the dashboard KPI ("no cap while Metro-North remains liable"). Chat and dashboard must not disagree on coverage in front of judges. This is the same B conflict; resolve it in one place. | S2 |
+| minor | follow-up "Is the $100k/$300k Ferrara's or Metro-North's?" | starts "The same note says…" | Dangling reference with no antecedent in this answer. Otherwise good: it surfaces the conflict with both cites. | S2 |
+| minor | "What is overdue…?" / Pullano | "scope-of-employment disclosure and Pullano deposition… remain an open action" | Presents a 2026-03-06 note's status as current. | S2 |
+
+Done well: the trick question ("our summary judgment motion") correctly says there is none in the record and distinguishes the prior cross-motion dismissal. The Pullano answer is hedged correctly ("no record it happened"). Last client contact matches the record.
+
 ## Status
 
 - [x] Checks 1–6 run on the current cached dashboard.

@@ -1,0 +1,92 @@
+[
+ {
+  "check": "7-chat",
+  "severity": "critical",
+  "item": "chat: What are the client's injuries, and which ones does the defe",
+  "on_screen": "A left shoulder arthroscopy is on the calendar for 2023-07-26 at New Horizon Surgical Center [4].",
+  "quote": "",
+  "problem": "tense_wrong: The surgery date 2023-07-26 is long past, and the operative report shows the arthroscopy was performed. It is not upcoming.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "critical",
+  "item": "chat: What are the client's injuries, and which ones does the defe",
+  "on_screen": "The evidence does not say which specific injuries the defense disputes.",
+  "quote": "",
+  "problem": "contradicted: The record does identify disputed matters: the answer's affirmative defenses, the serious injury objection, and the IME reports finding all sprains resolved and no traumatic brain injury evidence. The claim that the evidence is silent is wrong.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "critical",
+  "item": "chat: What are the client's injuries, and which ones does the defe",
+  "on_screen": "Orthopedic and neurological IMEs are on the calendar for 2026-09-02 and 2026-09-07 [7][8].",
+  "quote": "",
+  "problem": "tense_wrong: The calendar entries show the IMEs scheduled for 9/2 and 9/7, but both are past as of 2026-10-02, and the notes and task show they were attended. The sentence frames them as upcoming.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "critical",
+  "item": "chat: What are the client's injuries, and which ones does the defe",
+  "on_screen": "The evidence does not contain any IME findings.",
+  "quote": "",
+  "problem": "contradicted: The record contains the Hostin and Tsao IME reports with findings, e.g. diagnoses of resolved sprains and normal brain MRI.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "minor",
+  "item": "chat: And is the $100k/$300k Ferrara's policy or Metro-North's?",
+  "on_screen": "Claims Service Bureau, which administers Metro-North's claims, wrote on 2026-09-08 confirming \"the coverage position on this file\": bodily injury liability limits of $100,000 per person and $300,000 per occurrence, with no excess or umbrella coverage disclosed. [1][2]",
+  "quote": "",
+  "problem": "partly: The 2026-09-08 email confirms the limits and no excess or umbrella coverage. However, cited note [1] does not support the claim that CSB administers Metro-North's claims for this sentence's quote context\u2014actually it does say claims are administered by CSB. The 'on this file' quote is accurate. Minor issue: the email doesn't tie the limits to Metro-North, but the sentence doesn't claim that.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "minor",
+  "item": "chat: And is the $100k/$300k Ferrara's policy or Metro-North's?",
+  "on_screen": "The file itself flags this as a conflict: self-insured with no stated limit versus $100,000 / $300,000 per Claims Service Bureau. [3]",
+  "quote": "",
+  "problem": "partly: The file shows both positions: the 2023 notes say self-insured with no stated ceiling, and CSB's 2026 email gives $100k/$300k. But no passage flags this as a conflict; the 'file itself flags' framing is the author's inference. Also the note says Ferrara personally carries $100k/$300k.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "minor",
+  "item": "chat: Did the Pullano deposition happen?",
+  "on_screen": "The timeline lists the Pullano deposition as *scheduled* for 2025-12-08, with no record it occurred. [2]",
+  "quote": "",
+  "problem": "partly: The subpoena supports the Dec 8, 2025 date. The reference to 'the timeline' is not shown in the passages. 'No record it occurred' is consistent with the file and the March 2026 note, which lists the deposition as outstanding.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "minor",
+  "item": "chat: Did the Pullano deposition happen?",
+  "on_screen": "The Metro-North scope-of-employment disclosure and the Pullano deposition remain an open action, status waiting, on Defendants (Metro-North). [3]",
+  "quote": "",
+  "problem": "partly: The 2026-03-06 note lists both items as outstanding on the defense side. 'Remain... status waiting' presents a March 2026 status as current; later notes do not confirm it. The 'action, status waiting' wording is not in the source.",
+  "owner": "S2",
+  "extra": {}
+ },
+ {
+  "check": "7-chat",
+  "severity": "minor",
+  "item": "chat: What are the client's injuries, and which ones does the defe",
+  "on_screen": "Liability is contested, and comparative negligence, assumption of risk and a seatbelt defence are to be anticipated. [5]",
+  "quote": "",
+  "problem": "partly: Liability contested and anticipated defenses are supported by the 9/15/2026 note. But the defenses are already pleaded in the answer and bill of particulars, so 'to be anticipated' understates their status.",
+  "owner": "S2",
+  "extra": {}
+ }
+]

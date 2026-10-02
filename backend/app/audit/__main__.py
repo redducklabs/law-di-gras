@@ -10,7 +10,7 @@ from dataclasses import asdict
 from datetime import datetime, timezone
 
 from app import config
-from app.audit import checks, ingest_check, record_check
+from app.audit import chat_check, checks, ingest_check, record_check
 from app.audit.items import flatten, load_dashboard
 from app.db import connect
 
@@ -25,6 +25,7 @@ TITLES = {
     "4-ocr": "Check 4b. OCR quality on scanned pages",
     "5-timeline": "Check 5. Timeline semantics",
     "6-provider": "Check 6. Provider views",
+    "7-chat": "Check 7. Ask-the-case chat",
 }
 
 
@@ -60,6 +61,7 @@ def main() -> None:
     ap.add_argument("--checks", default="1,2,3,4,5,6")
     ap.add_argument("--no-llm", action="store_true")
     ap.add_argument("--no-clio", action="store_true")
+    ap.add_argument("--suffix", default="", help="write auto-report<suffix>.md")
     ap.add_argument("--ocr", action="store_true", help="vision-transcribe the OCR pages (~$0.15)")
     a = ap.parse_args()
     want = set(a.checks.split(","))
@@ -80,6 +82,13 @@ def main() -> None:
         findings += f
         extras["2-record"] = "Every claim checked against the whole record:" + chr(10) + chr(10) + table(rows)
         print("check 2 done")
+    if "7" in want and not a.no_llm:
+        f, tr = chat_check.chat_audit(mid)
+        findings += f
+        extras["7-chat"] = chr(10).join(f"**Q:** {t['question']}" + chr(10) + chr(10) + f"> " + t["answer"].replace(chr(10), chr(10) + "> ")
+                                        + chr(10) + chr(10) + f"Citations {t['citations']}; links: {', '.join(t['links']) or 'none'}" + chr(10)
+                                        for t in tr)
+        print("check 7 done")
     if "3" in want:
         f, t = checks.kpi_reconcile(dash, mid)
         findings += f
@@ -135,9 +144,9 @@ def main() -> None:
         if key in extras:
             md += [extras[key], ""]
     OUT_DIR.mkdir(parents=True, exist_ok=True)
-    (OUT_DIR / "auto-report.md").write_text("\n".join(md), encoding="utf-8")
-    (OUT_DIR / "auto-findings.json").write_text(json.dumps([asdict(f) for f in findings], indent=1), encoding="utf-8")
-    print(f"{counts} cost ${cost:.2f} -> {OUT_DIR / 'auto-report.md'}")
+    (OUT_DIR / f"auto-report{a.suffix}.md").write_text("\n".join(md), encoding="utf-8")
+    (OUT_DIR / f"auto-findings{a.suffix}.json").write_text(json.dumps([asdict(f) for f in findings], indent=1), encoding="utf-8")
+    print(f"{counts} cost ${cost:.2f} -> {OUT_DIR / f"auto-report{a.suffix}.md"}")
 
 
 if __name__ == "__main__":
