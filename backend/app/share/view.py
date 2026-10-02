@@ -142,9 +142,13 @@ def _provider_treatment(dash: Dashboard, provider: Provider) -> list[TreatmentLi
 
 
 def _provider_requests(dash: Dashboard, provider: Provider) -> list[ActionItem]:
-    """Open items waiting on this provider, or naming them in the title."""
-    return [a for a in dash.actions
-            if matches_provider(provider, a.waiting_on) or matches_provider(provider, a.title)]
+    """Only items explicitly waiting on this provider; internal firm tasks never qualify."""
+    return [a for a in dash.actions if matches_provider(provider, a.waiting_on)]
+
+
+def _provider_liens(dash: Dashboard, provider: Provider) -> list[Fact]:
+    return [f for f in (dash.kpis.liens or [])
+            if matches_provider(provider, f.label)]  # lien holder name only
 
 
 def _last_activity(matter_id: str) -> str | None:
@@ -205,6 +209,7 @@ def build_view(matter_id: str, provider: Provider, s: ShareSettings) -> Provider
     view.coverage = [] if sec.coverage else None
     view.requests = [] if sec.requests else None
     view.treatment = [] if sec.treatment else None
+    view.liens = [] if sec.treatment else None
     view.timeline = [] if sec.timeline else None
     if dash:
         if sec.coverage:
@@ -217,6 +222,7 @@ def build_view(matter_id: str, provider: Provider, s: ShareSettings) -> Provider
                 "citations": _keep_citations(t.citations, allowed),
                 "billed": _fact(t.billed, allowed) if t.billed else None,
             }) for t in _provider_treatment(dash, provider)]
+            view.liens = [_fact(f, allowed) for f in _provider_liens(dash, provider)]
         if sec.timeline:
             view.timeline = [
                 TimelineEvent(date=e.date, label=e.label, kind=e.kind, is_future=e.is_future,

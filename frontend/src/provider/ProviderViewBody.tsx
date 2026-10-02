@@ -165,6 +165,20 @@ export default function ProviderViewBody({ view, onOpenDoc, compact }: { view: P
       {view.treatment && (
         <Section title="Your patient's visits and bills" hint="As recorded on the firm's file">
           <Treatment lines={view.treatment} onOpenDoc={onOpenDoc} />
+          {!!view.liens?.length && (
+            <ul className="mt-4 space-y-2 border-t border-slate-100 pt-4">
+              {view.liens.map((f) => (
+                <li key={f.id} className="flex flex-wrap items-baseline justify-between gap-2">
+                  <span className="text-sm text-slate-600">Your lien on file · {f.label}</span>
+                  <span className="text-base font-semibold text-slate-900">
+                    {f.value}
+                    {!f.verified && <span className="ml-2 rounded bg-amber-50 px-1.5 py-0.5 text-xs font-normal text-amber-700">unverified</span>}
+                    <Chips cits={f.citations} onOpenDoc={onOpenDoc} />
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </Section>
       )}
 

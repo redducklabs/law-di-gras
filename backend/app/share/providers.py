@@ -28,22 +28,37 @@ def _has_medical_word(text: str) -> bool:
     return any(r.search(t) for r in _word_re.values())
 
 
+# Words too common in provider/insurer names to identify anyone on their own.
+GENERIC_TOKENS = {
+    "dr", "md", "do", "dc", "pc", "llc", "inc", "pllc", "llp", "the", "of", "and", "mr", "ms", "mrs",
+    "new", "york", "state", "county", "city", "north", "south", "east", "west",
+    "medical", "medicine", "center", "centre", "services", "associates", "offices", "office", "group",
+    "physical", "therapy", "surgical", "surgery", "health", "care", "hospital", "clinic", "practice",
+}
+
+
 def norm_name(name: str) -> str:
-    t = re.sub(r"[^a-z0-9 ]", " ", (name or "").lower())
-    t = re.sub(r"\b(dr|md|do|dc|pc|llc|inc|pllc|the|of|and)\b", " ", t)
+    t = (name or "").lower().replace(".", "")
+    t = re.sub(r"[^a-z0-9 ]", " ", t)
     return " ".join(t.split())
 
 
+def _distinct(n: str) -> set[str]:
+    return {w for w in n.split() if len(w) > 1 and w not in GENERIC_TOKENS}
+
+
 def names_match(a: str, b: str) -> bool:
-    """Loose match between a contact name and a provider name from the digest."""
+    """Loose match between two names: whole-name containment, or shared distinctive words."""
     na, nb = norm_name(a), norm_name(b)
     if not na or not nb:
         return False
-    if na in nb or nb in na:
+    if len(min(na, nb, key=len)) > 4 and (f" {na} " in f" {nb} " or f" {nb} " in f" {na} "):
         return True
-    ta, tb = set(na.split()), set(nb.split())
+    ta, tb = _distinct(na), _distinct(nb)
+    if not ta or not tb:
+        return False
     overlap = ta & tb
-    return len(overlap) >= 2 or (len(overlap) == 1 and min(len(ta), len(tb)) == 1 and len(next(iter(overlap))) > 3)
+    return len(overlap) >= 2 or (bool(overlap) and overlap in (ta, tb) and len(next(iter(overlap))) > 3)
 
 
 def contact_key(contact_id: str | None) -> str:
