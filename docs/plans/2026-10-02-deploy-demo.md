@@ -46,15 +46,15 @@ secret list: `deploy/README.md`.
       Windows-only, so make it a platform-conditional dependency in a
       `contract:` commit to `backend/pyproject.toml`; RapidOCR stays)
 - [x] `deploy/Caddyfile`, `deploy/docker-compose.yml`, `deploy/README.md` (runbook)
-- [ ] Build the frontend locally (`npm run build`), ship `dist/` with the bundle
-- [ ] **Ask Aron** before each outward action: create Droplet (cost), add DNS
+- [x] Build the frontend locally (`npm run build`), ship `dist/` with the bundle
+- [x] **Ask Aron** before each outward action: create Droplet (cost), add DNS
       record, copy secrets, upload case data
-- [ ] `doctl` (already installed) to create the Droplet and the `demo` A record
-- [ ] rsync `deploy/`, `frontend/dist`, `backend/`, the `backend/data/` snapshot;
+- [x] `doctl` (already installed) to create the Droplet and the `demo` A record
+- [x] rsync `deploy/`, `frontend/dist`, `backend/`, the `backend/data/` snapshot;
       `docker compose up -d`
-- [ ] Verify: TLS, basic auth, brief loads, chip opens PDF with highlight,
+- [x] Verify: TLS, basic auth, brief loads, chip opens PDF with highlight,
       AI draft, share link works without auth
-- [ ] Add the URL and credentials-handling note to `docs/submission.md`
+- [x] Add the URL and credentials-handling note to `docs/submission.md`
 
 ## Session prompt
 
