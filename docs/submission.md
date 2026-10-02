@@ -111,3 +111,16 @@ audit report.
   highlight the whole passage, not the exact sentence.
 - **Nothing about the case is hardcoded.** The only Sapini reference in code is
   the default matter name to look up (`MATTER_QUERY`, env-overridable).
+
+## Hosted demo
+
+- **URL:** https://demo.redducklaw.com (TLS). Firm screens need sign-in;
+  credentials go to judges directly from Aron (submission form), never in git.
+- **Provider links** (`/p/...`) open without signing in, as a provider would
+  use them.
+- **Live from Clio:** the server holds its own read-only Clio grant (in-app
+  Connect Clio at `/api/clio`) and pulled and digested Sapini itself: 31
+  documents, 361 pages, about 10 minutes and $1.86 on a 1-vCPU Droplet. Scanned
+  pages OCR with RapidOCR on Linux.
+- **Stack:** one DigitalOcean Droplet, Docker Compose (FastAPI + Caddy),
+  deployed by GitHub Actions on every push to `main`. Runbook: `deploy/README.md`.
