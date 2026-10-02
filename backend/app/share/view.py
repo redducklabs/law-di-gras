@@ -11,6 +11,7 @@ confidential material never. Concretely:
 """
 
 import json
+import re
 import secrets
 from datetime import date, datetime, timedelta, timezone
 
@@ -144,9 +145,21 @@ def _provider_treatment(dash: Dashboard, provider: Provider) -> list[TreatmentLi
     return out
 
 
+_OWED_BY = re.compile(r"^\s*by\s+([^:]{2,80}):\s*([^\-–—(]+)?", re.I)
+
+
+def _owed_by(title: str) -> list[str]:
+    """Who owes an item, from the 'By <party>: ...' convention. Also covers
+    'By medical provider: <party> - ...' by returning the head after the colon."""
+    m = _OWED_BY.match(title or "")
+    return [g.strip() for g in m.groups() if g and g.strip()] if m else []
+
+
 def _provider_requests(dash: Dashboard, provider: Provider) -> list[ActionItem]:
-    """Only items explicitly waiting on this provider; internal firm tasks never qualify."""
-    return [a for a in dash.actions if matches_provider(provider, a.waiting_on)]
+    """Items the firm is waiting on this provider for: waiting_on, or the 'By <party>:' title
+    convention. Internal tasks that merely mention the provider never qualify."""
+    return [a for a in dash.actions
+            if matches_provider(provider, a.waiting_on) or any(matches_provider(provider, p) for p in _owed_by(a.title))]
 
 
 def _provider_liens(dash: Dashboard, provider: Provider) -> list[Fact]:

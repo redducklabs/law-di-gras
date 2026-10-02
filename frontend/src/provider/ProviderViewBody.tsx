@@ -87,17 +87,22 @@ function Stat({ label, value, sub }: { label: string; value: string; sub?: strin
   )
 }
 
+/** Treatment looks ongoing: last visit within a year. Older = likely ended; stated neutrally. */
+const ONGOING_WINDOW_DAYS = 365
+
 function Attendance({ line }: { line: TreatmentLine }) {
   const n = daysFromToday(line.last_visit)
   if (n == null) return null
   const gap = Math.max(0, -n)
-  const ok = gap <= ATTENDANCE_GAP_DAYS
+  const tone = gap <= ATTENDANCE_GAP_DAYS ? 'ok' : gap <= ONGOING_WINDOW_DAYS ? 'warn' : 'neutral'
+  const cls = { ok: 'bg-ok-50 text-ok-700', warn: 'bg-warn-50 text-warn-700', neutral: 'bg-page text-slate-600' }[tone]
+  const dot = { ok: 'bg-ok-600', warn: 'bg-warn-600', neutral: 'bg-slate-400' }[tone]
   return (
-    <div className={`mb-3 flex flex-wrap items-center gap-x-2 rounded-lg px-3 py-2 text-[13px] ${ok ? 'bg-ok-50 text-ok-700' : 'bg-warn-50 text-warn-700'}`}>
-      <span className={`h-2 w-2 shrink-0 rounded-full ${ok ? 'bg-ok-600' : 'bg-warn-600'}`} />
-      {ok
-        ? <span>Patient seen {relDays(n)} · {fmtDate(line.last_visit)}</span>
-        : <><span className="font-semibold">No visit recorded in {gap} days</span><span>· last visit {fmtDate(line.last_visit)}</span></>}
+    <div className={`mb-3 flex flex-wrap items-center gap-x-2 rounded-lg px-3 py-2 text-[13px] ${cls}`}>
+      <span className={`h-2 w-2 shrink-0 rounded-full ${dot}`} />
+      {tone === 'ok' && <span>Patient seen {relDays(n)} · {fmtDate(line.last_visit)}</span>}
+      {tone === 'warn' && <><span className="font-semibold">No visit in {gap} days</span><span>· last visit {fmtDate(line.last_visit)}</span></>}
+      {tone === 'neutral' && <span>Last visit {fmtDate(line.last_visit)} ({relDays(n)})</span>}
     </div>
   )
 }
