@@ -24,6 +24,27 @@ problem their clients would pay for.
   main stage ~7 PM. "Top 7 is won in the code. Winning is won on the stage."
 - Prizes: $2,500 / $1,500 / $1,000. We own what we build.
 
+## Links (decoded from the deck's QR codes)
+
+- Setup app (Clio seeder): https://clio-seeder-405499094876.us-central1.run.app/
+- Submission form: https://swans.fillout.com/t/1PkfYHm6P9us
+- Slides and materials: https://drive.google.com/drive/folders/1yzQE1r1N857mqK28xNeGxlcpHE_G0p2-?usp=sharing
+
+## Seeder setup (what loads Sapini)
+
+1. Create Clio Manage trial. 2. Connect Clio in the seeder. 3. **By hand in
+Clio:** add eight matter stages to the Personal Injury practice area, in order,
+spelled exactly: Intake, Treatment, Demand, Negotiation, Litigation, Trial,
+Disbursement, Closed. Then press *Check stages*. 4. *Create fields*: sixteen
+"Case Briefing" custom fields. 5. Populate the matter.
+
+Sapini matter as the seeder describes it: **Justin Sapini, stage Litigation.**
+"Still treating three years on, in suit and stuck in discovery. The second
+shoulder surgery is recommended and has no date, which is what the case is
+worth turning on." 31 documents (14 MB), 42 notes, 69 communications, 14 tasks,
+17 events, 14 case expenses. The seeder's writes are setup, not our app; our
+app never writes to Clio.
+
 ## The challenge (slide 08)
 
 Build a solution that acts as a **dashboard** to:
