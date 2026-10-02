@@ -8,14 +8,14 @@ import ProviderPage from './provider/ProviderPage'
 import SharePanel from './provider/SharePanel'
 import { SourcePane } from './source/SourcePane'
 
-type Pane = { citation: Citation | null; query: string | null }
+type Pane = { citation: Citation | null; query: string | null; from?: string | null }
 
 function Firm() {
   const [matterId, setMatterId] = useState<string | null>(null)
   const [pane, setPane] = useState<Pane | null>(null)
   const [shareOpen, setShareOpen] = useState(false)
 
-  const openCitation = (c: Citation) => setPane({ citation: c, query: null })
+  const openCitation = (c: Citation) => setPane(p => ({ citation: c, query: null, from: p?.query ?? p?.from ?? null }))
   const track = (d: Dashboard) => setMatterId(d.matter.id)
 
   return (
@@ -28,6 +28,7 @@ function Firm() {
       <Drawer
         open={!!pane}
         onClose={() => setPane(null)}
+        width={pane?.citation?.source_kind === 'document' ? 760 : 560}
         title={pane?.citation ? chipLabel(pane.citation) : 'Find in case'}
         subtitle={pane?.query ?? undefined}
       >
@@ -37,6 +38,7 @@ function Firm() {
             citation={pane.citation}
             query={pane.query}
             onOpenCitation={openCitation}
+            onBack={pane.citation && pane.from ? () => setPane({ citation: null, query: pane.from ?? null }) : undefined}
           />
         )}
       </Drawer>
