@@ -53,6 +53,7 @@ export function ChatPanel({ matterId, open, onClose, onOpenCitation, onNavigate 
       setUnavailable(false)
       setMsgs(m => [...m, { role: 'assistant', content: r.answer_markdown, response: r }])
     } catch (e) {
+      console.error('chat failed', e)
       const notYet = e instanceof ApiError && e.status === 404
       if (notYet) setUnavailable(true)
       setMsgs(m => [...m, {
