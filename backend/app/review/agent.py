@@ -18,6 +18,7 @@ from app.digest.verify import Corpus, check_tokens, judge_claims
 from app.llm import MODEL_OPUS, client, log_usage
 from app.retrieval.fence import FENCE_RULE, clean, fence
 from app.retrieval.search import search_hits
+from app.review.checks import overreach, record_cites, same_source
 from app.schemas import CaseReview, Citation, Dashboard, ReviewFinding
 
 MAX_TURNS = 40
@@ -53,6 +54,9 @@ Rules:
 - `title`: one plain-language line of at most 16 words, supported by the quotes (or a "No record found of ..." line). The
   title and facts are checked strictly against the quotes: state what the quotes say, and put the
   connection or inference ("yet", "but the file still ...", "which means ...") in why_it_matters.
+- No exclusivity or superlatives ("only", "never", "nobody", "sole") unless a quote says so, and no
+  upcoming or scheduled event unless a cited calendar entry, task or quote shows it is scheduled.
+- A conflict must hold up against the rest of the same documents; it is checked against their full text.
 - Attribute a quote only as its source identifies itself (the checker sees each quote's source title).
 - `why_it_matters`: one or two sentences of analysis for the attorney. Introduce no new dates, amounts or
   names that are not in your quotes.
@@ -268,12 +272,22 @@ class Session:
         legal = unsourced_legal_cites([f["title"], f["why_it_matters"], f["suggested_next_step"], *f["facts"]], cits)
         if legal:
             problems.append(f"legal citations not on any cited page (quote the page that states them, or remove): {legal}")
+        problems += overreach([f["title"], f["why_it_matters"], f["suggested_next_step"], *f["facts"]],
+                              "\n".join(quotes), cits)
         if not problems:
             claims = list(f["facts"])  # title/analysis are token-checked; every fact is judged
             judged = judge_claims(self.matter_id, [(c, quotes) for c in claims], "review_verify")
             for c, j in zip(claims, judged):
                 if j.unsupported:
                     problems.append(f'"{c[:80]}" unsupported parts: {j.unsupported}')
+        if not problems and f["category"] in ("conflict", "inconsistency"):
+            p = same_source(self.matter_id, "\n".join([f["title"], *f["facts"]]), cits)
+            if p:
+                problems.append(p)
+        if not problems:
+            extra, ps = record_cites(self.matter_id, list(f["facts"]), cits)
+            problems += ps
+            cits = cits + extra
         if problems:
             self.rejected += 1
             return "Rejected: " + "; ".join(problems) + ". Fix (better quotes, or narrower wording) and resubmit once."
