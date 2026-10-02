@@ -24,7 +24,7 @@ after `/clear` it is unchanged. Live state: `docs/status.md`. Plans: `docs/plans
 | S5 source pane + chat panel | `local_bf74fa6b-165c-4c81-8bd1-ee65e21f0b70` | `frontend/src/{source,chat}/` | 8005 / 5176 | standby (PDF blank-page fix landed 7dabb24) |
 | S6 data audit | `local_8b6cd5c2-f9ab-4afd-9f80-b1bf8226840e` | `backend/app/audit/`, `docs/audit/` | 8006 | waits for pings to re-run (~$0.70/run; Aron OK'd spend) |
 | S7 Blind spots review | `local_9355b4e5-925a-40c0-a2b0-a142f2c87eba` | `backend/app/review/`, `api/review.py`, `frontend/src/review/` | 8007 | just started (plan `docs/plans/2026-10-02-blind-spots.md`) |
-| Deploy | `local_0cc4a245-b3a7-44e3-b25f-b46126893ef8` | `deploy/`, `.github/workflows/demo-*`, `backend/app/clio/web.py` | n/a | demo.redducklaw.com live on app sign-in; **DB empty, awaiting Aron's yes to upload snapshot** |
+| Deploy | `local_0cc4a245-b3a7-44e3-b25f-b46126893ef8` | `deploy/`, `.github/workflows/demo-*`, `backend/app/clio/web.py` | n/a | demo.redducklaw.com live on app sign-in; server-side ingestion + digest running (no snapshot upload) |
 
 ## Open work at handoff
 
@@ -41,7 +41,7 @@ after `/clear` it is unchanged. Live state: `docs/status.md`. Plans: `docs/plans
 - **S7:** when it reports, mount `<BlindSpots>` in the brief (App.tsx passes the review
   via `api` / or S3 places it under Next steps), have S6 audit the findings, and decide
   by ~2:30 whether it's in the video.
-- **Aron decisions pending:** upload DB snapshot to demo.redducklaw.com (recommend yes).
+- **Decided 12:40:** no DB snapshot upload; demo.redducklaw.com ingests and digests from Clio itself.
 - **Freeze tasks:** see "Freeze checklist".
 
 ## Operating rules learned today (enforce these)
