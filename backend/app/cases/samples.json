@@ -1,0 +1,65 @@
+{
+  "_comment": "FICTIONAL DEMO FILLER for the Cases list. Not from Clio, not digested, never clickable. Every name and figure is invented. API rows from this file carry sample=true, digested=false. Dates are offsets from today so the list stays current.",
+  "rows": [
+    {
+      "display_number": "SAMPLE-0001",
+      "title": "Sample PI matter: rear-end collision",
+      "client_name": "Pat Example (sample)",
+      "stage": "Treatment",
+      "overdue_count": 1,
+      "waiting_count": 2,
+      "deadline_in_days": 12,
+      "deadline_label": "Records request follow-up",
+      "last_client_contact_days_ago": 41,
+      "specials": "$18,400",
+      "coverage": ["$50,000 / $100,000 BI"],
+      "case_value": null,
+      "firm_spent": "$1,150"
+    },
+    {
+      "display_number": "SAMPLE-0002",
+      "title": "Sample PI matter: premises slip and fall",
+      "client_name": "Jordan Placeholder (sample)",
+      "stage": "Demand",
+      "overdue_count": 0,
+      "waiting_count": 1,
+      "deadline_in_days": 45,
+      "deadline_label": "Demand response due",
+      "last_client_contact_days_ago": 9,
+      "specials": "$32,750",
+      "coverage": ["$1,000,000 CGL"],
+      "case_value": null,
+      "firm_spent": "$2,980"
+    },
+    {
+      "display_number": "SAMPLE-0003",
+      "title": "Sample PI matter: commercial truck collision",
+      "client_name": "Casey Fictional (sample)",
+      "stage": "Litigation",
+      "overdue_count": 2,
+      "waiting_count": 0,
+      "deadline_in_days": 6,
+      "deadline_label": "Discovery responses due",
+      "last_client_contact_days_ago": 18,
+      "specials": "$96,200",
+      "coverage": ["$750,000 auto liability"],
+      "case_value": null,
+      "firm_spent": "$14,600"
+    },
+    {
+      "display_number": "SAMPLE-0004",
+      "title": "Sample PI matter: dog bite",
+      "client_name": "Riley Invented (sample)",
+      "stage": "Intake",
+      "overdue_count": 0,
+      "waiting_count": 0,
+      "deadline_in_days": null,
+      "deadline_label": null,
+      "last_client_contact_days_ago": 3,
+      "specials": null,
+      "coverage": [],
+      "case_value": null,
+      "firm_spent": "$120"
+    }
+  ]
+}
