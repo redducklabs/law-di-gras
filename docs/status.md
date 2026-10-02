@@ -4,36 +4,31 @@ Maintained by the integration/manager session. Plan:
 `docs/plans/2026-10-02-case-brief-dashboard.md`. Deadline 4:00 PM PT; feature
 freeze 3:00 PM; video recorded 3:00–3:30; submit by 3:45.
 
-## Now (updated 10:25 PT)
+## Now (updated 11:55 PT)
 
-| Stream | State | Landed on main | Next |
-|---|---|---|---|
-| S1 Clio + ingestion | **Done**; archive session | 219 sources, 361 pages (10 OCR via Windows OCR), 567 chunks | none |
-| S2 Retrieval + digest | Done core; working on follow-ups | Hybrid search, 64/64 facts verified, Opus brief, cached dashboard, /search, /ask | Meaningful "recent" items; timeline milestones; re-digest |
-| S3 UI design | Built firm Case Brief + templated drafts | Tokens, components, Case Brief, Next steps drafts | Subtle timeline (now a 44-label wall), live data, provider restyle |
-| S4 Provider + sharing | Done core | Providers (10 found), share settings, server-filtered provider view, SharePanel, ProviderPage | Done-check on Sapini, provider's own lien |
-| S5 Source pane | To start (fresh worktree) | Stub + contract in `src/source/` | PDF highlight, text highlight, Find/Ask |
-| Integration | App wired | Routes `/` and `/p/:token`, Share + source drawer | Watch streams, demo script |
+| Stream | State | Next |
+|---|---|---|
+| S1 Clio + ingestion | Done (archived) | none |
+| S2 Retrieval + digest | KPIs fixed; waiting_on + case value deterministic; grounded /draft live | Cache version guard; draft segment spacing |
+| S3 UI design | KPI row above fold; 5-label timeline; Improve-with-AI wired | Aron's timeline-zoom choice; polish |
+| S4 Provider + sharing | Done: requests, lien, updates-since, attendance | Standby for fixes |
+| S5 Source pane | Done: PDF/OCR rect highlights, text spans, Find, Ask | Standby; search passages highlight whole chunk |
+| Integration | :8000/:5175 on latest main | Demo script, submission notes, freeze 3:00 |
 
 ## Demo path
 
 - [x] Firm dashboard loads Sapini live (client header, stage stepper, timeline)
-- [x] Headline + KPI tiles from live digest
-- [x] Needs action / Next steps + last client contact
-- [ ] Click date/injury → source pane highlighted (S5)
-- [ ] Find in case (+ cited Q&A) UI (S5; API done)
-- [x] Share panel → provider link (wired; done-check on Sapini pending)
-- [ ] Provider page verified on Sapini data
-- [x] Cost per case: ~$1.48 first digest, ~$0.13–0.50 re-digest
+- [x] KPI row above fold: specials $118,400 (9 providers), coverage, firm costs $1,410, draft value $180k–$355k (rule shown)
+- [x] Next steps + waiting on others + last client contact + recent activity
+- [x] Click date/injury → source pane, quote highlighted on the PDF page
+- [x] Find in case + cited Q&A
+- [x] Next step → template draft → Improve with AI (verified, cited)
+- [x] Share panel → provider link; provider page (status, coverage, requests, visits/bills, updates since)
+- [x] Cost per case: ~$1.50 first digest; ~$0.07–0.23 refresh; ~$0.01 per AI draft
 
 ## Risks / watch list
 
-- **KPI accuracy (S2 fixing):** Clio medical-bill expense entries were counted as firm costs ($119,810) and specials showed $1,450 (should be ~$118,400 specials, ~$1,410 firm costs). Headline bullet repeats the wrong numbers; re-digest after fix.
-- KPI row below the fold and coverage tile overflows with prose (S3 fixing).
-- Provider requests miss items addressed to the provider (S4 fixing).
-
-- Timeline strip is cluttered on real data (44 events); S3 + S2 fixing.
-- Re-sync by S1 code changes doc hashes → next digest rebuilds (2–5 min). Digest once before recording.
+- Stale backends can overwrite the shared dashboard cache; restart after every pull (S2 adding version guard). Re-digest once before recording.
 - App is Windows-only (winocr); fine for localhost demo, note for judges.
 
 ## Log
@@ -41,3 +36,4 @@ freeze 3:00 PM; video recorded 3:00–3:30; submit by 3:45.
 - 09:55 Contracts + skeleton pushed (3cb53f1). Four stream sessions started in worktrees.
 - 10:25 All four streams landed core work. App wired and verified live on Sapini at :5175. Sent S2/S3/S4 follow-ups; S5 (source pane) queued.
 - 10:55 Full review on live Sapini: timeline, recent activity, provider restyle good. Found KPI misclassification, KPI placement, provider-request gap; dispatched to S2/S3/S4. AI drafts (grounded, verified) approved: S2 route + S3 UI after fixes. S5 building source pane.
+- 11:55 Every demo-path step works on live Sapini. Fixed: KPI misclassification, provider requests, deterministic waiting_on and case value, HTML entities (re-synced). Stale-server cache overwrite incident handled.
