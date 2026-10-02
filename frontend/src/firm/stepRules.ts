@@ -8,6 +8,8 @@ export type StepKind = 'overdue' | 'upcoming' | 'waiting' | 'client'
 
 export interface Step {
   kind: StepKind
+  /** Index into Dashboard.actions (absent for derived steps like client check-in). */
+  actionIndex?: number
   title: string
   why: string
   tone: Tone
@@ -21,9 +23,9 @@ export interface Step {
 /** Client contact older than this many days becomes a step. */
 export const CLIENT_CONTACT_STALE_DAYS = 30
 
-function fromAction(a: ActionItem): Step & { sort: number } {
+function fromAction(a: ActionItem, actionIndex: number): Step & { sort: number } {
   const n = daysFromToday(a.due_date)
-  const base = { title: a.title, owner: a.owner, waitingOn: a.waiting_on, date: a.due_date, citations: a.citations }
+  const base = { actionIndex, title: a.title, owner: a.owner, waitingOn: a.waiting_on, date: a.due_date, citations: a.citations }
   if (a.status === 'overdue') {
     const late = n != null && n < 0 ? -n : null
     return { ...base, kind: 'overdue', group: 'do', tone: 'danger', sort: -1000 + (n ?? 0),
@@ -39,7 +41,7 @@ function fromAction(a: ActionItem): Step & { sort: number } {
 }
 
 export function buildNextSteps(d: Dashboard): Step[] {
-  const steps = d.actions.map(fromAction)
+  const steps = d.actions.map((a, i) => fromAction(a, i))
   const c = d.last_client_contact
   const age = c?.date ? daysFromToday(c.date) : null
   if (c && age != null && -age >= CLIENT_CONTACT_STALE_DAYS) {

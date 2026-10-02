@@ -2,9 +2,9 @@
 // draft where every fact links to its source. Copy, open in the user's mail app, or save a calendar
 // file. Nothing leaves the browser on its own and nothing is written to Clio.
 import { Fragment, useEffect, useState } from 'react'
-import type { Citation, Dashboard } from '../api/types'
+import type { Citation, Dashboard, Draft as AiDraft, DraftSegment as AiDraftSegment } from '../api/types'
 import { Badge, Drawer, SourceChip, SourceChips } from '../components'
-import { aiDraftText, requestAiDraft, type AiDraft, type AiDraftSegment } from './aiDraft'
+import { aiDraftText, requestAiDraft, segmentSep } from './aiDraft'
 import { draftFor, icsFor, mailtoHref } from './drafts'
 import type { Step } from './stepRules'
 
@@ -33,11 +33,7 @@ export function DraftDrawer({ step, data, onClose, onOpenSource }: {
     if (!step || !draft) return
     setAi({ status: 'loading' }); setCopied(false)
     try {
-      const d = await requestAiDraft(data.matter.id, {
-        kind: step.kind, title: step.title, why: step.why, owner: step.owner, waiting_on: step.waitingOn, date: step.date,
-        audience: draft.audience, source_ids: step.citations.map(c => c.source_id),
-        template_subject: subject, template_body: body,
-      })
+      const d = await requestAiDraft(data.matter.id, step)
       setAi({ status: 'ready', draft: d }); setSubject(d.subject); setBody(aiDraftText(d)); setEditing(false)
     } catch (e) {
       setAi({ status: 'error', message: e instanceof Error ? e.message : String(e) })
@@ -83,7 +79,7 @@ export function DraftDrawer({ step, data, onClose, onOpenSource }: {
             {aiDraft
               ? <Badge tone="brand"><SparkIcon /> AI draft · every fact linked · review before sending</Badge>
               : <Badge tone="warn">Draft · review before sending</Badge>}
-            <span className="text-slate-500">For <b className="text-slate-800">{draft.audience}</b></span>
+            {!aiDraft && <span className="text-slate-500">For <b className="text-slate-800">{draft.audience}</b></span>}
           </div>
 
           <div className={`rounded-lg px-3 py-2 text-[12.5px] ${step.tone === 'danger' ? 'bg-danger-50 text-danger-700' : 'bg-page text-slate-600'}`}>
@@ -129,7 +125,7 @@ export function DraftDrawer({ step, data, onClose, onOpenSource }: {
             <span className="text-[11px] font-semibold uppercase tracking-wider text-slate-400">Message</span>
             {aiDraft && !editing ? (
               <div className="mt-1 whitespace-pre-wrap rounded-lg border border-line px-3 py-2.5 text-[13.5px] leading-relaxed text-slate-800">
-                {aiDraft.segments.map((s, i) => <Segment key={i} s={s} onOpenSource={onOpenSource} />)}
+                {aiDraft.segments.map((s, i) => <Fragment key={i}>{segmentSep(aiDraft.segments, i)}<Segment s={s} onOpenSource={onOpenSource} /></Fragment>)}
               </div>
             ) : (
               <textarea value={body} onChange={e => setBody(e.target.value)} rows={14}
@@ -158,7 +154,7 @@ function Segment({ s, onOpenSource }: { s: AiDraftSegment; onOpenSource?: (c: Ci
       </span>
       {s.kind === 'fact' && s.citations.length > 0 && (
         <span className="mx-1 inline-flex gap-1 align-middle whitespace-normal">
-          {s.citations.slice(0, 2).map((c, i) => <SourceChip key={i} citation={c} onOpen={onOpenSource} compact />)}
+          {s.citations.filter((c, i, all) => all.findIndex(o => o.source_id === c.source_id && o.page === c.page) === i).slice(0, 2).map((c, i) => <SourceChip key={i} citation={c} onOpen={onOpenSource} compact />)}
         </span>
       )}
     </>
