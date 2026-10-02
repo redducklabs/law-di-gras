@@ -184,5 +184,6 @@ class ProviderView(BaseModel):
     coverage: list[Fact] | None = None
     requests: list[ActionItem] | None = None
     treatment: list[TreatmentLine] | None = None
+    liens: list[Fact] | None = None  # this provider's own lien(s), with treatment
     timeline: list[TimelineEvent] | None = None
     documents: list[SharedDocument] | None = None

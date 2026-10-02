@@ -130,6 +130,7 @@ export interface ProviderView {
   coverage?: Fact[] | null
   requests?: ActionItem[] | null
   treatment?: TreatmentLine[] | null
+  liens?: Fact[] | null
   timeline?: TimelineEvent[] | null
   documents?: { source_id: string; title: string }[] | null
 }
