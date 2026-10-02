@@ -13,6 +13,8 @@ draft once beforehand so PDFs and drafts are warm.
 
 **Chat questions safe to demo (S6 audited):** Pullano deposition, overdue / waiting on, last client contact, coverage (after conflict B is fixed). Avoid the injuries/defense-IME question until S6 confirms the fix.
 
+**Blind spots (S6 Check 8b, cache frozen; never POST /review before recording):** safe to show as worded: #1 incident report "annexed" vs "not produced" (the demo beat), #7 IME dates, #9 deferring surgery vs "available", #10 prior injuries "Not applicable". In narration never say "only eyewitness", "without any analysis", "neither matches the pleadings", or "the lien will have grown" (#2/#4/#6/#8 overstate).
+
 **Warm the chat:** ask the exact demo questions once before recording (cold answers take 20–28 s; cached repeats take about 1 s). Example: "When is the Pullano deposition?" and "What's overdue and who are we waiting on?".
 
 **Accuracy gate (blocker):** after the final re-digest, run
@@ -25,10 +27,11 @@ Any critical finding blocks recording until fixed or the item is cut from the vi
 | 0:07–0:17 | Cases page: Sapini on top with "2 overdue · 6 waiting · deadline in 19 days", specials, coverage, draft value | "Every matter, sorted by what needs you first, with what it's worth and the coverage behind it. Sapini is live from Clio; the greyed rows are labeled samples." |
 | 0:17–0:30 | Open Sapini → lane timeline; hover a milestone, zoom once | "The timeline lawyers asked for: medical, legal and deadlines at a glance. Scheduled things say scheduled, not done." |
 | 0:30–0:44 | Click an injury or timeline chip → scanned PDF with the quote highlighted; then point at the coverage "Conflict" line | "Every fact is a link to the exact line. Nothing is stated unless its quote is in the record, and where the file contradicts itself, like Metro-North's limits, we show both sides instead of guessing." |
-| 0:42–0:54 | Next steps: overdue McCulloch item → Draft → Improve with AI | "What's overdue and who we're waiting on. The AI follow-up cites every fact and can't invent a date or a dollar." |
-| 0:54–1:07 | Ask the case: "When is the Pullano deposition?" → answer with chips → click "Show on timeline" | "Ask anything. Answers come only from the record, with sources, and they take you to the right place on the page." |
-| 1:07–1:20 | Share with provider → chiropractor → toggle coverage → open the provider link | "Providers on a lien see status, coverage, what we need from them, and their own bills. No strategy, no notes; the attorney decides." |
-| 1:20–1:30 | Back to Cases | "Ninety seconds to the whole case, every fact traceable, about $2.50 per case to digest." |
+| 0:44–0:54 | Expand the Blind spots bar → finding #1 (incident report) → click its chip to the annexed report page | "Then the part nobody has time for: an agent reads the whole file for what a page-by-page read misses. Here, the defense says it annexed Metro-North's incident report, while our own email says it was never produced. Every point is checked against quoted record." |
+| 0:54–1:00 | Next steps: overdue item → Draft (skip Improve if short on time) | "What's overdue, and a cited follow-up drafted in one click." |
+| 1:00–1:10 | Ask the case: "When is the Pullano deposition?" → answer with chips → click "Show on timeline" | "Ask anything. Answers come only from the record, with sources, and they take you to the right place on the page." |
+| 1:10–1:22 | Share with provider → chiropractor → toggle coverage → open the provider link | "Providers on a lien see status, coverage, what we need from them, and their own bills. No strategy, no notes; the attorney decides." |
+| 1:22–1:30 | Back to Cases | "Ninety seconds to the whole case, every fact traceable, about $2.50 per case to digest." |
 
 ## Pitch notes (say these; not built)
 
