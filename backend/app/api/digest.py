@@ -7,8 +7,9 @@ from app.digest import dashboard
 from app.digest.ask import ask as ask_question
 from app.digest.extract import ExtractionFailed
 from app.retrieval.search import search as hybrid_search
+from app.digest.chat import chat as chat_answer
 from app.digest.draft import draft as make_draft
-from app.schemas import Answer, AskRequest, Dashboard, Draft, DraftRequest, Passage
+from app.schemas import Answer, AskRequest, ChatRequest, ChatResponse, Dashboard, Draft, DraftRequest, Passage
 
 router = APIRouter(tags=["digest"])
 M = "/api/matters/{matter_id}"
@@ -60,3 +61,12 @@ def draft(matter_id: str, body: DraftRequest) -> Draft:
 def pipeline() -> dict:
     """Digest pipeline revision this server runs (compare across servers before a digest)."""
     return {"pipeline_rev": dashboard.PIPELINE_REV, "pipeline_version": dashboard.PIPELINE_VERSION}
+
+
+@router.post(M + "/chat", response_model=ChatResponse)
+def chat(matter_id: str, body: ChatRequest) -> ChatResponse:
+    """Multi-turn ask-the-case: cited, verified answer plus server-validated deeplinks."""
+    try:
+        return chat_answer(matter_id, body)
+    except ValueError as e:
+        raise HTTPException(400, str(e))
