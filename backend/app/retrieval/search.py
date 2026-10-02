@@ -6,11 +6,13 @@ Falls back to RRF order when COHERE_API_KEY is missing or the rerank call fails.
 import re
 from dataclasses import dataclass
 
+import cohere
+import httpx  # noqa: F401  SDKs import httpx lazily; doing it in worker threads races
 import numpy as np
 
 from app.config import COHERE_API_KEY
 from app.db import connect
-from app.digest.spans import citation_for_range
+from app.digest.spans import citation_for_range, locate
 from app.llm import PRICES, log_usage
 from app.retrieval.embed import embed_query
 from app.schemas import Passage
@@ -36,6 +38,7 @@ class Hit:
     score: float
 
 
+_co = None
 _vec_cache: dict[str, tuple[int, np.ndarray, np.ndarray]] = {}
 
 
@@ -53,6 +56,17 @@ def _vectors(conn, matter_id: str) -> tuple[np.ndarray, np.ndarray]:
     mat = np.vstack([np.frombuffer(r[1], dtype="<f4") for r in rows]) if rows else np.zeros((0, 1), np.float32)
     _vec_cache[matter_id] = (stamp, ids, mat)
     return ids, mat
+
+
+def warm() -> None:
+    """Create every SDK client on the calling thread before fanning out to workers."""
+    global _co
+    from app.llm import client
+    from app.retrieval.embed import _openai
+    client()
+    _openai()
+    if COHERE_API_KEY and _co is None:
+        _co = cohere.ClientV2(api_key=COHERE_API_KEY)
 
 
 def _fts_query(q: str) -> str:
@@ -90,10 +104,11 @@ def _dense(conn, matter_id: str, q: str, limit: int) -> list[int]:
 def _rerank(q: str, hits: list[Hit], top_k: int, matter_id: str) -> list[Hit] | None:
     if not COHERE_API_KEY or not hits:
         return None
+    global _co
     try:
-        import cohere
-        co = cohere.ClientV2(api_key=COHERE_API_KEY)
-        resp = co.rerank(model=RERANK_MODEL, query=q, documents=[f"{h.title}\n{h.text}"[:4000] for h in hits],
+        if _co is None:
+            _co = cohere.ClientV2(api_key=COHERE_API_KEY)
+        resp = _co.rerank(model=RERANK_MODEL, query=q, documents=[f"{h.title}\n{h.text}"[:4000] for h in hits],
                          top_n=min(top_k, len(hits)))
         log_usage(RERANK_MODEL, "rerank", 1, 0, matter_id)
     except Exception as e:
@@ -146,7 +161,6 @@ def to_passage(hit: Hit, q: str) -> Passage | None:
         else:
             cit = None
         if cit is None:
-            from app.digest.spans import locate
             cit = locate(conn, hit.source_id, hit.text[:400], hit.page_no)
     if cit is None:
         return None

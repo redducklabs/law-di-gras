@@ -215,13 +215,18 @@ def _run(matter_id: str, cat: Category, base: list[Hit]) -> list[Extracted]:
                 c = locate(conn, h.source_id, ev.quote, h.page_no)
                 if c:
                     cits.append(c)
-            cits.sort(key=lambda c: not c.verified)
+            cits.sort(key=lambda c: (not c.verified, not c.rects))  # highlightable scans first
             results.append(Extracted(cat.key, it.label.strip(), it.value.strip(), it.amount, it.date,
                                      it.end_date, it.party, it.count, cits))
     return results
 
 
+class ExtractionFailed(RuntimeError):
+    pass
+
+
 def extract_all(matter_id: str, workers: int = 4) -> dict[str, list[Extracted]]:
+    """All categories; raises ExtractionFailed so a partial digest is never cached."""
     base = _always_evidence(matter_id)
 
     def one(cat):
@@ -230,10 +235,14 @@ def extract_all(matter_id: str, workers: int = 4) -> dict[str, list[Extracted]]:
                 return cat.key, _run(matter_id, cat, base)
             except Exception as e:
                 print(f"extract {cat.key} failed (attempt {attempt + 1}): {type(e).__name__}: {e}")
-        return cat.key, []
+        return cat.key, None
 
     with ThreadPoolExecutor(workers) as ex:
-        return dict(ex.map(one, CATEGORIES))
+        out = dict(ex.map(one, CATEGORIES))
+    failed = [k for k, v in out.items() if v is None]
+    if failed:
+        raise ExtractionFailed(f"extraction failed for: {', '.join(failed)}")
+    return out
 
 
 def save_facts(matter_id: str, extracted: dict[str, list[Extracted]], input_hash: str) -> None:

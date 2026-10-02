@@ -5,6 +5,7 @@ from fastapi.concurrency import run_in_threadpool
 
 from app.digest import dashboard
 from app.digest.ask import ask as ask_question
+from app.digest.extract import ExtractionFailed
 from app.retrieval.search import search as hybrid_search
 from app.schemas import Answer, AskRequest, Dashboard, Passage
 
@@ -17,6 +18,8 @@ async def digest(matter_id: str, force: bool = False) -> Dashboard:
         return await run_in_threadpool(dashboard.build, matter_id, force)
     except LookupError as e:
         raise HTTPException(404, str(e))
+    except ExtractionFailed as e:
+        raise HTTPException(502, f"{e}; previous dashboard kept, retry POST /digest")
 
 
 @router.get("/dashboard", response_model=Dashboard)

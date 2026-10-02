@@ -7,6 +7,8 @@ chunk content_hash in `digests` (kind='hyde:<hash>'), so re-syncs are free.
 
 import hashlib
 import json
+import sqlite3
+import time
 from concurrent.futures import ThreadPoolExecutor
 
 from pydantic import BaseModel
@@ -52,10 +54,15 @@ def _questions(chunk, matter_id: str) -> list[str]:
                      PROMPT.format(passage=fence(chunk["id"], header, chunk["text"], cap=8000)),
                      purpose="hyde", matter_id=matter_id, max_tokens=1000)
     qs = [q.strip() for q in out.questions if q.strip()][:6]
-    with connect() as conn:
-        conn.execute("INSERT OR REPLACE INTO digests (matter_id, kind, input_hash, payload_json, model, created_at)"
-                     " VALUES (?, ?, ?, ?, ?, datetime('now'))",
-                     (matter_id, key, _hash(chunk), json.dumps(qs), MODEL_HAIKU))
+    for attempt in range(5):  # other streams may hold the write lock during a sync
+        try:
+            with connect() as conn:
+                conn.execute("INSERT OR REPLACE INTO digests (matter_id, kind, input_hash, payload_json, model, created_at)"
+                             " VALUES (?, ?, ?, ?, ?, datetime('now'))",
+                             (matter_id, key, _hash(chunk), json.dumps(qs), MODEL_HAIKU))
+            break
+        except sqlite3.OperationalError:
+            time.sleep(2 * (attempt + 1))
     return qs
 
 

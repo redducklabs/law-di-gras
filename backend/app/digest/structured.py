@@ -154,3 +154,10 @@ def provider_contact_ids(matter_id: str) -> list[tuple[str, str]]:
         rows = conn.execute("SELECT id, title FROM sources WHERE matter_id = ? AND kind = 'contact'",
                             (matter_id,)).fetchall()
     return [(r["id"].split(":", 1)[-1], r["title"] or "") for r in rows]
+
+
+def clio_stage(matter_id: str) -> str | None:
+    with connect() as conn:
+        m = conn.execute("SELECT raw_json FROM matters WHERE id = ?", (matter_id,)).fetchone()
+    stage = (_raw(m).get("matter_stage") or {}) if m else {}
+    return stage.get("name") if isinstance(stage, dict) else None

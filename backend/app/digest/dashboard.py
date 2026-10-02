@@ -15,9 +15,10 @@ from app.digest.brief import write_brief
 from app.digest.extract import PROMPT_VERSION, Extracted, extract_all, save_facts
 from app.retrieval.embed import embed_matter
 from app.retrieval.hyde import hyde_matter
+from app.retrieval.search import warm
 from app.schemas import (ActionItem, Dashboard, Fact, Kpis, MatterSummary, TimelineEvent, TreatmentLine)
 
-PIPELINE_VERSION = f"d1-{PROMPT_VERSION}"
+PIPELINE_VERSION = f"d2-{PROMPT_VERSION}"
 
 
 def input_hash(matter_id: str) -> str:
@@ -72,6 +73,7 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
     started = datetime.now(timezone.utc).isoformat()
     today = date.today()
 
+    warm()
     embed_matter(matter_id)
     hyde_matter(matter_id)
     ex = extract_all(matter_id)
@@ -150,7 +152,9 @@ def build(matter_id: str, force: bool = False) -> Dashboard:
                         for f in facts.get(cat, [])]
     pool += billed + [f for f in (specials, spent, contact) if f]
     pool = [f for f in pool if f.verified]
-    headline, case_value = write_brief(matter_id, pool, actions, matter.status, today)
+    stage = st.clio_stage(matter_id)
+    status = matter.status + (f"; Clio matter stage: {stage}" if stage else "")
+    headline, case_value = write_brief(matter_id, pool, actions, status, today)
 
     with connect() as conn:
         run_cost = conn.execute("SELECT COALESCE(SUM(cost_usd), 0) FROM llm_usage WHERE matter_id = ?"
