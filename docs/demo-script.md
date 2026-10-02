@@ -28,7 +28,7 @@ Any critical finding blocks recording until fixed or the item is cut from the vi
 | 0:42–0:54 | Next steps: overdue McCulloch item → Draft → Improve with AI | "What's overdue and who we're waiting on. The AI follow-up cites every fact and can't invent a date or a dollar." |
 | 0:54–1:07 | Ask the case: "When is the Pullano deposition?" → answer with chips → click "Show on timeline" | "Ask anything. Answers come only from the record, with sources, and they take you to the right place on the page." |
 | 1:07–1:20 | Share with provider → chiropractor → toggle coverage → open the provider link | "Providers on a lien see status, coverage, what we need from them, and their own bills. No strategy, no notes; the attorney decides." |
-| 1:20–1:30 | Back to Cases | "Ninety seconds to the whole case, every fact traceable, about $1.50 per case to digest." |
+| 1:20–1:30 | Back to Cases | "Ninety seconds to the whole case, every fact traceable, about $2.50 per case to digest." |
 
 ## Pitch notes (say these; not built)
 
