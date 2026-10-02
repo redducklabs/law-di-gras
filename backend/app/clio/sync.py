@@ -6,6 +6,7 @@ One `sources` row per Clio item, id "<kind>:<clio_id>". Unchanged items
 """
 
 import hashlib
+import html
 import json
 import logging
 import sys
@@ -70,6 +71,12 @@ def _money(x) -> str | None:
 # --- per-kind rendering: (title, date, author, text) ------------------------
 
 def render(kind: str, r: dict) -> tuple[str, str | None, str | None, str]:
+    title, date, author, text = _render(kind, r)
+    # Clio returns some note/email text HTML-escaped (&quot;, &amp;); quotes must read verbatim.
+    return html.unescape(title or ""), date, author, html.unescape(text or "")
+
+
+def _render(kind: str, r: dict) -> tuple[str, str | None, str | None, str]:
     if kind == "note":
         head = _lines(("Note", r.get("subject")), ("Date", r.get("date")), ("Author", (r.get("author") or {}).get("name")))
         return r.get("subject") or "Note", r.get("date"), (r.get("author") or {}).get("name"), f"{head}\n\n{r.get('detail') or ''}".strip()
