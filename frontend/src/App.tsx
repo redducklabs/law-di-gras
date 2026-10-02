@@ -1,8 +1,11 @@
 // Integration owns routing and the cross-stream wiring. Streams own the pieces.
 import { useEffect, useState } from 'react'
-import { Route, Routes, useNavigate, useParams } from 'react-router-dom'
+import { Navigate, Route, Routes, useNavigate, useParams } from 'react-router-dom'
 import { api } from './api/client'
-import type { Citation, Dashboard, DeepLink } from './api/types'
+import type { CaseRow, Citation, Dashboard, DeepLink } from './api/types'
+import { AuthProvider, RequireAuth } from './auth/auth'
+import LoginPage from './auth/LoginPage'
+import { CasesPage } from './cases/CasesPage'
 import { ChatPanel } from './chat/ChatPanel'
 import { Drawer, chipLabel } from './components'
 import { FirmPage } from './firm'
@@ -94,12 +97,29 @@ function Firm() {
   )
 }
 
+function Cases() {
+  const navigate = useNavigate()
+  const [rows, setRows] = useState<CaseRow[] | null>(null)
+  const [error, setError] = useState<string | null>(null)
+  useEffect(() => {
+    api.cases().then(setRows).catch(e => setError(e instanceof Error ? e.message : String(e)))
+  }, [])
+  if (error) return <div className="p-8 text-[13px] text-slate-500">Couldn’t load cases: {error}</div>
+  if (!rows) return <div className="grid min-h-screen place-items-center bg-page"><div className="h-6 w-6 animate-spin rounded-full border-2 border-brand-200 border-t-brand-600" /></div>
+  return <CasesPage rows={rows} onOpen={id => navigate(`/matters/${encodeURIComponent(id)}`)} />
+}
+
 export default function App() {
   return (
-    <Routes>
-      <Route path="/" element={<Firm />} />
-      <Route path="/matters/:id" element={<Firm />} />
-      <Route path="/p/:token" element={<ProviderPage />} />
-    </Routes>
+    <AuthProvider>
+      <Routes>
+        <Route path="/login" element={<LoginPage />} />
+        <Route path="/" element={<Navigate to="/cases" replace />} />
+        <Route path="/cases" element={<RequireAuth><Cases /></RequireAuth>} />
+        <Route path="/matters/:id" element={<RequireAuth><Firm /></RequireAuth>} />
+        {/* Provider links are public by design: no sign-in. */}
+        <Route path="/p/:token" element={<ProviderPage />} />
+      </Routes>
+    </AuthProvider>
   )
 }

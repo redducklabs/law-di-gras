@@ -1,5 +1,6 @@
 // Fetch wrappers for every route in the plan's API table. Vite proxies /api.
 import type {
+  CaseRow,
   Answer, ChatRequest, ChatResponse, Dashboard, Draft, DraftRequest, MatterSummary, Passage, Provider, ProviderView,
   ShareSettings, SourceDetail,
 } from './types'
@@ -25,6 +26,7 @@ const enc = encodeURIComponent
 
 export const api = {
   matters: () => req<MatterSummary[]>('/api/matters'),
+  cases: () => req<CaseRow[]>('/api/cases'),
   sync: (matterId: string) =>
     req<{ sources: number; pages: number; chunks: number }>(`/api/matters/${enc(matterId)}/sync`, { method: 'POST' }),
 
