@@ -1,0 +1,812 @@
+"""Explicit lifecycle control and narrowly bounded bootstrap command parsing."""
+
+from __future__ import annotations
+
+import base64
+from collections.abc import Mapping
+from dataclasses import dataclass, replace
+import hashlib
+import hmac
+import json
+from pathlib import Path, PurePosixPath
+import re
+import secrets
+from types import MappingProxyType
+
+from .lineage import (
+    canonical_json_bytes,
+    evidence_hmac,
+    record_digest as source_digest,
+    scope_definition_digest,
+    validate_identifier,
+    validate_hex_digest,
+    validate_scope_definition,
+)
+from .lifecycle import (
+    AffirmationResult,
+    AuthorityCategory,
+    AuthorizationProposal,
+    ChainState,
+    DecisionRequest,
+    EnforcementMode,
+    EventName,
+    LifecycleMutation,
+    _UNGATED,
+    classify_affirmation,
+    progress_response,
+    render_decision_response,
+)
+from .lifecycle_storage import LocalLifecycleStorage, StaleLifecycleState
+from .records import parse_markdown, validate_markdown
+
+
+SCOPE_KINDS = {"unit", "issue", "phase", "epic", "rollout", "standalone"}
+_FLAGS = {
+    "register-root": (
+        "session-key",
+        "challenge",
+        "scope-id",
+        "scope-kind",
+        "scope-definition-b64",
+        "expected-session-revision",
+    ),
+    "resume": ("session-key", "challenge", "record", "expected-session-revision"),
+    "join": (
+        "session-key",
+        "challenge",
+        "authorization-id",
+        "expected-chain-revision",
+        "expected-session-revision",
+    ),
+    "one-off": ("session-key", "challenge", "expected-session-revision"),
+}
+
+
+class LifecycleOperationError(ValueError):
+    """A stable operation issue with a content-free corrective action."""
+
+    def __init__(self, code, corrective_action):
+        super().__init__(f"{code}: {corrective_action}")
+        self.code = code
+        self.corrective_action = corrective_action
+
+
+def _require_transition_record(chain):
+    if chain is not None and chain.current_record_reference is None:
+        raise LifecycleOperationError(
+            "AHK-TRANSITION-INITIAL", "publish the initial record first"
+        )
+
+
+@dataclass(frozen=True)
+class BootstrapCommand:
+    operation: str
+    arguments: Mapping[str, str | int]
+
+    def __post_init__(self):
+        object.__setattr__(self, "arguments", MappingProxyType(dict(self.arguments)))
+
+
+def canonical_record_path(value: str) -> str:
+    """Validate a platform-independent, absolute single-record pointer."""
+    if not isinstance(value, str) or not 1 <= len(value) <= 4096:
+        raise ValueError("invalid record path")
+    normalized = value.replace("\\", "/")
+    if re.fullmatch(r"(?:[A-Z]:/|/)[A-Za-z0-9._/-]+\.md", normalized) is None:
+        raise ValueError("record path must be absolute Markdown")
+    if normalized.startswith("//") or any(
+        part in {"", ".", ".."} for part in normalized.split("/")[1:]
+    ):
+        raise ValueError("record path must be canonical")
+    if str(PurePosixPath(normalized)) != normalized:
+        raise ValueError("record path must be canonical")
+    return normalized
+
+
+def _charset_code(command: object) -> str:
+    """Name the common out-of-charset cause instead of only the charset itself.
+
+    Standard-alphabet base64 padding is the usual first attempt at encoding a
+    scope definition by hand, and its "=" is rejected by the command charset
+    before any definition check runs. Reporting only "command-charset" pointed
+    at neither the padding nor the alphabet.
+    """
+
+    if isinstance(command, str) and "=" in command:
+        return "command-charset-padding"
+    return "command-charset"
+
+
+class ScopeDefinitionError(ValueError):
+    """A rejection that names which check failed, from a closed vocabulary.
+
+    Every cause used to surface as one indistinguishable string, so an author
+    holding a payload that failed for two independent reasons could not tell
+    them apart. The code is an identifier, never author text, so naming it
+    cannot carry content into host feedback.
+    """
+
+    def __init__(self, code: str):
+        super().__init__(code)
+        self.code = code
+
+
+def decode_scope_definition(value: str) -> dict[str, str]:
+    if (
+        not isinstance(value, str)
+        or not 1 <= len(value) <= 4096
+        or re.fullmatch(r"[A-Za-z0-9_-]+", value) is None
+    ):
+        raise ScopeDefinitionError("definition-b64-alphabet")
+    try:
+        raw = base64.b64decode(
+            value + "=" * (-len(value) % 4), altchars=b"-_", validate=True
+        )
+    except (ValueError, RecursionError) as error:
+        raise ScopeDefinitionError("definition-b64-decode") from error
+    try:
+        parsed = json.loads(raw.decode("utf-8"))
+    except (UnicodeError, ValueError, RecursionError) as error:
+        raise ScopeDefinitionError("definition-json") from error
+    try:
+        definition = validate_scope_definition(parsed)
+        canonical = canonical_json_bytes(definition)
+    except (UnicodeError, ValueError, RecursionError) as error:
+        raise ScopeDefinitionError("definition-fields") from error
+    if canonical != raw:
+        raise ScopeDefinitionError("definition-json-noncanonical")
+    if base64.urlsafe_b64encode(canonical).decode().rstrip("=") != value:
+        raise ScopeDefinitionError("definition-b64-nonminimal")
+    return definition
+
+
+def parse_bootstrap_command(
+    command: str,
+    runner_path: Path,
+    challenge: str,
+    reasons: list[str] | None = None,
+) -> BootstrapCommand | None:
+    """Parse fixed tokens without shell evaluation; caller supplies the live challenge.
+
+    A caller may pass ``reasons`` to collect the closed-vocabulary code for the
+    check that rejected the command. What is accepted is unchanged: the parser
+    still returns None, and the codes only make the cause visible to the author.
+    """
+
+    def reject(code: str) -> None:
+        if reasons is not None:
+            reasons.append(code)
+        return None
+
+    try:
+        validate_identifier(challenge, label="challenge")
+        if not isinstance(command, str):
+            return reject("command-type")
+        if len(command) > 8192:
+            return reject("command-length")
+        if re.fullmatch(r"[A-Za-z0-9._:/ -]+", command) is None:
+            return reject(_charset_code(command))
+        tokens = command.split(" ")
+        if (
+            len(tokens) < 4
+            or "" in tokens
+            or tokens[0] != "python"
+            or tokens[2] != "lifecycle"
+        ):
+            return reject("command-shape")
+        runner_token = tokens[1]
+        if (
+            runner_token != runner_path.resolve().as_posix()
+            or not Path(runner_token).is_absolute()
+        ):
+            return reject("runner-path")
+        if Path(runner_token).resolve() != runner_path.resolve():
+            return reject("runner-path")
+        operation = tokens[3]
+        flags = _FLAGS.get(operation)
+        if flags is None:
+            return reject("operation")
+        if len(tokens) != 4 + len(flags) * 2:
+            return reject("flag-count")
+        arguments = {}
+        for index, flag in enumerate(flags):
+            if tokens[4 + index * 2] != "--" + flag:
+                return reject("flag-order")
+            value = tokens[5 + index * 2]
+            try:
+                if flag.endswith("revision"):
+                    if re.fullmatch(r"0|[1-9][0-9]{0,15}", value) is None:
+                        return reject("revision-format")
+                    value = int(value)
+                elif flag == "record":
+                    value = canonical_record_path(value)
+                elif flag == "scope-definition-b64":
+                    decode_scope_definition(value)
+                elif flag == "session-key":
+                    validate_hex_digest(value, label="derived session key")
+                else:
+                    validate_identifier(value, label=flag)
+            except ScopeDefinitionError as error:
+                return reject(error.code)
+            except ValueError:
+                return reject(flag)
+            arguments[flag.replace("-", "_")] = value
+        if arguments["challenge"] != challenge:
+            return reject("challenge-stale")
+        if operation == "register-root" and arguments["scope_kind"] not in SCOPE_KINDS:
+            return reject("scope-kind")
+        return BootstrapCommand(operation, arguments)
+    except (ValueError, OSError, TypeError):
+        return reject("command-runtime")
+
+
+def _immutable_scopes(scopes):
+    if not isinstance(scopes, (list, tuple)) or len(scopes) > 64:
+        raise ValueError("invalid scopes")
+    result = []
+    seen = set()
+    for scope in scopes:
+        definition = {
+            key: scope[key]
+            for key in ("scope_id", "scope_kind", "parent_scope_id", "scope_definition")
+        }
+        scope_definition_digest(definition)
+        if (
+            definition["scope_kind"] not in SCOPE_KINDS
+            or definition["scope_id"] in seen
+        ):
+            raise ValueError("invalid or duplicate scope")
+        parent = definition["parent_scope_id"]
+        if (not result and parent is not None) or (result and parent not in seen):
+            raise ValueError("scopes require one root and parents before children")
+        result.append(definition)
+        seen.add(definition["scope_id"])
+    return tuple(result)
+
+
+class LifecycleService:
+    """Use immutable model mutations and targeted CAS for every durable change.
+
+    Host adapters supply transient record bytes and trusted normalized user events.
+    They must verify transcript roles/adjacency before calling observe_user_turn.
+    No CLI operation can assert that a user approved a proposal.
+    """
+
+    def __init__(self, storage: LocalLifecycleStorage, session_id: str):
+        self.storage = storage
+        self.session_id = session_id
+        self._control = None
+
+    @classmethod
+    def for_control(cls, storage, derived_key, capability, expected_session_revision):
+        storage.load_control_snapshot(
+            derived_key, capability, expected_session_revision
+        )
+        service = cls(storage, None)
+        service._control = (derived_key, capability, expected_session_revision)
+        return service
+
+    def _load_snapshot(self):
+        if self._control is not None:
+            return self.storage.load_control_snapshot(*self._control)
+        return self.storage.load_snapshot(self.session_id)
+
+    def consume_control(self):
+        """Spend the control capability, reconciling the chain view it needs.
+
+        `inspect` runs this first, and a session whose peer has advanced or
+        completed the chain could not get past it: the mutation preserved the
+        stale `chain_revision`, `_apply` refused it, and the command exited
+        `AHK-STATE-STALE`. That is the command the blocking feedback tells a
+        session to run, so the prescribed recovery was unavailable in exactly
+        the state that prescribes it. Carrying the live revision - and, for a
+        chain that has since completed, releasing the lease the same way the
+        prompt path does - makes the diagnosis reachable without deciding
+        anything about the work.
+        """
+
+        if self._control is None:
+            raise ValueError("control binding required")
+        snapshot = self._load_snapshot()
+        session = replace(
+            snapshot.session,
+            targeted_revision=snapshot.session.targeted_revision + 1,
+        )
+        chain = snapshot.chain
+        if chain is not None and session.mode not in _UNGATED:
+            session = replace(session, chain_revision=chain.targeted_revision)
+            if (
+                chain.status == "complete"
+                and session.mode is not EnforcementMode.COMPLETE
+            ):
+                session = replace(session, mode=EnforcementMode.COMPLETE)
+        return self._commit(snapshot, session)
+
+    def _snapshot(self, expected_session_revision, expected_chain_revision=None):
+        for revision in (expected_session_revision, expected_chain_revision):
+            if revision is not None and (type(revision) is not int or revision < 0):
+                raise ValueError("invalid expected revision")
+        snapshot = self._load_snapshot()
+        if snapshot.session.targeted_revision != expected_session_revision:
+            raise StaleLifecycleState("targeted session revision changed")
+        if (
+            expected_chain_revision is not None
+            and (snapshot.chain.targeted_revision if snapshot.chain else 0)
+            != expected_chain_revision
+        ):
+            raise StaleLifecycleState("targeted chain revision changed")
+        if (
+            snapshot.chain
+            and snapshot.session.chain_revision != snapshot.chain.targeted_revision
+        ):
+            raise StaleLifecycleState("session requires chain reconciliation")
+        return snapshot
+
+    def _bootstrap(self, challenge, expected_session_revision):
+        validate_identifier(challenge, label="challenge")
+        snapshot = self._snapshot(expected_session_revision)
+        if snapshot.session.mode not in _UNGATED:
+            raise ValueError("bootstrap requires a session with no registered root")
+        if (
+            snapshot.session.current_external_user_turn_reference is None
+            or snapshot.session.bootstrap_challenge is None
+            or not hmac.compare_digest(
+                self._control[1]
+                if self._control
+                else snapshot.session.bootstrap_challenge,
+                challenge,
+            )
+        ):
+            raise ValueError("invalid or expired bootstrap challenge")
+        return snapshot
+
+    def _commit(self, snapshot, session, chain=None, expected_chain_revision=None):
+        revision = (
+            expected_chain_revision
+            if expected_chain_revision is not None
+            else (snapshot.chain.targeted_revision if snapshot.chain else 0)
+        )
+        if self._control is not None:
+            key, capability, _ = self._control
+            updated = self.storage.compare_and_swap_control(
+                key,
+                capability,
+                revision,
+                snapshot.session.targeted_revision,
+                LifecycleMutation(session, chain),
+            )
+            self._control = (
+                key,
+                self.storage.control_capability(updated.session),
+                updated.session.targeted_revision,
+            )
+            return updated
+        return self.storage.compare_and_swap(
+            self.session_id,
+            revision,
+            snapshot.session.targeted_revision,
+            LifecycleMutation(session, chain),
+        )
+
+    def inspect(self):
+        snapshot = self._load_snapshot()
+        session, chain = snapshot.session, snapshot.chain
+        proposal = session.pending_transition_reference
+        return {
+            "session_id": session.session_key,
+            "session_revision": session.targeted_revision,
+            "authorization_id": session.authorization_id,
+            "chain_revision": chain.targeted_revision if chain else None,
+            "mode": session.mode.value,
+            "root_scope_id": chain.locked_root_id if chain else None,
+            "pending_state": "decision"
+            if session.pending_decision_reference
+            else (
+                proposal.kind if proposal and proposal.status != "consumed" else None
+            ),
+            # The exact message a tracked session may end a turn on without
+            # authoring a record. It is published here rather than in blocking
+            # feedback, which carries issue codes and bounded identifiers only.
+            # A completed chain has no such message: reporting work in
+            # progress there would tell a session that just reconciled onto a
+            # finished authorization something plainly untrue.
+            "progress_response": (
+                progress_response(chain)
+                if chain is not None and chain.status == "active"
+                else None
+            ),
+            "issue_codes": (
+                ["AHK-STATE-STALE"]
+                if chain and session.chain_revision != chain.targeted_revision
+                else []
+            ),
+        }
+
+    def one_off(self, *, challenge, expected_session_revision):
+        """Record that the session was asked to declare and chose not to track.
+
+        This grants no authority. It suppresses the write-time advisory only;
+        a session that ends with unfinished work is still reported at Stop.
+        """
+
+        snapshot = self._bootstrap(challenge, expected_session_revision)
+        session = replace(
+            snapshot.session,
+            mode=EnforcementMode.ONE_OFF,
+            targeted_revision=snapshot.session.targeted_revision + 1,
+        )
+        self._commit(snapshot, session)
+        return {"mode": "one-off"}
+
+    def register_root(
+        self,
+        *,
+        challenge,
+        scope_id,
+        scope_kind,
+        scope_definition_b64,
+        expected_session_revision,
+    ):
+        snapshot = self._bootstrap(challenge, expected_session_revision)
+        scope = _immutable_scopes(
+            [
+                {
+                    "scope_id": scope_id,
+                    "scope_kind": scope_kind,
+                    "parent_scope_id": None,
+                    "scope_definition": decode_scope_definition(scope_definition_b64),
+                }
+            ]
+        )[0]
+        digests = (scope_definition_digest(scope),)
+        if any(
+            chain.status == "active"
+            and chain.locked_root_id == scope_id
+            and chain.scope_digests[0] == digests[0]
+            for chain in self.storage.load_registry().chains.values()
+        ):
+            raise ValueError("identical active root exists; use explicit join")
+        authorization_id = "auth-" + secrets.token_hex(16)
+        turn = snapshot.session.current_external_user_turn_reference
+        signature = evidence_hmac(
+            self.storage.secret,
+            {
+                "kind": "initial-user-turn",
+                "authorization_id": authorization_id,
+                "user_turn_ref": turn,
+                "proposal_turn_ref": None,
+                "role": "user",
+                "adjacent": True,
+                "scope_digests": list(digests),
+            },
+        )
+        chain = ChainState(
+            authorization_id,
+            scope_id,
+            digests,
+            1,
+            "active",
+            None,
+            authorization_user_turn_reference=turn,
+            authorization_evidence_hmac=signature,
+            # The declared goal in the user's own words. Every message that
+            # names the work to the user reads it from here.
+            root_title=scope["scope_definition"]["title"],
+        )
+        session = replace(
+            snapshot.session,
+            targeted_revision=expected_session_revision + 1,
+            mode=EnforcementMode.TRACKED,
+            authorization_id=authorization_id,
+            chain_revision=1,
+            bootstrap_challenge=None,
+        )
+        return self._commit(snapshot, session, chain)
+
+    def join(
+        self,
+        *,
+        challenge,
+        authorization_id,
+        expected_chain_revision,
+        expected_session_revision,
+    ):
+        snapshot = self._bootstrap(challenge, expected_session_revision)
+        validate_identifier(authorization_id, label="authorization_id")
+        chain = self.storage.load_chain(authorization_id)
+        if chain is None or chain.status != "active":
+            raise ValueError("join requires an existing active chain")
+        if (
+            type(expected_chain_revision) is not int
+            or chain.targeted_revision != expected_chain_revision
+        ):
+            raise StaleLifecycleState("targeted chain revision changed")
+        session = replace(
+            snapshot.session,
+            targeted_revision=expected_session_revision + 1,
+            mode=EnforcementMode.TRACKED,
+            authorization_id=authorization_id,
+            chain_revision=expected_chain_revision,
+            bootstrap_challenge=None,
+        )
+        return self._commit(
+            snapshot, session, expected_chain_revision=expected_chain_revision
+        )
+
+    def resume(
+        self,
+        *,
+        challenge,
+        record_path,
+        record_text,
+        record_metadata,
+        record_digest,
+        expected_session_revision,
+    ):
+        self._bootstrap(challenge, expected_session_revision)
+        path = canonical_record_path(record_path)
+        if (
+            not isinstance(record_text, str)
+            or len(record_text.encode("utf-8")) > 131072
+        ):
+            raise ValueError("record exceeds input bound")
+        parsed = parse_markdown(record_text)
+        if (
+            parsed != record_metadata
+            or source_digest(record_text) != record_digest
+            or validate_markdown(record_text)
+        ):
+            raise ValueError("record bytes, metadata, or digest mismatch")
+        if (
+            parsed.get("schema_version") != 2
+            or parsed.get("record_type") != "continuation"
+        ):
+            raise ValueError("resume requires one v2 continuation")
+        chain = self.storage.load_chain(parsed["authorization_id"])
+        current = chain.current_record_reference if chain else None
+        # The stored path is a locator. A chain is continued from another
+        # worktree or from WSL, where that absolute path names nothing; the
+        # record id and the source digest are what identify the record.
+        same_record = current is not None and (
+            current.record_id,
+            PurePosixPath(current.path).name,
+            current.sha256,
+        ) == (parsed["record_id"], PurePosixPath(path).name, record_digest)
+        if (
+            chain is None
+            or chain.status != "active"
+            or not same_record
+            or chain.locked_root_id != parsed["authorized_root_scope_id"]
+            or chain.scope_digests
+            != tuple(
+                scope["scope_definition_digest"] for scope in parsed["active_scopes"]
+            )
+        ):
+            raise ValueError("record differs from the live chain")
+        return self.join(
+            challenge=challenge,
+            authorization_id=chain.authorization_id,
+            expected_chain_revision=chain.targeted_revision,
+            expected_session_revision=expected_session_revision,
+        )
+
+    def propose_transition(
+        self,
+        *,
+        old_scopes,
+        new_scopes,
+        assistant_turn_reference,
+        expected_chain_revision,
+        expected_session_revision,
+        kind="transition",
+        selected_record=None,
+    ):
+        snapshot = self._snapshot(expected_session_revision, expected_chain_revision)
+        if kind == "transition":
+            _require_transition_record(snapshot.chain)
+        if snapshot.session.pending_decision_reference is not None:
+            raise ValueError(
+                "resolve the pending decision before proposing scope changes"
+            )
+        pending = snapshot.session.pending_transition_reference
+        old, new = _immutable_scopes(old_scopes), _immutable_scopes(new_scopes)
+        if (
+            pending is not None
+            and pending.status != "consumed"
+            and (
+                pending.status != "pending"
+                or pending.kind != kind
+                or pending.old_scopes != old
+                or pending.new_scopes != new
+                or pending.selected_record != selected_record
+            )
+        ):
+            raise ValueError("an authorization proposal is already pending")
+        if not new:
+            raise ValueError("proposal requires a new root")
+        if kind == "transition":
+            if (
+                snapshot.chain is None
+                or snapshot.chain.status != "active"
+                or tuple(scope_definition_digest(scope) for scope in old)
+                != snapshot.chain.scope_digests
+                or old[0]["scope_id"] != snapshot.chain.locked_root_id
+            ):
+                raise ValueError(
+                    "old immutable definitions differ from the active chain"
+                )
+        proposal = AuthorizationProposal(
+            "proposal-" + secrets.token_hex(16),
+            kind,
+            assistant_turn_reference,
+            snapshot.chain.authorization_id if snapshot.chain else None,
+            "auth-" + secrets.token_hex(16),
+            old,
+            new,
+            selected_record,
+            source_user_turn_reference=snapshot.session.current_external_user_turn_reference,
+        )
+        return self._commit(
+            snapshot,
+            replace(
+                snapshot.session,
+                targeted_revision=expected_session_revision + 1,
+                pending_transition_reference=proposal,
+            ),
+        )
+
+    def observe_user_turn(
+        self,
+        event,
+        *,
+        preceding_assistant_turn_reference,
+        expected_chain_revision,
+        expected_session_revision,
+    ):
+        snapshot = self._snapshot(expected_session_revision, expected_chain_revision)
+        if (
+            event.event is not EventName.USER_PROMPT_SUBMIT
+            or event.session_key != snapshot.session.session_key
+        ):
+            raise ValueError("event does not identify this user-prompt session")
+        if not event.external_user_turn:
+            return snapshot
+        turn = event.current_user_reference or event.turn_reference
+        if turn == snapshot.session.current_external_user_turn_reference:
+            return snapshot
+        proposal = snapshot.session.pending_transition_reference
+        chain = None
+        if (
+            proposal
+            and proposal.status == "pending"
+            and proposal.assistant_turn_reference == preceding_assistant_turn_reference
+            and turn != snapshot.session.current_external_user_turn_reference
+        ):
+            classification = classify_affirmation(event.current_user_message)
+            if classification is AffirmationResult.REJECT:
+                proposal = None
+            elif classification is AffirmationResult.APPROVE:
+                if proposal.kind == "transition":
+                    _require_transition_record(snapshot.chain)
+                    if snapshot.chain.publication_evidence is not None:
+                        raise LifecycleOperationError(
+                            "AHK-TRANSITION-PUBLICATION",
+                            "publish the approved successor record first",
+                        )
+                digests = tuple(
+                    scope_definition_digest(scope) for scope in proposal.new_scopes
+                )
+                signature = evidence_hmac(
+                    self.storage.secret,
+                    {
+                        "kind": proposal.kind,
+                        "proposal_id": proposal.proposal_id,
+                        "from_authorization_id": proposal.from_authorization_id,
+                        "to_authorization_id": proposal.to_authorization_id,
+                        "proposal_turn_ref": proposal.assistant_turn_reference,
+                        "user_turn_ref": turn,
+                        "old_scope_digests": [
+                            scope_definition_digest(scope)
+                            for scope in proposal.old_scopes
+                        ],
+                        "scope_digests": list(digests),
+                        "role": "user",
+                        "adjacent": True,
+                        "selected_record": {
+                            "record_id": proposal.selected_record.record_id,
+                            "path": proposal.selected_record.path,
+                            "sha256": proposal.selected_record.sha256,
+                        }
+                        if proposal.selected_record
+                        else None,
+                    },
+                )
+                proposal = replace(
+                    proposal,
+                    status="approved",
+                    approval_turn_reference=turn,
+                    evidence_hmac=signature,
+                )
+                if proposal.kind == "transition":
+                    proposal = replace(proposal, status="consumed")
+                    chain = ChainState(
+                        proposal.to_authorization_id,
+                        proposal.new_scopes[0]["scope_id"],
+                        digests,
+                        1,
+                        "active",
+                        snapshot.chain.current_record_reference,
+                        authorization_user_turn_reference=turn,
+                        authorization_evidence_hmac=signature,
+                        publication_evidence=proposal,
+                    )
+                    proposal = None
+        session = replace(
+            snapshot.session,
+            targeted_revision=expected_session_revision + 1,
+            current_external_user_turn_reference=turn,
+            bootstrap_challenge="challenge-" + secrets.token_hex(16),
+            pending_transition_reference=proposal,
+            correction_cycle_count=0,
+            last_issue_signature=None,
+        )
+        if chain:
+            session = replace(
+                session,
+                mode=EnforcementMode.TRACKED,
+                authorization_id=chain.authorization_id,
+                chain_revision=1,
+                bootstrap_challenge=None,
+            )
+        return self._commit(snapshot, session, chain)
+
+    def request_decision(
+        self,
+        *,
+        question,
+        reason,
+        category,
+        blocked_action_field,
+        blocked_action_value,
+        expected_chain_revision,
+        expected_session_revision,
+    ):
+        snapshot = self._snapshot(expected_session_revision, expected_chain_revision)
+        if (
+            snapshot.chain is None
+            or snapshot.chain.status != "active"
+            or snapshot.session.mode is not EnforcementMode.TRACKED
+        ):
+            raise ValueError("decision requires a tracked active chain")
+
+        def text_hmac(label, value):
+            if not isinstance(value, str) or len(value.encode("utf-8")) > 400:
+                raise ValueError("invalid decision content length")
+            return hmac.new(
+                self.storage.secret,
+                f"agent-handoff-toolkit:{label}\0{value}".encode("utf-8"),
+                hashlib.sha256,
+            ).hexdigest()
+
+        request = DecisionRequest(
+            "decision-" + secrets.token_hex(16),
+            snapshot.chain.authorization_id,
+            AuthorityCategory(category),
+            blocked_action_field,
+            blocked_action_value,
+            text_hmac("question", question),
+            text_hmac("reason", reason),
+        )
+        response = render_decision_response(
+            question, reason, request, self.storage.secret
+        )
+        self._commit(
+            snapshot,
+            replace(
+                snapshot.session,
+                targeted_revision=expected_session_revision + 1,
+                mode=EnforcementMode.AWAITING_DECISION,
+                pending_decision_reference=request,
+            ),
+        )
+        return response

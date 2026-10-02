@@ -1,0 +1,67 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "matcher": "startup|resume|clear|compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event session-start"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event user-prompt-submit"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event pre-tool-use"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Write|Edit|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event post-tool-use"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event session-end"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event stop"
+          }
+        ]
+      }
+    ]
+  }
+}

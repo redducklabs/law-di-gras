@@ -1,0 +1,297 @@
+{
+  "record_schema_version": 2,
+  "release": "v1.1.0",
+  "state_version": 1,
+  "targets": [
+    {
+      "installed_sha256": "05177ecccccd051d6a91d252ed7c394479debbc4eadf695d8b4f1b3ab0fd2d28",
+      "mode": "copy",
+      "source": "docs/consumer-integration.md",
+      "target": ".agent-handoff-toolkit/consumer-integration.md"
+    },
+    {
+      "installed_sha256": "b6e6d85d44db88c456379014cbaa080194dccfa428f24fa063d8fbff5eeb3527",
+      "mode": "copy",
+      "source": "LICENSE",
+      "target": ".agent-handoff-toolkit/LICENSE"
+    },
+    {
+      "installed_sha256": "b3a05c1ae8bb90cc124285c125a8be78d9e5eaef16b576326dbcc8615380ccba",
+      "mode": "copy",
+      "source": "distribution/runner.py",
+      "target": ".agent-handoff-toolkit/runner.py"
+    },
+    {
+      "installed_sha256": "80c4f9208f343b7aa6352019c751a934e5867cdc54442d6691273f76d56da15e",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/__init__.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/__init__.py"
+    },
+    {
+      "installed_sha256": "7e67c47885690bebe4e36ef43de45ab7491cd34b7bf0f972ed821ea943657d82",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/__main__.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/__main__.py"
+    },
+    {
+      "installed_sha256": "1fe1c23ada39033ae42e4f786bb5557719e56a7046371e7fe5a95a638c82a923",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/acceptance.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/acceptance.py"
+    },
+    {
+      "installed_sha256": "9e8d60b0e152301360d1dc6c5bcbf6d8e2e19f1f672d80dce63cf4ceed3df26c",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/cli.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/cli.py"
+    },
+    {
+      "installed_sha256": "20e596bc4ba9a4a26ad210a65b736917e2ab515afb0057b0a7765f2902247f55",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/hook_adapters.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/hook_adapters.py"
+    },
+    {
+      "installed_sha256": "aec75d191656b9a838aa33b9395a02f8933e00918cb1e16014fea6a7e646821b",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/hooks.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/hooks.py"
+    },
+    {
+      "installed_sha256": "0cc0225164b9672238891fefcd119d2f60f029eaf1b3ff36f163629ae31f5cc8",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/lifecycle.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/lifecycle.py"
+    },
+    {
+      "installed_sha256": "a53a89babf7cae04683256749f01e1077b152d90ed131d46adf682d5d99b6303",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/lifecycle_operations.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/lifecycle_operations.py"
+    },
+    {
+      "installed_sha256": "40d3725ba3e8f1e375981859651849a2b92a4cd3a00debb44a73377449a93bcf",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/lifecycle_storage.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/lifecycle_storage.py"
+    },
+    {
+      "installed_sha256": "855a36867f5b6cc8b3c1d9a03fe7153a0a231d0adb4b3a3f2d9ade432fbc5739",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/lineage.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/lineage.py"
+    },
+    {
+      "installed_sha256": "af0b6a6d3ea9c4ecb55ab94cd72564cfb4aa24b1d1d04547388dc9e0601821c7",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/records.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/records.py"
+    },
+    {
+      "installed_sha256": "e47aea9ecbfb4579640e44df67c6e36b6522fd9d28482355a3a6059b05db808f",
+      "mode": "copy",
+      "source": "src/agent_handoff_toolkit/repository_state.py",
+      "target": ".agent-handoff-toolkit/src/agent_handoff_toolkit/repository_state.py"
+    },
+    {
+      "installed_sha256": "e50d9bcbfd80cdc01450f5707edcba1840da0aff0cb9bf63a227be435e30ace4",
+      "mode": "copy",
+      "source": "skills/agent-handoff/SKILL.md",
+      "target": ".agents/skills/agent-handoff/SKILL.md"
+    },
+    {
+      "installed_sha256": "baa41de74ef432ee3f7716ce015fb0ba9caed01681be103b21b9d8f30df60baf",
+      "mode": "merge-json",
+      "owned_fragment": {
+        "hooks": {
+          "PostToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event post-tool-use",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Write|Edit|MultiEdit|NotebookEdit"
+            }
+          ],
+          "PreToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event pre-tool-use",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Bash|PowerShell|Write|Edit|MultiEdit|NotebookEdit"
+            }
+          ],
+          "SessionEnd": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event session-end",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "SessionStart": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event session-start",
+                  "type": "command"
+                }
+              ],
+              "matcher": "startup|resume|clear|compact"
+            }
+          ],
+          "Stop": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event stop",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "UserPromptSubmit": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform claude --event user-prompt-submit",
+                  "type": "command"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "source": "adapters/claude/settings.fragment.json",
+      "target": ".claude/settings.json"
+    },
+    {
+      "installed_sha256": "e50d9bcbfd80cdc01450f5707edcba1840da0aff0cb9bf63a227be435e30ace4",
+      "mode": "copy",
+      "source": "skills/agent-handoff/SKILL.md",
+      "target": ".claude/skills/agent-handoff/SKILL.md"
+    },
+    {
+      "installed_sha256": "a7ec1584b5b6a6ece4493acef4230d89ab9c30f53cff247b73a478ae5a482a3c",
+      "mode": "merge-json",
+      "owned_fragment": {
+        "hooks": {
+          "PostToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event post-tool-use",
+                  "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event post-tool-use",
+                  "type": "command"
+                }
+              ],
+              "matcher": "apply_patch"
+            }
+          ],
+          "PreToolUse": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event pre-tool-use",
+                  "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event pre-tool-use",
+                  "type": "command"
+                }
+              ],
+              "matcher": "Bash|apply_patch"
+            }
+          ],
+          "SessionEnd": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event session-end",
+                  "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event session-end",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "SessionStart": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event session-start",
+                  "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event session-start",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "Stop": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event stop",
+                  "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event stop",
+                  "type": "command"
+                }
+              ]
+            }
+          ],
+          "UserPromptSubmit": [
+            {
+              "hooks": [
+                {
+                  "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event user-prompt-submit",
+                  "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event user-prompt-submit",
+                  "type": "command"
+                }
+              ]
+            }
+          ]
+        }
+      },
+      "source": "adapters/codex/hooks.fragment.json",
+      "target": ".codex/hooks.json"
+    },
+    {
+      "installed_sha256": "61fbefac715b1af40cd704c704a3eb3d390151babc349eb43c62ab05e4703c10",
+      "mode": "managed-block",
+      "source": "distribution/consumer-instructions.md",
+      "target": "AGENTS.md"
+    },
+    {
+      "installed_sha256": "61fbefac715b1af40cd704c704a3eb3d390151babc349eb43c62ab05e4703c10",
+      "mode": "managed-block",
+      "source": "distribution/consumer-instructions.md",
+      "target": "CLAUDE.md"
+    },
+    {
+      "installed_sha256": "5e706188afc2f32b80c70c9cb06580f28aeb43d3f3e4525678a6200fa51dd192",
+      "mode": "copy",
+      "source": "docs/agent-handoff/contract.md",
+      "target": "docs/agent-handoff/contract.md"
+    },
+    {
+      "installed_sha256": "e0c74f9913f8b95783820256fe36a1d73d53c33c5d840f087c558c9e61ebd563",
+      "mode": "copy",
+      "source": "docs/agent-handoff/mechanics.md",
+      "target": "docs/agent-handoff/mechanics.md"
+    },
+    {
+      "installed_sha256": "dbbfbc876ea209cfefd9b3d60c72d2818cd7de1fda308b26de6b322a73abe33f",
+      "mode": "copy",
+      "source": "templates/completion-audit.md",
+      "target": "handoffs/templates/completion-audit.md"
+    },
+    {
+      "installed_sha256": "3d5be54693ce9c6e3397826482894292d44c1aaba9c1bdaa57d9a68af0a5a52a",
+      "mode": "copy",
+      "source": "templates/continuation.md",
+      "target": "handoffs/templates/continuation.md"
+    }
+  ],
+  "toolkit_version": "1.1.0"
+}

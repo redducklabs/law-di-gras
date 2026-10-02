@@ -1,0 +1,72 @@
+{
+  "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event session-start",
+            "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event session-start"
+          }
+        ]
+      }
+    ],
+    "UserPromptSubmit": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event user-prompt-submit",
+            "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event user-prompt-submit"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Bash|apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event pre-tool-use",
+            "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event pre-tool-use"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "apply_patch",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event post-tool-use",
+            "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event post-tool-use"
+          }
+        ]
+      }
+    ],
+    "SessionEnd": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event session-end",
+            "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event session-end"
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event stop",
+            "commandWindows": "python -c \"import pathlib,runpy;w=pathlib.Path.cwd();r=next((p for p in ((d/'.agent-handoff-toolkit'/'runner.py') for d in (w,*w.parents)) if p.is_file()),None);r and runpy.run_path(str(r),run_name='__main__')\" hook --platform codex --event stop"
+          }
+        ]
+      }
+    ]
+  }
+}
