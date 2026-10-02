@@ -1,13 +1,24 @@
-# Demo video script
+# Demo video script (90 seconds)
 
-Fill this in once the concept is chosen. Keep it to the one path the video shows.
+Sapini, read live from Clio (read-only) and digested once into our own cache.
+Firm view at `http://localhost:5175/`; provider view from the share panel's link.
 
-1. Opening problem (one sentence, from the organizers' pain point)
-2. Steps on screen, each with what the viewer should notice
-3. Closing line
+**Before recording:** restart backend `:8000` and frontend `:5175` from the main
+checkout on latest `main`; `GET /api/health` shows the current `pipeline_rev`;
+run `POST /api/matters/1811191943/digest` once so every click is served from
+cache; browser at 1440x900, zoom 100%, no other tabs; open one chip and one
+draft once beforehand so PDFs and drafts are warm.
 
-Video is 90 seconds, on Sapini read live from Clio. Before recording: digestion
-already cached in our database, clean start, browser zoom and window size fixed.
+| Time | On screen | Say |
+|---|---|---|
+| 0:00–0:08 | Firm Case Brief loads | "A PI file is thousands of pages. Clio captures it; nobody digests it. This is Sapini, live from Clio." |
+| 0:08–0:22 | Header, timeline strip, KPI row | "In ten seconds: litigation stage, the milestones that matter, what the case is worth and the coverage behind it. $118,400 in specials across nine providers, the value range with the firm's rule shown." |
+| 0:22–0:38 | Click an injury chip → PDF opens, quote highlighted | "Every fact is a link. Click the injury and the scanned medical record opens at the exact line. Nothing on this screen is unsourced; anything we can't verify verbatim is marked." |
+| 0:38–0:50 | Next steps → overdue item → Draft → Improve with AI | "What's overdue and who we're waiting on. One click drafts the follow-up; the AI version cites every fact and can't put a date or dollar in an email that the record doesn't contain." |
+| 0:50–0:58 | Find in case: type a question, click a cited [n] | "Drill down on demand: search and cited answers over the whole file." |
+| 0:58–1:15 | Share with provider → pick the chiropractor → toggle coverage → copy link | "Providers treating on a lien want two things: is the case alive, and is there coverage. The attorney picks exactly what this provider sees: no strategy, no notes." |
+| 1:15–1:27 | Provider page: case active, coverage, what the firm needs, visits and bills, updates since | "The doctor sees status, coverage, what the firm needs from their office, and their own visits and bills, without the file and without an email." |
+| 1:27–1:30 | Back to brief | "Ninety seconds to the whole case, every fact traceable. About $1.50 per case to digest." |
 
 ## Pitch notes (say these; not built)
 
